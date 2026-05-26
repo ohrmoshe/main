@@ -15,82 +15,86 @@ interface DonationParams {
 }
 
 export async function startDonationSession(params: DonationParams) {
-  const { tierId, customAmount, subscriberInfo } = params
+  try {
+    const { tierId, customAmount, subscriberInfo } = params
 
-  const tier = DONATION_TIERS.find((t) => t.id === tierId)
-  if (!tier) {
-    throw new Error(`Donation tier "${tierId}" not found`)
-  }
+    const tier = DONATION_TIERS.find((t) => t.id === tierId)
+    if (!tier) {
+      throw new Error(`Donation tier "${tierId}" not found`)
+    }
 
-  const amount = tierId.includes('custom') && customAmount ? customAmount * 100 : tier.priceInCents
+    const amount = tierId.includes('custom') && customAmount ? customAmount * 100 : tier.priceInCents
 
-  if (amount < 100) {
-    throw new Error('Minimum donation amount is $1')
-  }
+    if (amount < 100) {
+      throw new Error('Minimum donation amount is $1')
+    }
 
-  const isMonthly = tier.frequency === 'monthly'
+    const isMonthly = tier.frequency === 'monthly'
 
-  // Build metadata with subscription preferences
-  const metadata: Record<string, string> = {
-    donation_tier: tier.name,
-    frequency: tier.frequency,
-  }
+    // Build metadata with subscription preferences
+    const metadata: Record<string, string> = {
+      donation_tier: tier.name,
+      frequency: tier.frequency,
+    }
 
-  if (subscriberInfo) {
-    if (subscriberInfo.email) metadata.subscriber_email = subscriberInfo.email
-    if (subscriberInfo.phone) metadata.subscriber_phone = subscriberInfo.phone
-    metadata.email_opt_in = subscriberInfo.emailOptIn ? 'true' : 'false'
-    metadata.sms_opt_in = subscriberInfo.smsOptIn ? 'true' : 'false'
-  }
+    if (subscriberInfo) {
+      if (subscriberInfo.email) metadata.subscriber_email = subscriberInfo.email
+      if (subscriberInfo.phone) metadata.subscriber_phone = subscriberInfo.phone
+      metadata.email_opt_in = subscriberInfo.emailOptIn ? 'true' : 'false'
+      metadata.sms_opt_in = subscriberInfo.smsOptIn ? 'true' : 'false'
+    }
 
-  if (isMonthly) {
-    // Create subscription checkout session
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded',
-      return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: tier.name,
-              description: `Monthly recurring donation to Kollel Ohr Moshe`,
+    if (isMonthly) {
+      // Create subscription checkout session
+      const session = await stripe.checkout.sessions.create({
+        ui_mode: 'embedded_page',
+        return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: tier.name,
+                description: `Monthly recurring donation to Kollel Ohr Moshe`,
+              },
+              unit_amount: amount,
+              recurring: {
+                interval: 'month',
+              },
             },
-            unit_amount: amount,
-            recurring: {
-              interval: 'month',
-            },
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      metadata,
-    })
+        ],
+        mode: 'subscription',
+        metadata,
+      })
 
-    return session.client_secret
-  } else {
-    // Create one-time payment checkout session
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded',
-      return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: tier.name,
-              description: `One-time donation to Kollel Ohr Moshe`,
+      return session.client_secret
+    } else {
+      // Create one-time payment checkout session
+      const session = await stripe.checkout.sessions.create({
+        ui_mode: 'embedded_page',
+        return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: tier.name,
+                description: `One-time donation to Kollel Ohr Moshe`,
+              },
+              unit_amount: amount,
             },
-            unit_amount: amount,
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      metadata,
-    })
+        ],
+        mode: 'payment',
+        metadata,
+      })
 
-    return session.client_secret
+      return session.client_secret
+    }
+  } catch (error) {
+    throw error
   }
 }

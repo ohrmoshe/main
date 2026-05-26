@@ -37,18 +37,29 @@ export default function DonationForm() {
     return `${prefix}-${selectedAmount}`
   }
 
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
+
   const startCheckoutSessionForDonation = useCallback(async () => {
-    const result = await startDonationSession({
-      tierId: getTierId(),
-      customAmount: isCustom ? parseFloat(customAmount) : undefined,
-      subscriberInfo: {
-        email: email || undefined,
-        phone: phone || undefined,
-        emailOptIn,
-        smsOptIn,
-      },
-    })
-    return result
+    try {
+      const result = await startDonationSession({
+        tierId: getTierId(),
+        customAmount: isCustom ? parseFloat(customAmount) : undefined,
+        subscriberInfo: {
+          email: email || undefined,
+          phone: phone || undefined,
+          emailOptIn,
+          smsOptIn,
+        },
+      })
+      if (!result) {
+        throw new Error('No client secret returned from server')
+      }
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start checkout'
+      setCheckoutError(errorMessage)
+      throw error
+    }
   }, [frequency, selectedAmount, isCustom, customAmount, email, phone, emailOptIn, smsOptIn])
 
   const handleDonate = () => {
@@ -56,6 +67,7 @@ export default function DonationForm() {
       alert('Please enter a valid amount (minimum $1)')
       return
     }
+    setCheckoutError(null)
     setShowCheckout(true)
   }
 
@@ -63,7 +75,10 @@ export default function DonationForm() {
     return (
       <div className="w-full">
         <button
-          onClick={() => setShowCheckout(false)}
+          onClick={() => {
+            setShowCheckout(false)
+            setCheckoutError(null)
+          }}
           className="mb-4 text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -71,6 +86,12 @@ export default function DonationForm() {
           </svg>
           Back to donation options
         </button>
+        {checkoutError && (
+          <div className="mb-4 p-4 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm">
+            <p className="font-medium">Error:</p>
+            <p>{checkoutError}</p>
+          </div>
+        )}
         <EmbeddedCheckoutProvider
           stripe={stripePromise}
           options={{ fetchClientSecret: startCheckoutSessionForDonation }}
