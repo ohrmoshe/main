@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     try {
       // Send notification to admin
       await resend.emails.send({
-        from: 'Kollel Ohr Moshe <donations@kollelohrmoshe.com>',
+        from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
         to: 'amit@kollelohrmoshe.com',
         subject: `New Donation: $${amount} ${currency} - ${donationType}`,
         html: `
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (customerEmail && customerEmail !== 'Not provided') {
       try {
         await resend.emails.send({
-          from: 'Kollel Ohr Moshe <donations@kollelohrmoshe.com>',
+          from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
           to: customerEmail,
           subject: `Thank You for Your Donation to Kollel Ohr Moshe`,
           html: `
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
 
       try {
         await resend.emails.send({
-          from: 'Kollel Ohr Moshe <donations@kollelohrmoshe.com>',
+          from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
           to: 'amit@kollelohrmoshe.com',
           subject: `Recurring Donation Received: $${amount} ${currency}`,
           html: `
