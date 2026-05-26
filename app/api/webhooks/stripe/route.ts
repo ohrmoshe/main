@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     const donationType = isSubscription ? 'Monthly Recurring' : 'One-Time'
 
     try {
+      // Send notification to admin
       await resend.emails.send({
         from: 'Kollel Ohr Moshe <donations@kollelohrmoshe.com>',
         to: 'amit@kollelohrmoshe.com',
