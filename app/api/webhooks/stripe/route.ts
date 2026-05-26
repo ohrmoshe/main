@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     const donationType = isSubscription ? 'Monthly Recurring' : 'One-Time'
 
     try {
+      // Send notification to admin
       await resend.emails.send({
         from: 'Kollel Ohr Moshe <donations@kollelohrmoshe.com>',
         to: 'amit@kollelohrmoshe.com',
@@ -103,6 +104,89 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error('Failed to send notification email:', emailError)
       // Don't fail the webhook if email fails
+    }
+
+    // Send confirmation email to donor
+    if (customerEmail && customerEmail !== 'Not provided') {
+      try {
+        await resend.emails.send({
+          from: 'Kollel Ohr Moshe <donations@kollelohrmoshe.com>',
+          to: customerEmail,
+          subject: `Thank You for Your Donation to Kollel Ohr Moshe`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="text-align: center; padding: 20px 0;">
+                <img src="https://kollelohrmoshe.org/images/logo-gold.png" alt="Kollel Ohr Moshe" style="max-width: 150px; height: auto;">
+              </div>
+              
+              <h1 style="color: #8B7355; text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px;">
+                Thank You for Your Generosity
+              </h1>
+              
+              <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                Dear ${customerName},
+              </p>
+              
+              <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                Thank you for your generous ${donationType.toLowerCase()} donation of <strong>$${amount} ${currency}</strong> to Kollel Ohr Moshe.
+              </p>
+              
+              <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                Your support directly enables our 35 Avreichim to dedicate themselves to full-time Torah study. 
+                <strong>100% of your donation goes to Torah scholar stipends</strong> — no overhead, no facility expenses, just pure Torah learning.
+              </p>
+
+              <div style="background-color: #f9f7f4; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #D4AF37;">
+                <h3 style="color: #8B7355; margin-top: 0;">Your Donation Receipt</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Amount:</td>
+                    <td style="padding: 8px 0; color: #333; font-weight: bold;">$${amount} ${currency}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Type:</td>
+                    <td style="padding: 8px 0; color: #333;">${donationType}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">Date:</td>
+                    <td style="padding: 8px 0; color: #333;">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                May you be blessed with health, happiness, and success in all your endeavors. Your partnership in Torah learning creates eternal merit.
+              </p>
+
+              <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                With gratitude and blessings,<br>
+                <strong>Rabbi Amit Turgeman</strong><br>
+                Kollel Ohr Moshe
+              </p>
+
+              <div style="margin-top: 30px; padding: 20px; background-color: #8B7355; color: #fff; border-radius: 8px; text-align: center;">
+                <p style="margin: 0 0 10px 0; font-size: 14px;">
+                  Kollel Ohr Moshe is a 501(c)(3) tax-exempt organization.
+                </p>
+                <p style="margin: 0; font-size: 12px; opacity: 0.9;">
+                  Please retain this email as your donation receipt for tax purposes.
+                </p>
+              </div>
+
+              <div style="margin-top: 20px; text-align: center; color: #999; font-size: 12px;">
+                <p>
+                  Questions? Contact us at <a href="mailto:amit@kollelohrmoshe.com" style="color: #8B7355;">amit@kollelohrmoshe.com</a> or (818) 744-2970
+                </p>
+                <p>
+                  <a href="https://kollelohrmoshe.org" style="color: #8B7355;">kollelohrmoshe.org</a>
+                </p>
+              </div>
+            </div>
+          `,
+        })
+      } catch (donorEmailError) {
+        console.error('Failed to send donor confirmation email:', donorEmailError)
+      }
     }
   }
 
