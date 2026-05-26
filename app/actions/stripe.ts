@@ -46,7 +46,8 @@ export async function startDonationSession(params: DonationParams) {
   if (isMonthly) {
     // Create subscription checkout session
     const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded_page',
+      ui_mode: 'embedded',
+      return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       line_items: [
         {
           price_data: {
@@ -71,7 +72,8 @@ export async function startDonationSession(params: DonationParams) {
   } else {
     // Create one-time payment checkout session
     const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded_page',
+      ui_mode: 'embedded',
+      return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       line_items: [
         {
           price_data: {
