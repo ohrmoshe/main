@@ -107,16 +107,6 @@ export default function UpdatesGrid() {
                 <p className="mt-3 text-muted-foreground text-sm leading-relaxed line-clamp-3">
                   {update.excerpt}
                 </p>
-                <a
-                  href="#"
-                  className="inline-flex items-center gap-2 mt-4 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                >
-                  Read More
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14"/>
-                    <path d="m12 5 7 7-7 7"/>
-                  </svg>
-                </a>
               </div>
             </article>
           ))}
