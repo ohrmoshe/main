@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       // Send notification to admin
       console.log('[v0] Attempting to send admin notification email...')
       const adminEmailResult = await resend.emails.send({
-        from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.com>',
+        from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
         to: 'amit@kollelohrmoshe.com',
         subject: `New Donation: $${amount} ${currency} - ${donationType}`,
         html: `
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       try {
         console.log('[v0] Attempting to send donor confirmation email to:', customerEmail)
         const donorEmailResult = await resend.emails.send({
-          from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.com>',
+          from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
           to: customerEmail,
           subject: `Thank You for Your Donation to Kollel Ohr Moshe`,
           html: `
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
 
       try {
         await resend.emails.send({
-          from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.com>',
+          from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
           to: 'amit@kollelohrmoshe.com',
           subject: `Recurring Donation Received: $${amount} ${currency}`,
           html: `
