@@ -40,9 +40,15 @@ export async function POST(request: NextRequest) {
     const isSubscription = session.mode === 'subscription'
     const donationType = isSubscription ? 'Monthly Recurring' : 'One-Time'
 
+    console.log('[v0] Webhook received - checkout.session.completed')
+    console.log('[v0] Customer email:', customerEmail)
+    console.log('[v0] Amount:', amount)
+    console.log('[v0] RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
+
     try {
       // Send notification to admin
-      await resend.emails.send({
+      console.log('[v0] Attempting to send admin notification email...')
+      const adminEmailResult = await resend.emails.send({
         from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.com>',
         to: 'amit@kollelohrmoshe.com',
         subject: `New Donation: $${amount} ${currency} - ${donationType}`,
@@ -101,15 +107,17 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       })
+      console.log('[v0] Admin email result:', JSON.stringify(adminEmailResult))
     } catch (emailError) {
-      console.error('Failed to send notification email:', emailError)
+      console.error('[v0] Failed to send notification email:', emailError)
       // Don't fail the webhook if email fails
     }
 
     // Send confirmation email to donor
     if (customerEmail && customerEmail !== 'Not provided') {
       try {
-        await resend.emails.send({
+        console.log('[v0] Attempting to send donor confirmation email to:', customerEmail)
+        const donorEmailResult = await resend.emails.send({
           from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.com>',
           to: customerEmail,
           subject: `Thank You for Your Donation to Kollel Ohr Moshe`,
@@ -184,8 +192,9 @@ export async function POST(request: NextRequest) {
             </div>
           `,
         })
+        console.log('[v0] Donor email result:', JSON.stringify(donorEmailResult))
       } catch (donorEmailError) {
-        console.error('Failed to send donor confirmation email:', donorEmailError)
+        console.error('[v0] Failed to send donor confirmation email:', donorEmailError)
       }
     }
   }
