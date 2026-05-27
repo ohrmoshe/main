@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
       // Send notification to admin
       console.log('[v0] Attempting to send admin notification email...')
       const adminEmailResult = await resend.emails.send({
-        from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
-        to: 'amit@kollelohrmoshe.com',
+        from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.org>',
+        to: 'amit@kollelohrmoshe.org',
         subject: `New Donation: $${amount} ${currency} - ${donationType}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       try {
         console.log('[v0] Attempting to send donor confirmation email to:', customerEmail)
         const donorEmailResult = await resend.emails.send({
-          from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
+          from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.org>',
           to: customerEmail,
           subject: `Thank You for Your Donation to Kollel Ohr Moshe`,
           html: `
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
 
               <div style="margin-top: 20px; text-align: center; color: #999; font-size: 12px;">
                 <p>
-                  Questions? Contact us at <a href="mailto:amit@kollelohrmoshe.com" style="color: #8B7355;">amit@kollelohrmoshe.com</a> or (818) 744-2970
+                  Questions? Contact us at <a href="mailto:amit@kollelohrmoshe.org" style="color: #8B7355;">amit@kollelohrmoshe.org</a> or (818) 744-2970
                 </p>
                 <p>
                   <a href="https://kollelohrmoshe.org" style="color: #8B7355;">kollelohrmoshe.org</a>
@@ -211,8 +211,8 @@ export async function POST(request: NextRequest) {
 
       try {
         await resend.emails.send({
-          from: 'Kollel Ohr Moshe <onboarding@resend.dev>',
-          to: 'amit@kollelohrmoshe.com',
+          from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.org>',
+          to: 'amit@kollelohrmoshe.org',
           subject: `Recurring Donation Received: $${amount} ${currency}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
