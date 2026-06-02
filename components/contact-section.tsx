@@ -217,9 +217,40 @@ export default function ContactSection() {
                     className="mt-0.5"
                   />
                   <Label htmlFor="contact-smsOptIn" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                    Receive text message updates (message and data rates may apply)
+                    I agree to receive text message updates from Kollel Ohr Moshe
                   </Label>
                 </div>
+
+                {/* SMS Disclosure - Required for Compliance */}
+                {formData.smsOptIn && (
+                  <div className="p-3 bg-muted/50 rounded-md border border-border text-xs text-muted-foreground space-y-2">
+                    <p>
+                      <strong>SMS Terms:</strong> By checking the box above, you consent to receive recurring 
+                      automated promotional and informational text messages from Kollel Ohr Moshe at the phone 
+                      number provided. Message frequency varies (approximately 2-4 messages per month).
+                    </p>
+                    <p>
+                      <strong>Msg & Data rates may apply.</strong> Message and data rates may apply depending 
+                      on your mobile carrier plan.
+                    </p>
+                    <p>
+                      <strong>Opt-Out:</strong> You can opt out at any time by replying STOP to any message. 
+                      After opting out, you will receive one final confirmation message.
+                    </p>
+                    <p>
+                      <strong>Help:</strong> For assistance, reply HELP to any message or contact us at{' '}
+                      <a href="mailto:amit@kollelohrmoshe.org" className="text-primary hover:underline">
+                        amit@kollelohrmoshe.org
+                      </a>
+                    </p>
+                    <p>
+                      Consent is not a condition of purchase. View our{' '}
+                      <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+                      {' '}and{' '}
+                      <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a>.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <Button 
