@@ -49,11 +49,11 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Contact</h4>
             <div className="flex flex-col gap-3">
               <a 
-                href="mailto:amit@kollelohrmoshe.org" 
+                href="mailto:amit@kollelohrmoshe.com" 
                 className="flex items-center gap-2 text-background/70 hover:text-background transition-colors text-sm"
               >
                 <Mail size={16} />
-                amit@kollelohrmoshe.org
+                amit@kollelohrmoshe.com
               </a>
               <a 
                 href="tel:+18187442970" 

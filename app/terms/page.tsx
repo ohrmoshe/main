@@ -63,7 +63,7 @@ export default function TermsPage() {
               <li><strong>Frequency:</strong> Message frequency varies, approximately 2-4 messages per month.</li>
               <li><strong>Costs:</strong> Message and data rates may apply. Check with your mobile carrier for details about your plan.</li>
               <li><strong>Opt-Out:</strong> You may opt out at any time by texting STOP to any message you receive. You will receive one final confirmation message.</li>
-              <li><strong>Help:</strong> For assistance, text HELP to any message or contact us at amit@kollelohrmoshe.org.</li>
+              <li><strong>Help:</strong> For assistance, text HELP to any message or contact us at amit@kollelohrmoshe.com.</li>
               <li><strong>Consent:</strong> Consent to receive text messages is not a condition of making a donation or using our services.</li>
               <li><strong>Carriers:</strong> Supported carriers include but are not limited to AT&T, Verizon, T-Mobile, Sprint, and other major carriers. Carrier participation may vary.</li>
             </ul>
@@ -133,7 +133,7 @@ export default function TermsPage() {
             </p>
             <div className="text-foreground space-y-1">
               <p><strong>Kollel Ohr Moshe</strong></p>
-              <p>Email: <a href="mailto:amit@kollelohrmoshe.org" className="text-primary hover:underline">amit@kollelohrmoshe.org</a></p>
+              <p>Email: <a href="mailto:amit@kollelohrmoshe.com" className="text-primary hover:underline">amit@kollelohrmoshe.com</a></p>
               <p>Phone: <a href="tel:+18187442970" className="text-primary hover:underline">(818) 744-2970</a></p>
               <p>Address: Los Angeles, California</p>
             </div>
