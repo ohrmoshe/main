@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       console.log('[v0] Attempting to send admin notification email...')
       const adminEmailResult = await resend.emails.send({
         from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.org>',
-        to: 'amit@kollelohrmoshe.org',
+        to: 'amit@kollelohrmoshe.com',
         subject: `New Donation: $${amount} ${currency} - ${donationType}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
 
               <div style="padding: 20px; text-align: center; color: #999; font-size: 12px; background-color: #f9f7f4;">
                 <p style="margin: 0 0 10px 0;">
-                  Questions? Contact us at <a href="mailto:amit@kollelohrmoshe.org" style="color: #8B7355;">amit@kollelohrmoshe.org</a> or (818) 744-2970
+                  Questions? Contact us at <a href="mailto:amit@kollelohrmoshe.com" style="color: #8B7355;">amit@kollelohrmoshe.com</a> or (818) 744-2970
                 </p>
                 <p style="margin: 0;">
                   <a href="https://kollelohrmoshe.org" style="color: #8B7355;">kollelohrmoshe.org</a>
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
       try {
         await resend.emails.send({
           from: 'Kollel Ohr Moshe <amit@kollelohrmoshe.org>',
-          to: 'amit@kollelohrmoshe.org',
+          to: 'amit@kollelohrmoshe.com',
           subject: `Recurring Donation Received: $${amount} ${currency}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

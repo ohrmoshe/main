@@ -255,8 +255,8 @@ export default function DonationForm() {
               </p>
               <p>
                 <strong>Help:</strong> For assistance, reply HELP to any message or contact us at{' '}
-                <a href="mailto:amit@kollelohrmoshe.org" className="text-primary hover:underline">
-                  amit@kollelohrmoshe.org
+                <a href="mailto:amit@kollelohrmoshe.com" className="text-primary hover:underline">
+                  amit@kollelohrmoshe.com
                 </a>
               </p>
               <p>
