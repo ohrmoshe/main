@@ -73,7 +73,7 @@ export default function PrivacyPolicyPage() {
               <li>Message frequency varies (approximately 2-4 messages per month)</li>
               <li>Message and data rates may apply</li>
               <li>You can opt out at any time by replying STOP to any message</li>
-              <li>For help, reply HELP or contact us at amit@kollelohrmoshe.com</li>
+              <li>For help, reply HELP or contact us at amit@kollelohrmoshe.org</li>
               <li>Consent to receive SMS is not a condition of purchase or donation</li>
             </ul>
           </section>
@@ -121,7 +121,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <div className="text-foreground space-y-1">
               <p><strong>Kollel Ohr Moshe</strong></p>
-              <p>Email: <a href="mailto:amit@kollelohrmoshe.com" className="text-primary hover:underline">amit@kollelohrmoshe.com</a></p>
+              <p>Email: <a href="mailto:amit@kollelohrmoshe.org" className="text-primary hover:underline">amit@kollelohrmoshe.org</a></p>
               <p>Phone: <a href="tel:+18187442970" className="text-primary hover:underline">(818) 744-2970</a></p>
               <p>Address: Los Angeles, California</p>
             </div>

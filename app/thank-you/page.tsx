@@ -64,8 +64,8 @@ export default function ThankYouPage() {
         {/* Contact Info */}
         <p className="mt-8 text-sm text-muted-foreground">
           Questions? Contact us at{' '}
-          <a href="mailto:amit@kollelohrmoshe.com" className="text-primary hover:underline">
-            amit@kollelohrmoshe.com
+          <a href="mailto:amit@kollelohrmoshe.org" className="text-primary hover:underline">
+            amit@kollelohrmoshe.org
           </a>
         </p>
       </div>
