@@ -84,3 +84,44 @@ export async function getCheckoutSession(sessionId: string) {
   })
   return session
 }
+
+export async function createOneTimeCheckout() {
+  try {
+    const headersList = await headers()
+    const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      billing_address_collection: "required",
+      phone_number_collection: {
+        enabled: true,
+      },
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "Watch & Learn - One-Time Entry",
+              description: "One-time donation supporting Kollel Ohr Moshe with 1 raffle entry for this month's drawing",
+            },
+            unit_amount: 3600, // $36
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        entries: "1",
+        amountCents: "3600",
+        type: "one_time",
+      },
+      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/#donate`,
+    })
+
+    return { url: session.url }
+  } catch (error) {
+    console.error("[v0] Error creating one-time checkout:", error)
+    throw error
+  }
+}

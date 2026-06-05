@@ -36,7 +36,41 @@ export async function POST(request: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
         
-        if (session.mode === "subscription" && session.subscription) {
+        // Handle one-time payment
+        if (session.mode === "payment") {
+          const customer = session.customer 
+            ? await stripe.customers.retrieve(session.customer as string) as Stripe.Customer
+            : null
+
+          const entries = parseInt(session.metadata?.entries || "1")
+          const amountCents = parseInt(session.metadata?.amountCents || "3600")
+
+          await db.insert(donations).values({
+            stripeCustomerId: session.customer as string || `onetime_${session.id}`,
+            stripeSubscriptionId: `onetime_${session.id}`,
+            name: customer?.name || session.customer_details?.name || "Unknown",
+            email: customer?.email || session.customer_details?.email || "",
+            phone: session.customer_details?.phone || null,
+            addressLine1: session.customer_details?.address?.line1 || null,
+            addressCity: session.customer_details?.address?.city || null,
+            addressState: session.customer_details?.address?.state || null,
+            addressPostalCode: session.customer_details?.address?.postal_code || null,
+            addressCountry: session.customer_details?.address?.country || null,
+            entries,
+            amountCents,
+            status: "one_time",
+          })
+
+          // Send notification email to admin
+          await sendAdminNotification("one_time", {
+            name: customer?.name || session.customer_details?.name || "Unknown",
+            email: customer?.email || session.customer_details?.email || "",
+            entries,
+            amount: amountCents / 100,
+          })
+        }
+        // Handle subscription
+        else if (session.mode === "subscription" && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
           )
@@ -130,13 +164,15 @@ export async function POST(request: NextRequest) {
 }
 
 async function sendAdminNotification(
-  type: "new_subscription" | "cancellation",
+  type: "new_subscription" | "cancellation" | "one_time",
   data: { name: string; email: string; entries: number; amount: number }
 ) {
   const adminEmail = "amit@watchnlearn.org"
   
   const subject = type === "new_subscription" 
     ? `New Subscription: ${data.name} - ${data.entries} entries ($${data.amount}/mo)` 
+    : type === "one_time"
+    ? `New One-Time Donation: ${data.name} - $${data.amount}`
     : `Subscription Cancelled: ${data.name}`
 
   const html = type === "new_subscription"
@@ -147,6 +183,15 @@ async function sendAdminNotification(
       <p><strong>Entries:</strong> ${data.entries}</p>
       <p><strong>Amount:</strong> $${data.amount}/month</p>
       <p>This donor has been automatically added to the raffle database.</p>
+    `
+    : type === "one_time"
+    ? `
+      <h2>New One-Time Donation</h2>
+      <p><strong>Name:</strong> ${data.name}</p>
+      <p><strong>Email:</strong> ${data.email}</p>
+      <p><strong>Entries:</strong> ${data.entries}</p>
+      <p><strong>Amount:</strong> $${data.amount}</p>
+      <p>This donor has been added to this month's raffle.</p>
     `
     : `
       <h2>Subscription Cancelled</h2>
