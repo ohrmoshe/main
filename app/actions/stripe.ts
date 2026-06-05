@@ -6,13 +6,12 @@ import { headers } from "next/headers"
 
 export async function createCheckoutSession(
   tierId: string,
-  customAmountCents?: number
+  customAmountCents?: number,
+  consent?: { email: boolean; sms: boolean }
 ) {
   try {
     const headersList = await headers()
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
-
-    console.log("[v0] Creating checkout session", { tierId, customAmountCents, origin })
 
     let entries: number
     let amountCents: number
@@ -35,8 +34,6 @@ export async function createCheckoutSession(
       amountCents = tier.priceInCents
       productName = `Watch & Learn - ${entries} ${entries === 1 ? "Entry" : "Entries"}/month`
     }
-
-    console.log("[v0] Creating Stripe session with", { entries, amountCents, productName })
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -64,12 +61,12 @@ export async function createCheckoutSession(
       metadata: {
         entries: entries.toString(),
         amountCents: amountCents.toString(),
+        emailConsent: consent?.email ? "true" : "false",
+        smsConsent: consent?.sms ? "true" : "false",
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#donate`,
     })
-
-    console.log("[v0] Checkout session created", { sessionId: session.id, url: session.url })
 
     return { url: session.url }
   } catch (error) {
@@ -85,7 +82,7 @@ export async function getCheckoutSession(sessionId: string) {
   return session
 }
 
-export async function createOneTimeCheckout() {
+export async function createOneTimeCheckout(consent?: { email: boolean; sms: boolean }) {
   try {
     const headersList = await headers()
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
@@ -114,6 +111,8 @@ export async function createOneTimeCheckout() {
         entries: "1",
         amountCents: "3600",
         type: "one_time",
+        emailConsent: consent?.email ? "true" : "false",
+        smsConsent: consent?.sms ? "true" : "false",
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#donate`,

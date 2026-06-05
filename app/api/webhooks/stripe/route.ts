@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
 
           const entries = parseInt(session.metadata?.entries || "1")
           const amountCents = parseInt(session.metadata?.amountCents || "3600")
+          const emailConsent = session.metadata?.emailConsent === "true"
+          const smsConsent = session.metadata?.smsConsent === "true"
 
           await db.insert(donations).values({
             stripeCustomerId: session.customer as string || `onetime_${session.id}`,
@@ -59,6 +61,8 @@ export async function POST(request: NextRequest) {
             entries,
             amountCents,
             status: "one_time",
+            emailConsent,
+            smsConsent,
           })
 
           // Send notification email to admin
@@ -81,6 +85,8 @@ export async function POST(request: NextRequest) {
 
           const entries = parseInt(session.metadata?.entries || "1")
           const amountCents = parseInt(session.metadata?.amountCents || "0")
+          const emailConsent = session.metadata?.emailConsent === "true"
+          const smsConsent = session.metadata?.smsConsent === "true"
 
           await db.insert(donations).values({
             stripeCustomerId: session.customer as string,
@@ -96,6 +102,8 @@ export async function POST(request: NextRequest) {
             entries,
             amountCents,
             status: "active",
+            emailConsent,
+            smsConsent,
           })
 
           // Send notification email to admin

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { createCheckoutSession, createOneTimeCheckout } from "@/app/actions/stripe"
 import { SUBSCRIPTION_TIERS } from "@/lib/products"
+import { ConsentModal } from "./consent-modal"
 
 export function DonationTiers() {
   return (
@@ -76,11 +77,13 @@ function Tier({
   bestValue?: boolean
 }) {
   const [loading, setLoading] = useState(false)
+  const [showConsentModal, setShowConsentModal] = useState(false)
+  const numEntries = parseInt(entries) || 1
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (consent: { email: boolean; sms: boolean }) => {
     setLoading(true)
     try {
-      const { url } = await createCheckoutSession(tierId)
+      const { url } = await createCheckoutSession(tierId, undefined, consent)
       if (url) {
         window.location.href = url
       }
@@ -89,45 +92,55 @@ function Tier({
       alert("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
+      setShowConsentModal(false)
     }
   }
 
   return (
-    <div 
-      className="relative p-8 border border-gold/30 text-center transition-all cursor-pointer hover:border-gold hover:-translate-y-1 bg-cream"
-    >
-      {featured && (
-        <div className="absolute -top-px left-1/2 -translate-x-1/2 bg-gold text-teal text-[0.55rem] tracking-[0.3em] uppercase px-4 py-1 whitespace-nowrap">
-          Most Popular
-        </div>
-      )}
-      {bestValue && (
-        <div className="absolute -top-px left-1/2 -translate-x-1/2 bg-gold text-teal text-[0.55rem] tracking-[0.3em] uppercase px-4 py-1 whitespace-nowrap">
-          Best Value
-        </div>
-      )}
-      {savings && (
-        <div className="absolute top-3 right-3 bg-teal/90 text-gold text-[0.5rem] tracking-[0.15em] uppercase px-2 py-1 rounded">
-          Save {savings}
-        </div>
-      )}
-      
-      <div className="text-[0.6rem] tracking-[0.4em] uppercase text-teal/70 mb-3">{entries}</div>
-      <div className="font-heading text-4xl font-light text-teal leading-none">
-        <sup className="text-base align-top mt-2 text-gold">$</sup>
-        {price}
-      </div>
-      <div className="text-[0.6rem] tracking-[0.2em] uppercase text-teal/50 mt-1">/month</div>
-      {perEntry && <div className="text-[0.55rem] tracking-[0.15em] text-gold mt-2">${perEntry}/entry</div>}
-      <div className="text-xs text-teal/60 leading-[1.7] my-4">{description}</div>
-      <button 
-        onClick={handleSubscribe}
-        disabled={loading}
-        className="w-full py-3 border border-teal/30 bg-teal text-gold text-[0.65rem] tracking-[0.3em] uppercase cursor-pointer transition-all hover:bg-teal2 hover:border-teal disabled:opacity-50 disabled:cursor-not-allowed"
+    <>
+      <div 
+        className="relative p-8 border border-gold/30 text-center transition-all cursor-pointer hover:border-gold hover:-translate-y-1 bg-cream"
       >
-        {loading ? "Processing..." : "Subscribe"}
-      </button>
-    </div>
+        {featured && (
+          <div className="absolute -top-px left-1/2 -translate-x-1/2 bg-gold text-teal text-[0.55rem] tracking-[0.3em] uppercase px-4 py-1 whitespace-nowrap">
+            Most Popular
+          </div>
+        )}
+        {bestValue && (
+          <div className="absolute -top-px left-1/2 -translate-x-1/2 bg-gold text-teal text-[0.55rem] tracking-[0.3em] uppercase px-4 py-1 whitespace-nowrap">
+            Best Value
+          </div>
+        )}
+        {savings && (
+          <div className="absolute top-3 right-3 bg-teal/90 text-gold text-[0.5rem] tracking-[0.15em] uppercase px-2 py-1 rounded">
+            Save {savings}
+          </div>
+        )}
+        
+        <div className="text-[0.6rem] tracking-[0.4em] uppercase text-teal/70 mb-3">{entries}</div>
+        <div className="font-heading text-4xl font-light text-teal leading-none">
+          <sup className="text-base align-top mt-2 text-gold">$</sup>
+          {price}
+        </div>
+        <div className="text-[0.6rem] tracking-[0.2em] uppercase text-teal/50 mt-1">/month</div>
+        {perEntry && <div className="text-[0.55rem] tracking-[0.15em] text-gold mt-2">${perEntry}/entry</div>}
+        <div className="text-xs text-teal/60 leading-[1.7] my-4">{description}</div>
+        <button 
+          onClick={() => setShowConsentModal(true)}
+          disabled={loading}
+          className="w-full py-3 border border-teal/30 bg-teal text-gold text-[0.65rem] tracking-[0.3em] uppercase cursor-pointer transition-all hover:bg-teal2 hover:border-teal disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? "Processing..." : "Subscribe"}
+        </button>
+      </div>
+      
+      <ConsentModal
+        isOpen={showConsentModal}
+        onClose={() => setShowConsentModal(false)}
+        onSubmit={handleSubscribe}
+        planDetails={{ entries: numEntries, price, isOneTime: false }}
+      />
+    </>
   )
 }
 
@@ -221,11 +234,12 @@ function CustomTier() {
 
 function OneTimeTier() {
   const [loading, setLoading] = useState(false)
+  const [showConsentModal, setShowConsentModal] = useState(false)
 
-  const handleOneTime = async () => {
+  const handleOneTime = async (consent: { email: boolean; sms: boolean }) => {
     setLoading(true)
     try {
-      const { url } = await createOneTimeCheckout()
+      const { url } = await createOneTimeCheckout(consent)
       if (url) {
         window.location.href = url
       }
@@ -234,27 +248,37 @@ function OneTimeTier() {
       alert("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
+      setShowConsentModal(false)
     }
   }
 
   return (
-    <div className="max-w-[320px] mx-auto p-8 border border-gold/40 bg-cream text-center">
-      <div className="text-[0.6rem] tracking-[0.4em] uppercase text-teal/70 mb-3">1 Entry</div>
-      <div className="font-heading text-5xl font-light text-teal leading-none">
-        <sup className="text-lg align-top mt-2 text-gold">$</sup>
-        36
+    <>
+      <div className="max-w-[320px] mx-auto p-8 border border-gold/40 bg-cream text-center">
+        <div className="text-[0.6rem] tracking-[0.4em] uppercase text-teal/70 mb-3">1 Entry</div>
+        <div className="font-heading text-5xl font-light text-teal leading-none">
+          <sup className="text-lg align-top mt-2 text-gold">$</sup>
+          36
+        </div>
+        <div className="text-[0.6rem] tracking-[0.2em] uppercase text-teal/50 mt-1">one-time</div>
+        <div className="text-xs text-teal/60 leading-[1.7] my-4">
+          Single entry into this month&apos;s watch drawing
+        </div>
+        <button 
+          onClick={() => setShowConsentModal(true)}
+          disabled={loading}
+          className="w-full py-3 border border-teal/30 bg-teal text-gold text-[0.65rem] tracking-[0.3em] uppercase cursor-pointer transition-all hover:bg-teal2 hover:border-teal disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? "Processing..." : "Donate Now"}
+        </button>
       </div>
-      <div className="text-[0.6rem] tracking-[0.2em] uppercase text-teal/50 mt-1">one-time</div>
-      <div className="text-xs text-teal/60 leading-[1.7] my-4">
-        Single entry into this month&apos;s watch drawing
-      </div>
-      <button 
-        onClick={handleOneTime}
-        disabled={loading}
-        className="w-full py-3 border border-teal/30 bg-teal text-gold text-[0.65rem] tracking-[0.3em] uppercase cursor-pointer transition-all hover:bg-teal2 hover:border-teal disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? "Processing..." : "Donate Now"}
-      </button>
-    </div>
+      
+      <ConsentModal
+        isOpen={showConsentModal}
+        onClose={() => setShowConsentModal(false)}
+        onSubmit={handleOneTime}
+        planDetails={{ entries: 1, price: 36, isOneTime: true }}
+      />
+    </>
   )
 }
