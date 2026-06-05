@@ -19,6 +19,10 @@ const jost = Jost({
 export const metadata: Metadata = {
   title: 'Watch & Learn | Support a Kollel · Win a Watch',
   description: 'Every donation fuels a Kollel dedicated to Torah learning. As a token of our gratitude, you\'ll be entered to win a luxury timepiece — drawn live every month.',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
 }
 
 export default function RootLayout({
