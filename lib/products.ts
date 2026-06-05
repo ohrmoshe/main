@@ -1,87 +1,53 @@
-export interface DonationTier {
+export interface SubscriptionTier {
   id: string
-  name: string
-  description: string
+  entries: number
   priceInCents: number
-  frequency: 'one_time' | 'monthly'
+  pricePerEntry: number
+  savings?: string
+  description: string
+  featured?: boolean
+  bestValue?: boolean
 }
 
-export const DONATION_TIERS: DonationTier[] = [
+export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
-    id: 'one-time-180',
-    name: 'Supporter',
-    description: 'One-time donation of $180 - directly supports Torah scholars',
+    id: "tier-1-entry",
+    entries: 1,
+    priceInCents: 2600,
+    pricePerEntry: 26,
+    description: "One entry every month into each drawing.",
+  },
+  {
+    id: "tier-3-entries",
+    entries: 3,
+    priceInCents: 6600,
+    pricePerEntry: 22,
+    savings: "15%",
+    description: "Triple your chances at $22 per entry.",
+    featured: true,
+  },
+  {
+    id: "tier-5-entries",
+    entries: 5,
+    priceInCents: 10000,
+    pricePerEntry: 20,
+    savings: "23%",
+    description: "Five monthly entries at $20 per entry.",
+  },
+  {
+    id: "tier-10-entries",
+    entries: 10,
     priceInCents: 18000,
-    frequency: 'one_time',
-  },
-  {
-    id: 'one-time-360',
-    name: 'Partner',
-    description: 'One-time donation of $360 - directly supports Torah scholars',
-    priceInCents: 36000,
-    frequency: 'one_time',
-  },
-  {
-    id: 'one-time-500',
-    name: 'Benefactor',
-    description: 'One-time donation of $500 - directly supports Torah scholars',
-    priceInCents: 50000,
-    frequency: 'one_time',
-  },
-  {
-    id: 'one-time-720',
-    name: 'Pillar',
-    description: 'One-time donation of $720 - directly supports Torah scholars',
-    priceInCents: 72000,
-    frequency: 'one_time',
-  },
-  {
-    id: 'one-time-1250',
-    name: 'Patron',
-    description: 'One-time donation of $1,250 - directly supports Torah scholars',
-    priceInCents: 125000,
-    frequency: 'one_time',
-  },
-  {
-    id: 'one-time-custom',
-    name: 'Custom Amount',
-    description: 'Custom one-time donation - 100% goes to Torah scholar stipends',
-    priceInCents: 0,
-    frequency: 'one_time',
-  },
-  {
-    id: 'monthly-180',
-    name: 'Monthly Supporter',
-    description: 'Monthly donation of $180 - directly supports Torah scholars',
-    priceInCents: 18000,
-    frequency: 'monthly',
-  },
-  {
-    id: 'monthly-360',
-    name: 'Monthly Partner',
-    description: 'Monthly donation of $360 - directly supports Torah scholars',
-    priceInCents: 36000,
-    frequency: 'monthly',
-  },
-  {
-    id: 'monthly-500',
-    name: 'Monthly Benefactor',
-    description: 'Monthly donation of $500 - directly supports Torah scholars',
-    priceInCents: 50000,
-    frequency: 'monthly',
-  },
-  {
-    id: 'monthly-720',
-    name: 'Monthly Pillar',
-    description: 'Monthly donation of $720 - directly supports Torah scholars',
-    priceInCents: 72000,
-    frequency: 'monthly',
-  },
-  {
-    id: 'monthly-custom',
-    name: 'Monthly Custom Amount',
-    description: 'Custom monthly donation - 100% goes to Torah scholar stipends',
-    priceInCents: 0,
-    frequency: 'monthly',
+    pricePerEntry: 18,
+    savings: "31%",
+    description: "Our best value — just $18 per entry.",
+    bestValue: true,
   },
 ]
+
+export function calculateCustomTier(amountCents: number): { entries: number; amountCents: number } | null {
+  const PRICE_PER_ENTRY_CENTS = 1800 // $18
+  if (amountCents < PRICE_PER_ENTRY_CENTS) return null
+  const entries = Math.floor(amountCents / PRICE_PER_ENTRY_CENTS)
+  return { entries, amountCents: entries * PRICE_PER_ENTRY_CENTS }
+}

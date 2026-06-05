@@ -1,20 +1,29 @@
-import Header from '@/components/header'
-import Hero from '@/components/hero'
-import AboutSection from '@/components/about-section'
-import UpdatesGrid from '@/components/updates-grid'
-import DonationSection from '@/components/donation-section'
-import ContactSection from '@/components/contact-section'
-import Footer from '@/components/footer'
+import { Navbar } from "@/components/navbar"
+import { Hero } from "@/components/hero"
+import { RaffleDateBanner } from "@/components/raffle-date-banner"
+import { ThisMonth } from "@/components/this-month"
+import { HowItWorks } from "@/components/how-it-works"
+import { DonationTiers } from "@/components/donation-tiers"
+import { About } from "@/components/about"
+import { Winners } from "@/components/winners"
+import { Footer } from "@/components/footer"
+import { SectionDivider } from "@/components/section-divider"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <Header />
+    <main>
+      <Navbar />
       <Hero />
-      <AboutSection />
-      <UpdatesGrid />
-      <DonationSection />
-      <ContactSection />
+      <RaffleDateBanner />
+      <ThisMonth />
+      <SectionDivider />
+      <HowItWorks />
+      <SectionDivider className="max-md:hidden" />
+      <DonationTiers />
+      <SectionDivider />
+      <About />
+      <SectionDivider />
+      <Winners />
       <Footer />
     </main>
   )

@@ -1,104 +1,86 @@
-'use server'
+"use server"
 
-import { stripe } from '@/lib/stripe'
-import { DONATION_TIERS } from '@/lib/products'
+import { stripe } from "@/lib/stripe"
+import { SUBSCRIPTION_TIERS, calculateCustomTier } from "@/lib/products"
+import { headers } from "next/headers"
 
-interface DonationParams {
-  tierId: string
-  customAmount?: number
-  subscriberInfo?: {
-    email?: string
-    phone?: string
-    emailOptIn?: boolean
-    smsOptIn?: boolean
+export async function createCheckoutSession(
+  tierId: string,
+  customAmountCents?: number
+) {
+  try {
+    const headersList = await headers()
+    const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
+
+    console.log("[v0] Creating checkout session", { tierId, customAmountCents, origin })
+
+    let entries: number
+    let amountCents: number
+    let productName: string
+
+    if (tierId === "custom" && customAmountCents) {
+      const customTier = calculateCustomTier(customAmountCents)
+      if (!customTier) {
+        throw new Error("Invalid custom amount")
+      }
+      entries = customTier.entries
+      amountCents = customTier.amountCents
+      productName = `Watch & Learn - ${entries} Entries/month`
+    } else {
+      const tier = SUBSCRIPTION_TIERS.find((t) => t.id === tierId)
+      if (!tier) {
+        throw new Error("Invalid tier")
+      }
+      entries = tier.entries
+      amountCents = tier.priceInCents
+      productName = `Watch & Learn - ${entries} ${entries === 1 ? "Entry" : "Entries"}/month`
+    }
+
+    console.log("[v0] Creating Stripe session with", { entries, amountCents, productName })
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      billing_address_collection: "required",
+      phone_number_collection: {
+        enabled: true,
+      },
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: productName,
+              description: `Monthly donation supporting Kollel Ohr Moshe with ${entries} raffle ${entries === 1 ? "entry" : "entries"}`,
+            },
+            unit_amount: amountCents,
+            recurring: {
+              interval: "month",
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        entries: entries.toString(),
+        amountCents: amountCents.toString(),
+      },
+      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/#donate`,
+    })
+
+    console.log("[v0] Checkout session created", { sessionId: session.id, url: session.url })
+
+    return { url: session.url }
+  } catch (error) {
+    console.error("[v0] Error creating checkout session:", error)
+    throw error
   }
 }
 
-export async function startDonationSession(params: DonationParams) {
-  try {
-    const { tierId, customAmount, subscriberInfo } = params
-
-    const tier = DONATION_TIERS.find((t) => t.id === tierId)
-    if (!tier) {
-      throw new Error(`Donation tier "${tierId}" not found`)
-    }
-
-    const amount = tierId.includes('custom') && customAmount ? customAmount * 100 : tier.priceInCents
-
-    if (amount < 100) {
-      throw new Error('Minimum donation amount is $1')
-    }
-
-    const isMonthly = tier.frequency === 'monthly'
-
-    // Build metadata with subscription preferences
-    const metadata: Record<string, string> = {
-      donation_tier: tier.name,
-      frequency: tier.frequency,
-    }
-
-    if (subscriberInfo) {
-      if (subscriberInfo.email) metadata.subscriber_email = subscriberInfo.email
-      if (subscriberInfo.phone) metadata.subscriber_phone = subscriberInfo.phone
-      metadata.email_opt_in = subscriberInfo.emailOptIn ? 'true' : 'false'
-      metadata.sms_opt_in = subscriberInfo.smsOptIn ? 'true' : 'false'
-    }
-
-    if (isMonthly) {
-      // Create subscription checkout session
-      // Note: customer_creation is not allowed for subscription mode - Stripe creates customer automatically
-      const session = await stripe.checkout.sessions.create({
-        ui_mode: 'embedded_page',
-        return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-        billing_address_collection: 'required',
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: tier.name,
-                description: `Monthly recurring donation to Kollel Ohr Moshe`,
-              },
-              unit_amount: amount,
-              recurring: {
-                interval: 'month',
-              },
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'subscription',
-        metadata,
-      })
-
-      return session.client_secret
-    } else {
-      // Create one-time payment checkout session
-      const session = await stripe.checkout.sessions.create({
-        ui_mode: 'embedded_page',
-        return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-        customer_creation: 'always',
-        billing_address_collection: 'required',
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: tier.name,
-                description: `One-time donation to Kollel Ohr Moshe`,
-              },
-              unit_amount: amount,
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        metadata,
-      })
-
-      return session.client_secret
-    }
-  } catch (error) {
-    throw error
-  }
+export async function getCheckoutSession(sessionId: string) {
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["subscription", "customer"],
+  })
+  return session
 }
