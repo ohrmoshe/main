@@ -1,9 +1,23 @@
 import { getDonations, getDonationStats } from "@/app/actions/admin"
 import { AdminDashboardClient } from "./client"
+import { AdminLogin } from "./login"
+import { cookies } from "next/headers"
 
 export const dynamic = "force-dynamic"
 
+async function isAuthenticated() {
+  const cookieStore = await cookies()
+  const authCookie = cookieStore.get("admin_auth")
+  return authCookie?.value === process.env.ADMIN_PASSWORD
+}
+
 export default async function AdminPage() {
+  const authenticated = await isAuthenticated()
+
+  if (!authenticated) {
+    return <AdminLogin />
+  }
+
   const [donations, stats] = await Promise.all([
     getDonations("all"),
     getDonationStats(),
@@ -14,7 +28,14 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-teal">
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="font-heading text-4xl text-cream mb-2">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="font-heading text-4xl text-cream">Admin Dashboard</h1>
+          <form action="/api/admin/logout" method="POST">
+            <button className="text-xs text-gold/60 hover:text-gold transition-colors tracking-[0.2em] uppercase">
+              Logout
+            </button>
+          </form>
+        </div>
         <p className="text-foreground/60 mb-8">Manage donations and export data for the raffle</p>
 
         {/* Stats Cards */}
