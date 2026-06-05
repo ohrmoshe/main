@@ -18,8 +18,8 @@ export function ThisMonth() {
             <div className="absolute inset-0 rounded-full border border-teal/15" />
             <div className="absolute inset-5 rounded-full border border-teal/[0.07]" />
             <Image 
-              src="/images/rolex-batman-transparent.png" 
-              alt="Rolex GMT-Master II Batman" 
+              src="/images/rolex-gmt-rootbeer.avif" 
+              alt="Rolex GMT-Master II Root Beer" 
               width={380}
               height={380}
               className="w-[380px] h-[380px] object-contain drop-shadow-[0_8px_40px_rgba(0,0,0,0.3)] drop-shadow-[0_2px_12px_rgba(13,59,59,0.15)]"
@@ -30,15 +30,15 @@ export function ThisMonth() {
         {/* Watch Details */}
         <div className="py-4">
           <div className="text-[0.6rem] tracking-[0.5em] uppercase text-gold mb-3">June 2026 Drawing</div>
-          <div className="font-heading text-5xl font-light text-teal mb-1">Submariner</div>
+          <div className="font-heading text-5xl font-light text-teal mb-1">GMT-Master II</div>
           <div className="text-[0.65rem] tracking-[0.35em] text-gold uppercase mb-8">
-            Date · 41mm · Oystersteel
+            Oyster · 40mm · Oystersteel &amp; Everose Gold
           </div>
           
           <div className="border-t border-teal/10">
-            <DetailRow label="Reference" value="126610LN" />
-            <DetailRow label="Case Material" value="Oystersteel" />
-            <DetailRow label="Dial" value="Black Lacquer" />
+            <DetailRow label="Reference" value="126711CHNR" />
+            <DetailRow label="Case Material" value="Oystersteel & Everose Gold" />
+            <DetailRow label="Value" value="$20,050 USD" />
             <DetailRow label="Drawing Date" value="June 30, 2026 — Live on Instagram" />
           </div>
           
