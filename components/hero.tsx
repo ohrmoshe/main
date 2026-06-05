@@ -52,13 +52,23 @@ export function Hero() {
           Every donation fuels a Kollel dedicated to Torah learning. As a token of our gratitude, you&apos;ll be entered to win a luxury timepiece — drawn live every month.
         </p>
         
-        <Link 
-          href="#donate" 
-          className="group relative inline-block px-12 py-4 border border-gold text-gold2 text-xs tracking-[0.35em] uppercase overflow-hidden transition-colors duration-400 hover:text-teal"
-        >
-          <span className="absolute inset-0 bg-gold transform scale-x-0 origin-left transition-transform duration-400 group-hover:scale-x-100" />
-          <span className="relative z-10">Donate &amp; Enter</span>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Link 
+            href="#donate" 
+            className="group relative inline-block px-12 py-4 border border-gold text-gold2 text-xs tracking-[0.35em] uppercase overflow-hidden transition-colors duration-400 hover:text-teal"
+          >
+            <span className="absolute inset-0 bg-gold transform scale-x-0 origin-left transition-transform duration-400 group-hover:scale-x-100" />
+            <span className="relative z-10">Donate &amp; Enter</span>
+          </Link>
+          
+          <Link 
+            href="https://kollelohrmoshe.org" 
+            target="_blank"
+            className="inline-block px-8 py-4 border border-cream/30 text-cream/70 text-xs tracking-[0.25em] uppercase transition-all hover:border-gold hover:text-gold"
+          >
+            About the Kollel
+          </Link>
+        </div>
         
         <div className="w-px h-[60px] bg-gradient-to-b from-gold to-transparent mx-auto mt-12" />
       </div>

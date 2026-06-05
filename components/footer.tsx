@@ -24,7 +24,7 @@ export function Footer() {
             <div>
               <div className="text-[0.6rem] tracking-[0.15em] text-foreground/40">A project of</div>
               <Link 
-                href="https://watchnlearn.org" 
+                href="https://kollelohrmoshe.org" 
                 target="_blank"
                 className="text-xs text-gold2 hover:text-gold transition-colors"
               >
@@ -80,11 +80,11 @@ export function Footer() {
           © 2026 Watch &amp; Learn · A project of Kollel Ohr Moshe · All Rights Reserved
         </div>
         <Link 
-          href="https://watchnlearn.org" 
+          href="https://kollelohrmoshe.org" 
           target="_blank"
           className="text-[0.6rem] text-foreground/30 hover:text-gold2 transition-colors tracking-[0.1em]"
         >
-          watchnlearn.org
+          kollelohrmoshe.org
         </Link>
       </div>
     </footer>
