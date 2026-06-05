@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, serial, text, integer, timestamp, boolean } from "drizzle-orm/pg-core"
 
 export const donations = pgTable("donations", {
   id: serial("id").primaryKey(),
@@ -15,6 +15,8 @@ export const donations = pgTable("donations", {
   entries: integer("entries").notNull(),
   amountCents: integer("amount_cents").notNull(),
   status: text("status").notNull().default("active"),
+  emailConsent: boolean("email_consent").default(false),
+  smsConsent: boolean("sms_consent").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   cancelledAt: timestamp("cancelled_at"),
   updatedAt: timestamp("updated_at").defaultNow(),
