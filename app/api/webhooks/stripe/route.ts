@@ -4,9 +4,13 @@ import { db } from "@/lib/db"
 import { donations } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import Stripe from "stripe"
-import { Resend } from "resend"
 
-function getResend() {
+// Lazy load Resend only when needed and API key is available
+async function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+  const { Resend } = await import("resend")
   return new Resend(process.env.RESEND_API_KEY)
 }
 
@@ -211,7 +215,11 @@ async function sendAdminNotification(
     `
 
   try {
-    const resend = getResend()
+    const resend = await getResend()
+    if (!resend) {
+      console.log(`[EMAIL SKIPPED] No RESEND_API_KEY configured - ${type} notification not sent`)
+      return
+    }
     await resend.emails.send({
       from: "Watch & Learn <notifications@watchnlearn.org>",
       to: adminEmail,
