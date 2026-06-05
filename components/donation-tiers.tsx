@@ -7,20 +7,6 @@ import { SUBSCRIPTION_TIERS } from "@/lib/products"
 export function DonationTiers() {
   return (
     <section className="py-24 px-6 lg:px-16 bg-gradient-to-br from-teal2 to-teal" id="donate">
-      {/* One-Time Donation */}
-      <div className="text-center max-w-[600px] mx-auto mb-16">
-        <div className="text-[0.6rem] tracking-[0.5em] uppercase text-gold mb-3">One-Time Entry</div>
-        <h2 className="font-heading text-[clamp(1.8rem,3.5vw,2.8rem)] font-light text-cream leading-[1.15] mb-6">
-          Try Your Luck
-        </h2>
-        <p className="text-sm text-foreground/55 leading-[1.9] mb-8">
-          Not ready to commit monthly? Make a one-time $36 donation and get entered into this month&apos;s drawing.
-        </p>
-        <OneTimeTier />
-      </div>
-
-      <div className="border-t border-gold/20 my-16" />
-
       {/* Monthly Plans */}
       <div className="text-center max-w-[600px] mx-auto">
         <div className="text-[0.6rem] tracking-[0.5em] uppercase text-gold mb-3">Monthly Giving</div>
@@ -52,6 +38,20 @@ export function DonationTiers() {
       <p className="text-center mt-8 text-xs text-foreground/40 tracking-[0.08em]">
         Cancel anytime · All donations are tax-deductible · Kollel Ohr Moshe is a 501(c)(3) organization
       </p>
+
+      <div className="border-t border-gold/20 my-16" />
+
+      {/* One-Time Donation */}
+      <div className="text-center max-w-[600px] mx-auto">
+        <div className="text-[0.6rem] tracking-[0.5em] uppercase text-gold mb-3">One-Time Entry</div>
+        <h2 className="font-heading text-[clamp(1.8rem,3.5vw,2.8rem)] font-light text-cream leading-[1.15] mb-6">
+          Try Your Luck
+        </h2>
+        <p className="text-sm text-foreground/55 leading-[1.9] mb-8">
+          Not ready to commit monthly? Make a one-time $36 donation and get entered into this month&apos;s drawing.
+        </p>
+        <OneTimeTier />
+      </div>
     </section>
   )
 }
