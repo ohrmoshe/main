@@ -51,8 +51,11 @@ export function Footer() {
           <Link href="/cancel" className="text-[0.65rem] tracking-[0.2em] uppercase text-foreground/40 transition-colors hover:text-gold2">
             Cancel Subscription
           </Link>
-          <Link href="#" className="text-[0.65rem] tracking-[0.2em] uppercase text-foreground/40 transition-colors hover:text-gold2">
+          <Link href="/terms" className="text-[0.65rem] tracking-[0.2em] uppercase text-foreground/40 transition-colors hover:text-gold2">
             Terms &amp; Conditions
+          </Link>
+          <Link href="/privacy" className="text-[0.65rem] tracking-[0.2em] uppercase text-foreground/40 transition-colors hover:text-gold2">
+            Privacy Policy
           </Link>
         </div>
         
