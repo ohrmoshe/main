@@ -3,26 +3,24 @@ import Link from "next/link"
 
 function getDrawingInfo() {
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const lastDay = new Date(year, month + 1, 0).getDate()
-  const monthName = now.toLocaleString("en-US", { month: "long" })
+  let year = now.getFullYear()
+  let month = now.getMonth()
 
-  const raffleDate = new Date(year, month, lastDay)
-  const timeDiff = raffleDate.getTime() - now.getTime()
-  const daysUntil = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)))
-
-  const getOrdinal = (day: number) => {
-    if (day > 3 && day < 21) return "th"
-    switch (day % 10) {
-      case 1: return "st"
-      case 2: return "nd"
-      case 3: return "rd"
-      default: return "th"
+  // Drawing is the 15th of each month. If today is past the 15th, roll to next month.
+  if (now.getDate() > 15) {
+    month += 1
+    if (month > 11) {
+      month = 0
+      year += 1
     }
   }
 
-  return { dateLabel: `${monthName} ${lastDay}${getOrdinal(lastDay)}, ${year}`, daysUntil }
+  const raffleDate = new Date(year, month, 15)
+  const monthName = raffleDate.toLocaleString("en-US", { month: "long" })
+  const timeDiff = raffleDate.getTime() - now.getTime()
+  const daysUntil = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)))
+
+  return { dateLabel: `${monthName} 15th, ${year}`, daysUntil }
 }
 
 export function Hero() {
