@@ -1,7 +1,7 @@
 "use server"
 
 import { stripe } from "@/lib/stripe"
-import { SUBSCRIPTION_TIERS, calculateCustomTier } from "@/lib/products"
+import { SUBSCRIPTION_TIERS, calculateCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
 import { headers } from "next/headers"
 
 export async function createCheckoutSession(
@@ -82,10 +82,27 @@ export async function getCheckoutSession(sessionId: string) {
   return session
 }
 
-export async function createOneTimeCheckout(consent?: { email: boolean; sms: boolean }) {
+export async function createOneTimeCheckout(
+  consent?: { email: boolean; sms: boolean },
+  customAmountCents?: number
+) {
   try {
     const headersList = await headers()
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
+
+    const PRICE_PER_ENTRY_CENTS = 4200 // $42 per entry
+
+    let amountCents = ONE_TIME_PRICE_CENTS // default single ticket: $42
+    let entries = 1
+
+    if (customAmountCents) {
+      const result = calculateCustomTier(customAmountCents)
+      if (!result || result.entries < 1) {
+        throw new Error("Invalid custom amount")
+      }
+      entries = result.entries
+      amountCents = result.amountCents
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -99,17 +116,17 @@ export async function createOneTimeCheckout(consent?: { email: boolean; sms: boo
           price_data: {
             currency: "usd",
             product_data: {
-              name: "Watch & Learn - One-Time Entry",
-              description: "One-time donation supporting Kollel Ohr Moshe with 1 raffle entry for this month's drawing",
+              name: `Watch & Learn - One-Time ${entries === 1 ? "Entry" : `${entries} Entries`}`,
+              description: `One-time donation supporting Kollel Ohr Moshe with ${entries} raffle ${entries === 1 ? "entry" : "entries"} for this month's drawing`,
             },
-            unit_amount: 3600, // $36
+            unit_amount: amountCents,
           },
           quantity: 1,
         },
       ],
       metadata: {
-        entries: "1",
-        amountCents: "3600",
+        entries: entries.toString(),
+        amountCents: amountCents.toString(),
         type: "one_time",
         emailConsent: consent?.email ? "true" : "false",
         smsConsent: consent?.sms ? "true" : "false",

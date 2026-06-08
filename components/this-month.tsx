@@ -3,54 +3,61 @@ import Link from "next/link"
 
 export function ThisMonth() {
   return (
-    <section className="py-24 px-6 lg:px-16 bg-cream" id="watch">
-      <div className="text-center">
-        <div className="text-[0.6rem] tracking-[0.5em] uppercase text-gold mb-3">Featured Timepiece</div>
-        <h2 className="font-heading text-[clamp(2rem,4vw,3.2rem)] font-light text-teal leading-[1.15] mb-8">
-          This Month&apos;s Watch
-        </h2>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center mt-12">
-        {/* Watch Image */}
-        <div className="flex items-center justify-center">
-          <div className="relative flex items-center justify-center w-[420px] h-[420px] max-w-full">
-            <div className="absolute inset-0 rounded-full border border-teal/15" />
-            <div className="absolute inset-5 rounded-full border border-teal/[0.07]" />
-            <Image 
-              src="/images/rolex-gmt-rootbeer.avif" 
-              alt="Rolex GMT-Master II Root Beer" 
-              width={380}
-              height={380}
-              className="w-[380px] h-[380px] object-contain drop-shadow-[0_8px_40px_rgba(0,0,0,0.3)] drop-shadow-[0_2px_12px_rgba(13,59,59,0.15)]"
+    <section className="py-16 md:py-20 px-5 lg:px-0 bg-cream" id="watch">
+      <div className="w-full max-w-[1180px] mx-auto">
+        <div className="text-center max-w-[740px] mx-auto mb-10">
+          <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
+            Featured Timepiece
+          </div>
+          <h2 className="font-heading text-[clamp(2.2rem,4vw,4rem)] font-light text-text leading-none tracking-[-0.035em]">
+            This Month&apos;s Watch
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[.85fr_1.15fr] gap-8 lg:gap-11 items-center bg-cream2 rounded-[36px] p-6 md:p-10 shadow-[0_24px_70px_rgba(18,54,54,0.16)] border border-teal/[0.08]">
+          {/* Watch image */}
+          <div
+            className="rounded-[30px] p-6 flex items-center justify-center"
+            style={{ background: "linear-gradient(180deg, #fff, #f0eadf)" }}
+          >
+            <Image
+              src="/images/rolex-gmt-rootbeer.avif"
+              alt="Rolex GMT-Master II Root Beer"
+              width={520}
+              height={520}
+              className="max-h-[420px] md:max-h-[520px] w-auto object-contain"
             />
           </div>
-        </div>
-        
-        {/* Watch Details */}
-        <div className="py-4">
-          <div className="text-[0.6rem] tracking-[0.5em] uppercase text-gold mb-3">June 2026 Drawing</div>
-          <div className="font-heading text-5xl font-light text-teal mb-1">GMT-Master II</div>
-          <div className="text-[0.65rem] tracking-[0.35em] text-gold uppercase mb-8">
-            Oyster · 40mm · Oystersteel &amp; Everose Gold
-          </div>
-          
-          <div className="border-t border-teal/10">
-            <DetailRow label="Reference" value="126711CHNR" />
-            <DetailRow label="Case Material" value="Oystersteel & Everose Gold" />
-            <DetailRow label="Value" value="$20,050 USD" />
-            <DetailRow label="Drawing Date" value="June 30, 2026 — Live on Instagram" />
-          </div>
-          
-          <div className="mt-10 flex items-center gap-5 flex-wrap">
-            <Link 
-              href="#donate" 
-              className="group relative inline-block px-12 py-4 border border-teal text-teal text-xs tracking-[0.35em] uppercase overflow-hidden transition-colors duration-400 hover:text-cream"
+
+          {/* Watch info */}
+          <div>
+            <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2">
+              June 2026 Drawing
+            </div>
+            <h3 className="font-heading text-[2.4rem] md:text-[3.2rem] font-light text-text leading-none mb-2.5">
+              GMT-Master II
+            </h3>
+            <p className="text-[1.05rem] text-muted-foreground mb-4">
+              Oyster · 40mm · Oystersteel &amp; Everose Gold
+            </p>
+
+            <div className="grid gap-3 my-6">
+              <Spec label="Reference" value="126711CHNR" />
+              <Spec label="Case Material" value="Oystersteel & Everose Gold" />
+              <Spec label="Value" value="$20,050 USD" isValue />
+              <Spec label="Drawing Date" value="June 30, 2026 — Live on Instagram" />
+            </div>
+
+            <Link
+              href="#donate"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+              style={{
+                background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+                boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+              }}
             >
-              <span className="absolute inset-0 bg-teal transform scale-x-0 origin-left transition-transform duration-400 group-hover:scale-x-100" />
-              <span className="relative z-10">Enter to Win</span>
+              Enter to Win
             </Link>
-            <span className="text-xs text-teal/60 tracking-[0.1em]">Entries from $26</span>
           </div>
         </div>
       </div>
@@ -58,11 +65,13 @@ export function ThisMonth() {
   )
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function Spec({ label, value, isValue = false }: { label: string; value: string; isValue?: boolean }) {
   return (
-    <div className="flex justify-between py-4 border-b border-teal/10">
-      <span className="text-[0.65rem] tracking-[0.2em] uppercase text-teal/50">{label}</span>
-      <span className="text-sm text-teal">{value}</span>
+    <div className="flex justify-between gap-5 py-3.5 border-b border-teal/12">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <strong className={isValue ? "text-[1.35rem] text-gold font-extrabold" : "text-teal font-semibold text-sm text-right"}>
+        {value}
+      </strong>
     </div>
   )
 }
