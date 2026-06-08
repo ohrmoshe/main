@@ -6,6 +6,7 @@ import { SUBSCRIPTION_TIERS } from "@/lib/products"
 import { ConsentModal } from "./consent-modal"
 
 const CUSTOM_PRICE_PER_ENTRY = 42
+const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
 const ONE_TIME_PRICE = 42
 
 export function DonationTiers() {
@@ -42,6 +43,8 @@ export function DonationTiers() {
               />
             ))}
           </div>
+
+          <MonthlyCustomAmount />
 
           <p className="text-center text-cream/70 mt-6 text-sm">
             Cancel anytime · All donations are tax-deductible · Kollel Ohr Moshe is a 501(c)(3) organization
@@ -156,6 +159,80 @@ function Tier({
         planDetails={{ entries, price, isOneTime: false }}
       />
     </>
+  )
+}
+
+function MonthlyCustomAmount() {
+  const [amount, setAmount] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [showConsentModal, setShowConsentModal] = useState(false)
+
+  const numericAmount = parseFloat(amount) || 0
+  const entries = Math.floor(numericAmount / MONTHLY_CUSTOM_PRICE_PER_ENTRY)
+  const chargeAmount = entries * MONTHLY_CUSTOM_PRICE_PER_ENTRY
+  const isValid = entries >= 1
+
+  const handleSubscribe = async (consent: { email: boolean; sms: boolean }) => {
+    setLoading(true)
+    try {
+      const { url } = await createCheckoutSession("custom", chargeAmount * 100, consent)
+      if (url) window.location.href = url
+    } catch (error) {
+      console.error("Checkout error:", error)
+      alert("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+      setShowConsentModal(false)
+    }
+  }
+
+  return (
+    <div className="mt-7 rounded-[28px] bg-cream/[0.08] border border-cream/15 p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-5 md:gap-8">
+      <div className="flex-1">
+        <div className="text-[0.72rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-1.5">
+          Custom Monthly Amount
+        </div>
+        <p className="text-cream/80 text-[0.96rem]">
+          Choose your own monthly gift at ${MONTHLY_CUSTOM_PRICE_PER_ENTRY} per entry — the best rate we offer.
+          {isValid && (
+            <span className="text-gold2 font-semibold">
+              {" "}
+              {entries} {entries === 1 ? "entry" : "entries"} for ${chargeAmount}/month
+            </span>
+          )}
+        </p>
+      </div>
+      <div className="flex gap-2.5 md:w-[360px]">
+        <div className="relative flex-1">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold font-heading text-lg">$</span>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Amount"
+            className="w-full bg-cream/[0.1] border border-cream/25 rounded-full text-cream font-heading text-xl py-2.5 pl-8 pr-4 placeholder:text-cream/40 placeholder:text-base placeholder:font-sans focus:outline-none focus:border-gold transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+        </div>
+        <button
+          onClick={() => isValid && setShowConsentModal(true)}
+          disabled={loading || !isValid}
+          className="rounded-full px-6 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 whitespace-nowrap"
+          style={{
+            background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+            boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+          }}
+        >
+          {loading ? "..." : "Subscribe"}
+        </button>
+      </div>
+
+      <ConsentModal
+        isOpen={showConsentModal}
+        onClose={() => setShowConsentModal(false)}
+        onSubmit={handleSubscribe}
+        planDetails={{ entries, price: chargeAmount, isOneTime: false }}
+      />
+    </div>
   )
 }
 

@@ -1,7 +1,7 @@
 "use server"
 
 import { stripe } from "@/lib/stripe"
-import { SUBSCRIPTION_TIERS, calculateCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
+import { SUBSCRIPTION_TIERS, calculateCustomTier, calculateMonthlyCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
 import { headers } from "next/headers"
 
 export async function createCheckoutSession(
@@ -18,13 +18,13 @@ export async function createCheckoutSession(
     let productName: string
 
     if (tierId === "custom" && customAmountCents) {
-      const customTier = calculateCustomTier(customAmountCents)
+      const customTier = calculateMonthlyCustomTier(customAmountCents)
       if (!customTier) {
         throw new Error("Invalid custom amount")
       }
       entries = customTier.entries
       amountCents = customTier.amountCents
-      productName = `Watch & Learn - ${entries} Entries/month`
+      productName = `Watch & Learn - ${entries} ${entries === 1 ? "Entry" : "Entries"}/month`
     } else {
       const tier = SUBSCRIPTION_TIERS.find((t) => t.id === tierId)
       if (!tier) {
