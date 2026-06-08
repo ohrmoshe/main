@@ -51,8 +51,9 @@ export const ONE_TIME_PRICE_CENTS = 4200
 // One-time custom amount rate: $42 per entry
 export const CUSTOM_PRICE_PER_ENTRY_CENTS = 4200
 
-// Monthly custom amount rate: $20 per entry
-export const MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS = 2000
+// Monthly custom amount rate: $21.60 per entry (11+ entries only)
+export const MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS = 2160
+export const MONTHLY_CUSTOM_MIN_ENTRIES = 11
 
 export function calculateCustomTier(amountCents: number): { entries: number; amountCents: number } | null {
   if (amountCents < CUSTOM_PRICE_PER_ENTRY_CENTS) return null
@@ -61,7 +62,9 @@ export function calculateCustomTier(amountCents: number): { entries: number; amo
 }
 
 export function calculateMonthlyCustomTier(amountCents: number): { entries: number; amountCents: number } | null {
-  if (amountCents < MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS) return null
+  const minAmount = MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS * MONTHLY_CUSTOM_MIN_ENTRIES
+  if (amountCents < minAmount) return null
   const entries = Math.floor(amountCents / MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS)
+  if (entries < MONTHLY_CUSTOM_MIN_ENTRIES) return null
   return { entries, amountCents: entries * MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS }
 }

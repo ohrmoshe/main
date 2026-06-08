@@ -6,7 +6,8 @@ import { SUBSCRIPTION_TIERS } from "@/lib/products"
 import { ConsentModal } from "./consent-modal"
 
 const CUSTOM_PRICE_PER_ENTRY = 42
-const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
+const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 21.6
+const MONTHLY_CUSTOM_MIN_ENTRIES = 11
 const ONE_TIME_PRICE = 42
 
 export function DonationTiers() {
@@ -169,13 +170,13 @@ function MonthlyCustomAmount() {
 
   const numericAmount = parseFloat(amount) || 0
   const entries = Math.floor(numericAmount / MONTHLY_CUSTOM_PRICE_PER_ENTRY)
-  const chargeAmount = entries * MONTHLY_CUSTOM_PRICE_PER_ENTRY
-  const isValid = entries >= 1
+  const chargeAmount = Math.round(entries * MONTHLY_CUSTOM_PRICE_PER_ENTRY * 100) / 100
+  const isValid = entries >= MONTHLY_CUSTOM_MIN_ENTRIES
 
   const handleSubscribe = async (consent: { email: boolean; sms: boolean }) => {
     setLoading(true)
     try {
-      const { url } = await createCheckoutSession("custom", chargeAmount * 100, consent)
+      const { url } = await createCheckoutSession("custom", Math.round(chargeAmount * 100), consent)
       if (url) window.location.href = url
     } catch (error) {
       console.error("Checkout error:", error)
@@ -193,11 +194,12 @@ function MonthlyCustomAmount() {
           Custom Monthly Amount
         </div>
         <p className="text-cream/80 text-[0.96rem]">
-          Choose your own monthly gift at ${MONTHLY_CUSTOM_PRICE_PER_ENTRY} per entry — the best rate we offer.
+          For {MONTHLY_CUSTOM_MIN_ENTRIES}+ entries, give a custom monthly gift at ${MONTHLY_CUSTOM_PRICE_PER_ENTRY} per
+          entry — our best rate.
           {isValid && (
             <span className="text-gold2 font-semibold">
               {" "}
-              {entries} {entries === 1 ? "entry" : "entries"} for ${chargeAmount}/month
+              {entries} entries for ${chargeAmount}/month
             </span>
           )}
         </p>
@@ -209,7 +211,7 @@ function MonthlyCustomAmount() {
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Amount"
+            placeholder="Min $238"
             className="w-full bg-cream/[0.1] border border-cream/25 rounded-full text-cream font-heading text-xl py-2.5 pl-8 pr-4 placeholder:text-cream/40 placeholder:text-base placeholder:font-sans focus:outline-none focus:border-gold transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
         </div>
