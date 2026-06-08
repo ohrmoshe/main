@@ -25,7 +25,7 @@ export function HowItWorks() {
           <Step
             number="03"
             title="Live Drawing"
-            description="Winners are drawn live on Zoom and Instagram using WheelOfNames.com. You'll be notified by email — and celebrated by the entire community."
+            description="Winners are drawn live on Zoom using WheelOfNames.com. You'll be notified by email — and celebrated by the entire community."
           />
         </div>
 

@@ -32,7 +32,7 @@ export function ThisMonth() {
           {/* Watch info */}
           <div>
             <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2">
-              June 2026 Drawing
+              July 2026 Drawing
             </div>
             <h3 className="font-heading text-[2.4rem] md:text-[3.2rem] font-light text-text leading-none mb-2.5">
               GMT-Master II
@@ -45,7 +45,7 @@ export function ThisMonth() {
               <Spec label="Reference" value="126711CHNR" />
               <Spec label="Case Material" value="Oystersteel & Everose Gold" />
               <Spec label="Value" value="$20,050 USD" isValue />
-              <Spec label="Drawing Date" value="June 30, 2026 — Live on Instagram" />
+              <Spec label="Drawing Date" value="July 15, 2026 — Live on Zoom" />
             </div>
 
             <Link
