@@ -3,20 +3,17 @@ import Link from "next/link"
 
 function getDrawingInfo() {
   const now = new Date()
-  let year = now.getFullYear()
-  let month = now.getMonth()
 
-  // Drawing is the 15th of each month. If today is past the 15th, roll to next month.
-  if (now.getDate() > 15) {
-    month += 1
-    if (month > 11) {
-      month = 0
-      year += 1
-    }
+  // First drawing is July 15th, 2026. Subsequent drawings are the 15th of each month.
+  let raffleDate = new Date(2026, 6, 15) // July 15, 2026
+
+  // Once we're past the upcoming drawing, roll forward to the next 15th.
+  while (raffleDate.getTime() < now.getTime()) {
+    raffleDate = new Date(raffleDate.getFullYear(), raffleDate.getMonth() + 1, 15)
   }
 
-  const raffleDate = new Date(year, month, 15)
   const monthName = raffleDate.toLocaleString("en-US", { month: "long" })
+  const year = raffleDate.getFullYear()
   const timeDiff = raffleDate.getTime() - now.getTime()
   const daysUntil = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)))
 
@@ -87,7 +84,7 @@ export function Hero() {
           <p className="text-cream/75 text-sm">
             {daysUntil > 0 ? `${daysUntil} ${daysUntil === 1 ? "day" : "days"} remaining` : "Drawing today!"}
           </p>
-          <p className="text-cream/85 mt-3 text-sm">Live drawing at 8:00 PM EST</p>
+          <p className="text-cream/85 mt-3 text-sm">Live drawing at 8:00 PM PST</p>
         </aside>
       </div>
     </section>
