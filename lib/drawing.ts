@@ -9,13 +9,19 @@ export function getDrawingDate(now: Date = new Date()): Date {
   return raffleDate
 }
 
-// The start of the current drawing cycle (the previous drawing date, or program start).
+// The start of the current drawing cycle: the most recent drawing that has
+// already taken place, or the program launch date if no drawing has happened yet.
 export function getCycleStart(now: Date = new Date()): Date {
   const programStart = new Date(2026, 5, 1) // June 1, 2026 — program launch
   const nextDrawing = getDrawingDate(now)
-  // Previous drawing = one month before the next drawing
+  // The drawing immediately before the upcoming one
   const prevDrawing = new Date(nextDrawing.getFullYear(), nextDrawing.getMonth() - 1, 15, 20, 0, 0)
-  return prevDrawing.getTime() < programStart.getTime() ? programStart : prevDrawing
+  // Only use the previous drawing as the cycle start if it has actually passed
+  // AND is after launch; otherwise we're still in the inaugural cycle.
+  if (prevDrawing.getTime() <= now.getTime() && prevDrawing.getTime() > programStart.getTime()) {
+    return prevDrawing
+  }
+  return programStart
 }
 
 export function getDrawingInfo(now: Date = new Date()) {

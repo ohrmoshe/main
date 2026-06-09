@@ -14,7 +14,7 @@ export default async function CheckoutSuccessPage({
       <div className="min-h-screen bg-teal flex items-center justify-center px-6">
         <div className="text-center">
           <h1 className="font-heading text-4xl text-cream mb-4">Session Not Found</h1>
-          <p className="text-foreground/60 mb-8">We couldn&apos;t find your checkout session.</p>
+          <p className="text-cream/60 mb-8">We couldn&apos;t find your checkout session.</p>
           <Link href="/" className="text-gold hover:text-gold2 underline">
             Return Home
           </Link>
