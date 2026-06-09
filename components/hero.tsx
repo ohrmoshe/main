@@ -63,7 +63,7 @@ export async function Hero() {
           {monthlySubscribers > 0 && (
             <p className="text-cream/70 text-sm mt-5">
               <span className="font-bold text-gold2">{monthlySubscribers.toLocaleString()}</span>{" "}
-              {monthlySubscribers === 1 ? "member has" : "members have"} joined this month&apos;s Kollel
+              {monthlySubscribers === 1 ? "member has" : "members have"} joined this month&apos;s sweepstakes
             </p>
           )}
         </div>
