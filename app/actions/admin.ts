@@ -28,19 +28,29 @@ export async function getDonations(filter: "all" | "active" | "cancelled" = "all
 
 export async function getDonationStats() {
   const allDonations = await db.select().from(donations)
-  
+
   const active = allDonations.filter((d) => d.status === "active")
   const cancelled = allDonations.filter((d) => d.status === "cancelled")
-  
-  const totalActiveRevenue = active.reduce((sum, d) => sum + d.amountCents, 0)
-  const totalActiveEntries = active.reduce((sum, d) => sum + d.entries, 0)
-  
+  const oneTime = allDonations.filter((d) => d.status === "one_time")
+
+  const monthlyRevenue = active.reduce((sum, d) => sum + d.amountCents, 0)
+  const oneTimeRevenue = oneTime.reduce((sum, d) => sum + d.amountCents, 0)
+  // Total collected = recurring monthly revenue + all one-time donations
+  const totalRevenue = monthlyRevenue + oneTimeRevenue
+
+  // Entries include active monthly subscribers + one-time donors
+  const totalEntries =
+    active.reduce((sum, d) => sum + d.entries, 0) + oneTime.reduce((sum, d) => sum + d.entries, 0)
+
   return {
     totalDonors: allDonations.length,
     activeDonors: active.length,
     cancelledDonors: cancelled.length,
-    monthlyRevenue: totalActiveRevenue / 100,
-    totalEntries: totalActiveEntries,
+    oneTimeDonors: oneTime.length,
+    monthlyRevenue: monthlyRevenue / 100,
+    oneTimeRevenue: oneTimeRevenue / 100,
+    totalRevenue: totalRevenue / 100,
+    totalEntries,
   }
 }
 

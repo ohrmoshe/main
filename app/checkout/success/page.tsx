@@ -25,6 +25,8 @@ export default async function CheckoutSuccessPage({
 
   const session = await getCheckoutSession(sessionId)
   const entries = session.metadata?.entries || "1"
+  const entryCount = parseInt(entries)
+  const isOneTime = session.mode === "payment" || session.metadata?.type === "one_time"
 
   return (
     <div className="min-h-screen bg-teal flex items-center justify-center px-6">
@@ -36,20 +38,26 @@ export default async function CheckoutSuccessPage({
         </div>
         
         <h1 className="font-heading text-4xl lg:text-5xl text-cream mb-4">Thank You!</h1>
-        <p className="text-foreground/70 text-lg mb-2">
-          Your monthly donation has been set up successfully.
+        <p className="text-cream/75 text-lg mb-2">
+          {isOneTime
+            ? "Your one-time donation has been received successfully."
+            : "Your monthly donation has been set up successfully."}
         </p>
         <p className="text-gold text-xl font-heading mb-8">
-          You now have {entries} {parseInt(entries) === 1 ? "entry" : "entries"} in every monthly drawing!
+          {isOneTime
+            ? `You now have ${entries} ${entryCount === 1 ? "entry" : "entries"} in this month's drawing!`
+            : `You now have ${entries} ${entryCount === 1 ? "entry" : "entries"} in every monthly drawing!`}
         </p>
         
         <div className="bg-teal2 border border-gold/20 p-6 rounded mb-8">
-          <p className="text-sm text-foreground/60 mb-2">Confirmation sent to:</p>
+          <p className="text-sm text-cream/60 mb-2">Confirmation sent to:</p>
           <p className="text-cream">{session.customer_details?.email}</p>
         </div>
         
-        <p className="text-foreground/50 text-sm mb-8">
-          You&apos;ll receive an email confirmation shortly. Your entries will be included in all future drawings as long as your subscription is active.
+        <p className="text-cream/55 text-sm mb-8">
+          {isOneTime
+            ? "You'll receive an email confirmation shortly. Your entries are included in this month's drawing. Good luck!"
+            : "You'll receive an email confirmation shortly. Your entries will be included in all future drawings as long as your subscription is active."}
         </p>
         
         <Link 

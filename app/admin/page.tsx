@@ -36,14 +36,19 @@ export default async function AdminPage() {
             </button>
           </form>
         </div>
-        <p className="text-foreground/60 mb-8">Manage donations and export data for the raffle</p>
+        <p className="text-cream/70 mb-8">Manage donations and export data for the raffle</p>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <StatCard label="Total Donors" value={stats.totalDonors} />
-          <StatCard label="Active Donors" value={stats.activeDonors} highlight />
+          <StatCard label="Active Monthly" value={stats.activeDonors} highlight />
+          <StatCard label="One-Time" value={stats.oneTimeDonors} />
           <StatCard label="Cancelled" value={stats.cancelledDonors} />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toLocaleString()}`} />
+          <StatCard label="One-Time Revenue" value={`$${stats.oneTimeRevenue.toLocaleString()}`} />
+          <StatCard label="Total Revenue" value={`$${stats.totalRevenue.toLocaleString()}`} highlight />
           <StatCard label="Total Entries" value={stats.totalEntries} highlight />
         </div>
 

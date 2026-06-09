@@ -8,6 +8,9 @@ import { Winners } from "@/components/winners"
 import { Footer } from "@/components/footer"
 import { StickyDonateButton } from "@/components/sticky-donate-button"
 
+// Always render fresh so the live entry counter reflects the current database
+export const dynamic = "force-dynamic"
+
 export default function Home() {
   return (
     <main>

@@ -105,7 +105,7 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
           <tbody>
             {donations.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-foreground/50">
+                <td colSpan={8} className="p-8 text-center text-cream/50">
                   No donations found
                 </td>
               </tr>
@@ -113,9 +113,9 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
               donations.map((donation) => (
                 <tr key={donation.id} className="border-b border-gold/10 hover:bg-gold/5">
                   <td className="p-3 text-cream">{donation.name}</td>
-                  <td className="p-3 text-foreground/70">{donation.email}</td>
-                  <td className="p-3 text-foreground/70">{donation.phone || "-"}</td>
-                  <td className="p-3 text-foreground/70">
+                  <td className="p-3 text-cream/80">{donation.email}</td>
+                  <td className="p-3 text-cream/80">{donation.phone || "-"}</td>
+                  <td className="p-3 text-cream/80">
                     {donation.addressCity && donation.addressState
                       ? `${donation.addressCity}, ${donation.addressState}`
                       : "-"}
@@ -127,13 +127,15 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
                       className={`px-2 py-1 text-[0.55rem] tracking-[0.15em] uppercase ${
                         donation.status === "active"
                           ? "bg-green-500/20 text-green-400"
+                          : donation.status === "one_time"
+                          ? "bg-gold/20 text-gold2"
                           : "bg-red-500/20 text-red-400"
                       }`}
                     >
-                      {donation.status}
+                      {donation.status === "one_time" ? "one-time" : donation.status}
                     </span>
                   </td>
-                  <td className="p-3 text-foreground/50 text-xs">
+                  <td className="p-3 text-cream/60 text-xs">
                     {donation.createdAt
                       ? new Date(donation.createdAt).toLocaleDateString()
                       : "-"}
