@@ -6,8 +6,8 @@ import { SUBSCRIPTION_TIERS } from "@/lib/products"
 import { ConsentModal } from "./consent-modal"
 
 const CUSTOM_PRICE_PER_ENTRY = 42
-const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 21.6
-const MONTHLY_CUSTOM_MIN_ENTRIES = 11
+const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
+const MONTHLY_CUSTOM_MIN_AMOUNT = 360
 const ONE_TIME_PRICE = 42
 
 export function DonationTiers() {
@@ -34,6 +34,7 @@ export function DonationTiers() {
               <Tier
                 key={tier.id}
                 tierId={tier.id}
+                label={tier.label}
                 entries={tier.entries}
                 price={tier.priceInCents / 100}
                 perEntry={tier.pricePerEntry}
@@ -84,6 +85,7 @@ export function DonationTiers() {
 
 function Tier({
   tierId,
+  label,
   entries,
   price,
   perEntry,
@@ -93,6 +95,7 @@ function Tier({
   bestValue = false,
 }: {
   tierId: string
+  label: string
   entries: number
   price: number
   perEntry: number
@@ -131,7 +134,8 @@ function Tier({
           </div>
         )}
         {savings && <div className="text-[0.78rem] font-extrabold text-gold2">Save {savings}</div>}
-        <div className="text-base text-cream/75 mt-1">
+        <div className="font-heading text-[1.35rem] text-gold2 leading-tight mt-1">{label}</div>
+        <div className="text-base text-cream/75 mt-0.5">
           {entries} {entries === 1 ? "Entry" : "Entries"}
         </div>
         <div className="font-heading text-[3.4rem] leading-none my-2.5">
@@ -170,8 +174,10 @@ function MonthlyCustomAmount() {
 
   const numericAmount = parseFloat(amount) || 0
   const entries = Math.floor(numericAmount / MONTHLY_CUSTOM_PRICE_PER_ENTRY)
-  const chargeAmount = Math.round(entries * MONTHLY_CUSTOM_PRICE_PER_ENTRY * 100) / 100
-  const isValid = entries >= MONTHLY_CUSTOM_MIN_ENTRIES
+  // Charge the full amount entered; entries = amount ÷ 20 (rounded down)
+  const chargeAmount = numericAmount
+  const isValid = numericAmount > MONTHLY_CUSTOM_MIN_AMOUNT && entries >= 1
+  const showTooLow = numericAmount > 0 && numericAmount <= MONTHLY_CUSTOM_MIN_AMOUNT
 
   const handleSubscribe = async (consent: { email: boolean; sms: boolean }) => {
     setLoading(true)
@@ -194,8 +200,8 @@ function MonthlyCustomAmount() {
           Custom Monthly Amount
         </div>
         <p className="text-cream/80 text-[0.96rem]">
-          For {MONTHLY_CUSTOM_MIN_ENTRIES}+ entries, give a custom monthly gift at ${MONTHLY_CUSTOM_PRICE_PER_ENTRY} per
-          entry — our best rate.
+          Give a custom monthly gift above ${MONTHLY_CUSTOM_MIN_AMOUNT} and earn an entry for every $
+          {MONTHLY_CUSTOM_PRICE_PER_ENTRY} donated.
           {isValid && (
             <span className="text-gold2 font-semibold">
               {" "}
@@ -203,6 +209,12 @@ function MonthlyCustomAmount() {
             </span>
           )}
         </p>
+        <p className="text-cream/65 text-sm mt-2.5">
+          Want to do more? Sponsor a full learning session — $1,260 (First &amp; Second Seder) or $1,800 (Full Time)
+        </p>
+        {showTooLow && (
+          <p className="text-gold2 text-sm font-semibold mt-2.5">Please select one of the tiers above</p>
+        )}
       </div>
       <div className="flex gap-2.5 md:w-[360px]">
         <div className="relative flex-1">
@@ -211,7 +223,7 @@ function MonthlyCustomAmount() {
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Min $238"
+            placeholder="Over $360"
             className="w-full bg-cream/[0.1] border border-cream/25 rounded-full text-cream font-heading text-xl py-2.5 pl-8 pr-4 placeholder:text-cream/40 placeholder:text-base placeholder:font-sans focus:outline-none focus:border-gold transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
         </div>

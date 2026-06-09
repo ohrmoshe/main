@@ -1,5 +1,6 @@
 export interface SubscriptionTier {
   id: string
+  label: string
   entries: number
   priceInCents: number
   pricePerEntry: number
@@ -12,6 +13,7 @@ export interface SubscriptionTier {
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: "tier-1-entry",
+    label: "Double Chai",
     entries: 1,
     priceInCents: 3600,
     pricePerEntry: 36,
@@ -19,6 +21,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   },
   {
     id: "tier-3-entries",
+    label: "Quad Chai",
     entries: 3,
     priceInCents: 7200,
     pricePerEntry: 24,
@@ -27,20 +30,22 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     featured: true,
   },
   {
-    id: "tier-5-entries",
-    entries: 5,
-    priceInCents: 11800,
-    pricePerEntry: 23.6,
-    savings: "34%",
-    description: "Five monthly entries at $23.60 per entry.",
+    id: "tier-8-entries",
+    label: "Partner",
+    entries: 8,
+    priceInCents: 18000,
+    pricePerEntry: 22.5,
+    savings: "38%",
+    description: "Eight monthly entries at $22.50 per entry.",
   },
   {
-    id: "tier-10-entries",
-    entries: 10,
-    priceInCents: 22600,
-    pricePerEntry: 22.6,
-    savings: "37%",
-    description: "Our best value — just $22.60 per entry.",
+    id: "tier-18-entries",
+    label: "Seder Sponsor",
+    entries: 18,
+    priceInCents: 36000,
+    pricePerEntry: 20,
+    savings: "44%",
+    description: "Our best value — just $20 per entry.",
     bestValue: true,
   },
 ]
@@ -51,9 +56,9 @@ export const ONE_TIME_PRICE_CENTS = 4200
 // One-time custom amount rate: $42 per entry
 export const CUSTOM_PRICE_PER_ENTRY_CENTS = 4200
 
-// Monthly custom amount rate: $21.60 per entry (11+ entries only)
-export const MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS = 2160
-export const MONTHLY_CUSTOM_MIN_ENTRIES = 11
+// Monthly custom amount rate: $20 per entry (only above $360)
+export const MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS = 2000
+export const MONTHLY_CUSTOM_MIN_AMOUNT_CENTS = 36000 // must be above $360
 
 export function calculateCustomTier(amountCents: number): { entries: number; amountCents: number } | null {
   if (amountCents < CUSTOM_PRICE_PER_ENTRY_CENTS) return null
@@ -62,9 +67,10 @@ export function calculateCustomTier(amountCents: number): { entries: number; amo
 }
 
 export function calculateMonthlyCustomTier(amountCents: number): { entries: number; amountCents: number } | null {
-  const minAmount = MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS * MONTHLY_CUSTOM_MIN_ENTRIES
-  if (amountCents < minAmount) return null
+  // Only eligible for entries if the amount is above $360
+  if (amountCents <= MONTHLY_CUSTOM_MIN_AMOUNT_CENTS) return null
   const entries = Math.floor(amountCents / MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS)
-  if (entries < MONTHLY_CUSTOM_MIN_ENTRIES) return null
-  return { entries, amountCents: entries * MONTHLY_CUSTOM_PRICE_PER_ENTRY_CENTS }
+  if (entries < 1) return null
+  // Charge the actual amount entered; entries are based on amount ÷ 20
+  return { entries, amountCents }
 }
