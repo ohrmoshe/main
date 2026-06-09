@@ -6,6 +6,7 @@ import { DonationTiers } from "@/components/donation-tiers"
 import { About } from "@/components/about"
 import { Winners } from "@/components/winners"
 import { Footer } from "@/components/footer"
+import { StickyDonateButton } from "@/components/sticky-donate-button"
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <About />
       <Winners />
       <Footer />
+      <StickyDonateButton />
     </main>
   )
 }

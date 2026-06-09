@@ -1,27 +1,14 @@
 import Image from "next/image"
 import Link from "next/link"
+import { getDrawingInfo } from "@/lib/drawing"
+import { getEntryStats } from "@/app/actions/stats"
+import { CountdownClock } from "./countdown-clock"
 
-function getDrawingInfo() {
-  const now = new Date()
+const WATCH_VALUE = "$20,050"
 
-  // First drawing is July 15th, 2026. Subsequent drawings are the 15th of each month.
-  let raffleDate = new Date(2026, 6, 15) // July 15, 2026
-
-  // Once we're past the upcoming drawing, roll forward to the next 15th.
-  while (raffleDate.getTime() < now.getTime()) {
-    raffleDate = new Date(raffleDate.getFullYear(), raffleDate.getMonth() + 1, 15)
-  }
-
-  const monthName = raffleDate.toLocaleString("en-US", { month: "long" })
-  const year = raffleDate.getFullYear()
-  const timeDiff = raffleDate.getTime() - now.getTime()
-  const daysUntil = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)))
-
-  return { dateLabel: `${monthName} 15th, ${year}`, daysUntil }
-}
-
-export function Hero() {
-  const { dateLabel, daysUntil } = getDrawingInfo()
+export async function Hero() {
+  const { dateLabel, targetTime } = getDrawingInfo()
+  const { totalEntries } = await getEntryStats()
 
   return (
     <section
@@ -44,7 +31,7 @@ export function Hero() {
             className="w-[min(210px,60vw)] h-auto mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
           />
           <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-4">
-            Support a Kollel · Win a Watch
+            Support a Kollel · Win a {WATCH_VALUE} Watch
           </div>
           <h1 className="font-heading font-light text-[clamp(3rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] mb-6">
             Timeless Watches.
@@ -52,7 +39,7 @@ export function Hero() {
           </h1>
           <p className="text-[1.05rem] leading-relaxed text-cream/85 max-w-[560px] mb-7">
             Every donation fuels a Kollel dedicated to Torah learning. As a token of our gratitude, you&apos;ll be
-            entered to win a luxury timepiece — drawn live every month.
+            entered to win this month&apos;s {WATCH_VALUE} luxury timepiece — drawn live on Zoom.
           </p>
           <div className="flex flex-wrap gap-3.5">
             <Link
@@ -63,16 +50,22 @@ export function Hero() {
                 boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
               }}
             >
-              Donate &amp; Enter
+              Claim Your Entry
             </Link>
             <Link
-              href="https://kollelohrmoshe.org"
-              target="_blank"
+              href="#donate"
               className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
             >
-              About the Kollel
+              Enter for $42
             </Link>
           </div>
+
+          {totalEntries > 0 && (
+            <p className="text-cream/70 text-sm mt-5">
+              <span className="font-bold text-gold2">{totalEntries.toLocaleString()}</span>{" "}
+              {totalEntries === 1 ? "entry" : "entries"} already in this month&apos;s drawing
+            </p>
+          )}
         </div>
 
         {/* Right column — countdown card */}
@@ -81,10 +74,30 @@ export function Hero() {
             Next Drawing
           </div>
           <h3 className="font-heading text-3xl md:text-4xl font-light mb-1">{dateLabel}</h3>
-          <p className="text-cream/75 text-sm">
-            {daysUntil > 0 ? `${daysUntil} ${daysUntil === 1 ? "day" : "days"} remaining` : "Drawing today!"}
-          </p>
-          <p className="text-cream/85 mt-3 text-sm">Live drawing at 8:00 PM PST</p>
+          <p className="text-cream/85 text-sm">Live drawing at 8:00 PM PST</p>
+
+          <CountdownClock targetTime={targetTime} />
+
+          <div className="mt-6 pt-5 border-t border-cream/15 flex items-center justify-between gap-4">
+            <div>
+              <div className="font-heading text-2xl text-gold2 leading-none">
+                {totalEntries.toLocaleString()}
+              </div>
+              <div className="text-[0.62rem] font-bold tracking-[0.12em] uppercase text-cream/60 mt-1.5">
+                Entries In
+              </div>
+            </div>
+            <Link
+              href="#donate"
+              className="inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+              style={{
+                background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+                boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+              }}
+            >
+              Enter Now
+            </Link>
+          </div>
         </aside>
       </div>
     </section>

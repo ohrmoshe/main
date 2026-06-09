@@ -37,7 +37,8 @@ export async function createCheckoutSession(
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      payment_method_types: ["card"],
+      // Omitting payment_method_types lets Stripe automatically offer all
+      // enabled methods, including Apple Pay & Google Pay wallets.
       billing_address_collection: "required",
       phone_number_collection: {
         enabled: true,
@@ -90,8 +91,6 @@ export async function createOneTimeCheckout(
     const headersList = await headers()
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
 
-    const PRICE_PER_ENTRY_CENTS = 4200 // $42 per entry
-
     let amountCents = ONE_TIME_PRICE_CENTS // default single ticket: $42
     let entries = 1
 
@@ -106,7 +105,8 @@ export async function createOneTimeCheckout(
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      // Omitting payment_method_types lets Stripe automatically offer all
+      // enabled methods, including Apple Pay & Google Pay wallets.
       billing_address_collection: "required",
       phone_number_collection: {
         enabled: true,
