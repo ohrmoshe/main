@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { getDonations, exportDonationsCSV } from "@/app/actions/admin"
 
+type DonationFilter = "all" | "active" | "cancelled" | "one_time"
+
 type Donation = {
   id: number
   name: string
@@ -21,10 +23,10 @@ type Donation = {
 
 export function AdminDashboardClient({ initialDonations }: { initialDonations: Donation[] }) {
   const [donations, setDonations] = useState<Donation[]>(initialDonations)
-  const [filter, setFilter] = useState<"all" | "active" | "cancelled">("all")
+  const [filter, setFilter] = useState<DonationFilter>("all")
   const [loading, setLoading] = useState(false)
 
-  const handleFilterChange = async (newFilter: "all" | "active" | "cancelled") => {
+  const handleFilterChange = async (newFilter: DonationFilter) => {
     setFilter(newFilter)
     setLoading(true)
     try {
@@ -62,8 +64,8 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
     <>
       {/* Filter & Export */}
       <div className="flex flex-wrap gap-4 mb-6 items-center justify-between">
-        <div className="flex gap-2">
-          {(["all", "active", "cancelled"] as const).map((f) => (
+        <div className="flex flex-wrap gap-2">
+          {(["all", "active", "one_time", "cancelled"] as const).map((f) => (
             <button
               key={f}
               onClick={() => handleFilterChange(f)}
@@ -73,7 +75,7 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
                   : "border-gold/30 text-gold2 hover:border-gold"
               }`}
             >
-              {f}
+              {f === "one_time" ? "one-time" : f === "active" ? "monthly" : f}
             </button>
           ))}
         </div>

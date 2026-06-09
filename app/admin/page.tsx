@@ -45,10 +45,16 @@ export default async function AdminPage() {
           <StatCard label="One-Time" value={stats.oneTimeDonors} />
           <StatCard label="Cancelled" value={stats.cancelledDonors} />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Revenue */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toLocaleString()}`} />
           <StatCard label="One-Time Revenue" value={`$${stats.oneTimeRevenue.toLocaleString()}`} />
           <StatCard label="Total Revenue" value={`$${stats.totalRevenue.toLocaleString()}`} highlight />
+        </div>
+        {/* Entries */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <StatCard label="Monthly Entries" value={stats.monthlyEntries} highlight />
+          <StatCard label="One-Time Entries" value={stats.oneTimeEntries} />
           <StatCard label="Total Entries" value={stats.totalEntries} highlight />
         </div>
 

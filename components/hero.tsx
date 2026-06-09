@@ -8,7 +8,7 @@ const WATCH_VALUE = "$20,050"
 
 export async function Hero() {
   const { dateLabel, targetTime } = getDrawingInfo()
-  const { totalEntries } = await getEntryStats()
+  const { monthlySubscribers } = await getEntryStats()
 
   return (
     <section
@@ -60,10 +60,10 @@ export async function Hero() {
             </Link>
           </div>
 
-          {totalEntries > 0 && (
+          {monthlySubscribers > 0 && (
             <p className="text-cream/70 text-sm mt-5">
-              <span className="font-bold text-gold2">{totalEntries.toLocaleString()}</span>{" "}
-              {totalEntries === 1 ? "entry" : "entries"} already in this month&apos;s drawing
+              <span className="font-bold text-gold2">{monthlySubscribers.toLocaleString()}</span>{" "}
+              {monthlySubscribers === 1 ? "member has" : "members have"} joined this month&apos;s Kollel
             </p>
           )}
         </div>
@@ -81,10 +81,10 @@ export async function Hero() {
           <div className="mt-6 pt-5 border-t border-cream/15 flex items-center justify-between gap-4">
             <div>
               <div className="font-heading text-2xl text-gold2 leading-none">
-                {totalEntries.toLocaleString()}
+                {monthlySubscribers.toLocaleString()}
               </div>
               <div className="text-[0.62rem] font-bold tracking-[0.12em] uppercase text-cream/60 mt-1.5">
-                Entries In
+                Monthly Members
               </div>
             </div>
             <Link

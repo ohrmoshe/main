@@ -4,26 +4,19 @@ import { db } from "@/lib/db"
 import { donations } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 
-export async function getDonations(filter: "all" | "active" | "cancelled" = "all") {
-  let query = db.select().from(donations).orderBy(desc(donations.createdAt))
+type DonationFilter = "all" | "active" | "cancelled" | "one_time"
 
-  if (filter === "active") {
+export async function getDonations(filter: DonationFilter = "all") {
+  if (filter === "active" || filter === "cancelled" || filter === "one_time") {
     const results = await db
       .select()
       .from(donations)
-      .where(eq(donations.status, "active"))
-      .orderBy(desc(donations.createdAt))
-    return results
-  } else if (filter === "cancelled") {
-    const results = await db
-      .select()
-      .from(donations)
-      .where(eq(donations.status, "cancelled"))
+      .where(eq(donations.status, filter))
       .orderBy(desc(donations.createdAt))
     return results
   }
 
-  return query
+  return db.select().from(donations).orderBy(desc(donations.createdAt))
 }
 
 export async function getDonationStats() {
@@ -38,9 +31,10 @@ export async function getDonationStats() {
   // Total collected = recurring monthly revenue + all one-time donations
   const totalRevenue = monthlyRevenue + oneTimeRevenue
 
-  // Entries include active monthly subscribers + one-time donors
-  const totalEntries =
-    active.reduce((sum, d) => sum + d.entries, 0) + oneTime.reduce((sum, d) => sum + d.entries, 0)
+  // Entries split by type
+  const monthlyEntries = active.reduce((sum, d) => sum + d.entries, 0)
+  const oneTimeEntries = oneTime.reduce((sum, d) => sum + d.entries, 0)
+  const totalEntries = monthlyEntries + oneTimeEntries
 
   return {
     totalDonors: allDonations.length,
@@ -50,11 +44,13 @@ export async function getDonationStats() {
     monthlyRevenue: monthlyRevenue / 100,
     oneTimeRevenue: oneTimeRevenue / 100,
     totalRevenue: totalRevenue / 100,
+    monthlyEntries,
+    oneTimeEntries,
     totalEntries,
   }
 }
 
-export async function exportDonationsCSV(filter: "all" | "active" | "cancelled" = "all") {
+export async function exportDonationsCSV(filter: DonationFilter = "all") {
   const data = await getDonations(filter)
   
   const headers = [
