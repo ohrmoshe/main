@@ -2,7 +2,12 @@
 
 import { stripe } from "@/lib/stripe"
 import { SUBSCRIPTION_TIERS, calculateCustomTier, calculateMonthlyCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
-import { headers } from "next/headers"
+import { headers, cookies } from "next/headers"
+
+async function getReferralCode() {
+  const cookieStore = await cookies()
+  return cookieStore.get("ref_code")?.value || ""
+}
 
 export async function createCheckoutSession(
   tierId: string,
@@ -12,6 +17,7 @@ export async function createCheckoutSession(
   try {
     const headersList = await headers()
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
+    const referralCode = await getReferralCode()
 
     let entries: number
     let amountCents: number
@@ -64,6 +70,7 @@ export async function createCheckoutSession(
         amountCents: amountCents.toString(),
         emailConsent: consent?.email ? "true" : "false",
         smsConsent: consent?.sms ? "true" : "false",
+        referralCode,
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#donate`,
@@ -90,6 +97,7 @@ export async function createOneTimeCheckout(
   try {
     const headersList = await headers()
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
+    const referralCode = await getReferralCode()
 
     let amountCents = ONE_TIME_PRICE_CENTS // default single ticket: $42
     let entries = 1
@@ -130,6 +138,7 @@ export async function createOneTimeCheckout(
         type: "one_time",
         emailConsent: consent?.email ? "true" : "false",
         smsConsent: consent?.sms ? "true" : "false",
+        referralCode,
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#donate`,

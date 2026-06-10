@@ -17,7 +17,18 @@ export const donations = pgTable("donations", {
   status: text("status").notNull().default("active"),
   emailConsent: boolean("email_consent").default(false),
   smsConsent: boolean("sms_consent").default(false),
+  referralCode: text("referral_code"),
   createdAt: timestamp("created_at").defaultNow(),
   cancelledAt: timestamp("cancelled_at"),
   updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+export const affiliates = pgTable("affiliates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  code: text("code").notNull().unique(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
 })

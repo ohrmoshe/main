@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
           const amountCents = parseInt(session.metadata?.amountCents || "3600")
           const emailConsent = session.metadata?.emailConsent === "true"
           const smsConsent = session.metadata?.smsConsent === "true"
+          const referralCode = session.metadata?.referralCode || null
 
           await db.insert(donations).values({
             stripeCustomerId: session.customer as string || `onetime_${session.id}`,
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
             status: "one_time",
             emailConsent,
             smsConsent,
+            referralCode,
           })
 
           // Send notification email to admin
@@ -91,6 +93,7 @@ export async function POST(request: NextRequest) {
           const amountCents = parseInt(session.metadata?.amountCents || "0")
           const emailConsent = session.metadata?.emailConsent === "true"
           const smsConsent = session.metadata?.smsConsent === "true"
+          const referralCode = session.metadata?.referralCode || null
 
           await db.insert(donations).values({
             stripeCustomerId: session.customer as string,
@@ -108,6 +111,7 @@ export async function POST(request: NextRequest) {
             status: "active",
             emailConsent,
             smsConsent,
+            referralCode,
           })
 
           // Send notification email to admin
