@@ -11,8 +11,8 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <Header />
-      <Hero />
       <WatchNLearnFeature />
+      <Hero />
       <AboutSection />
       <UpdatesGrid />
       <DonationSection />

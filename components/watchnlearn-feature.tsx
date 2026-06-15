@@ -4,8 +4,8 @@ import { ArrowUpRight, Trophy, Calendar } from 'lucide-react'
 
 export default function WatchNLearnFeature() {
   return (
-    <section id="watch-and-learn" className="py-16 lg:py-24 bg-secondary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="watch-and-learn" className="py-12 lg:py-16 bg-secondary">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-10 lg:mb-14">
           <p className="text-sm font-medium text-primary uppercase tracking-wider mb-3">
@@ -47,8 +47,9 @@ export default function WatchNLearnFeature() {
               src="/images/watchnlearn-preview.png"
               alt="Preview of the Watch & Learn website at watchnlearn.org"
               fill
+              priority
               className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
-              sizes="(max-width: 1024px) 100vw, 1024px"
+              sizes="(max-width: 1600px) 100vw, 1600px"
             />
             {/* Hover overlay */}
             <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors flex items-center justify-center">
