@@ -56,7 +56,7 @@ export async function Hero() {
               href="#donate"
               className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
             >
-              Enter for $42
+              Enter for $36
             </Link>
           </div>
 
