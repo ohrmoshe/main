@@ -1,5 +1,6 @@
 import Header from '@/components/header'
 import Hero from '@/components/hero'
+import WatchNLearnFeature from '@/components/watchnlearn-feature'
 import AboutSection from '@/components/about-section'
 import UpdatesGrid from '@/components/updates-grid'
 import DonationSection from '@/components/donation-section'
@@ -11,6 +12,7 @@ export default function Home() {
     <main className="min-h-screen">
       <Header />
       <Hero />
+      <WatchNLearnFeature />
       <AboutSection />
       <UpdatesGrid />
       <DonationSection />
