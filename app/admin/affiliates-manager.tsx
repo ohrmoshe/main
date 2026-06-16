@@ -59,7 +59,7 @@ export function AffiliatesManager({
   }
 
   const copyLink = (code: string) => {
-    const link = `${baseUrl}/?ref=${code}`
+    const link = `${baseUrl}/?ref=${code}#donate`
     navigator.clipboard.writeText(link)
     setCopied(code)
     setTimeout(() => setCopied(null), 2000)
