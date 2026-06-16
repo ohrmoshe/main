@@ -30,6 +30,16 @@ export function About() {
             </p>
           </div>
 
+          <a
+            href="https://kollelohrmoshe.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 mt-7 text-[0.78rem] font-extrabold tracking-[0.16em] uppercase text-gold hover:text-teal transition-colors"
+          >
+            Visit kollelohrmoshe.org
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+
           <blockquote className="font-heading text-[1.35rem] italic text-teal border-l-4 border-gold mt-7 pl-5 leading-snug">
             &ldquo;When you support Torah learning, your impact is measured not only in hours learned, but in the
             generations shaped by it.&rdquo;
