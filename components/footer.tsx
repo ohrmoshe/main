@@ -47,8 +47,8 @@ export function Footer() {
                 amit@watchnlearn.org
               </a>
               <br />
-              <a href="tel:+18187442970" className="hover:text-gold2 transition-colors">
-                (818) 744-2970
+              <a href="tel:+13106924235" className="hover:text-gold2 transition-colors">
+                (310) 692-4235
               </a>
               <br />
               <br />

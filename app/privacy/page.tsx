@@ -117,7 +117,7 @@ export default function PrivacyPolicyPage() {
               1428 S Shenandoah St #4<br />
               Los Angeles, CA 90035<br /><br />
               Email: <a href="mailto:amit@watchnlearn.org" className="text-gold hover:text-gold2">amit@watchnlearn.org</a><br />
-              Phone: <a href="tel:+18187442970" className="text-gold hover:text-gold2">(818) 744-2970</a>
+              Phone: <a href="tel:+13106924235" className="text-gold hover:text-gold2">(310) 692-4235</a>
             </address>
           </section>
         </div>
