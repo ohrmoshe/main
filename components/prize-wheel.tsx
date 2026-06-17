@@ -7,8 +7,8 @@ import {
   getWheelStatus,
   createWheelSetupIntent,
   spinAndCharge,
-  WHEEL_MAX,
 } from "@/app/actions/wheel"
+import { WHEEL_MAX } from "@/lib/products"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 

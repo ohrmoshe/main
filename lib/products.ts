@@ -53,6 +53,9 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
 // One-time single ticket price: $42
 export const ONE_TIME_PRICE_CENTS = 4200
 
+// Prize wheel: numbers 1 through 299, each sold only once. Number = dollar amount.
+export const WHEEL_MAX = 299
+
 // One-time custom amount rate: $42 per entry
 export const CUSTOM_PRICE_PER_ENTRY_CENTS = 4200
 

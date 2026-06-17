@@ -6,8 +6,7 @@ import { donations, wheelNumbers } from "@/lib/db/schema"
 import { cookies } from "next/headers"
 import { sql } from "drizzle-orm"
 import { sendDonorConfirmation, sendAdminNotification } from "@/lib/email"
-
-export const WHEEL_MAX = 299
+import { WHEEL_MAX } from "@/lib/products"
 
 async function getReferralCode() {
   const cookieStore = await cookies()
