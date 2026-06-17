@@ -4,11 +4,11 @@ import { useState } from "react"
 import { createCheckoutSession, createOneTimeCheckout } from "@/app/actions/stripe"
 import { SUBSCRIPTION_TIERS } from "@/lib/products"
 import { ConsentModal } from "./consent-modal"
+import { PrizeWheel } from "./prize-wheel"
 
 const CUSTOM_PRICE_PER_ENTRY = 42
 const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
 const MONTHLY_CUSTOM_MIN_AMOUNT = 360
-const ONE_TIME_PRICE = 42
 
 export function DonationTiers() {
   return (
@@ -66,16 +66,20 @@ export function DonationTiers() {
                 One-Time Entry
               </div>
               <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-text leading-none mb-3">
-                Try Your Luck
+                Spin the Prize Wheel
               </h2>
               <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
-                Not ready to commit monthly? Make a one-time ${ONE_TIME_PRICE} donation and get entered into this
-                month&apos;s drawing — or choose a custom amount at ${CUSTOM_PRICE_PER_ENTRY} per entry.
+                Not ready to commit monthly? Pre-authorize your card and spin the wheel — it lands on a number from $1
+                to $299, and that&apos;s your one-time donation. Only 299 numbers exist and each lands just once, so
+                every spin is unique. You&apos;ll get one entry into this month&apos;s drawing.
+              </p>
+              <p className="text-muted-foreground text-[0.95rem] leading-relaxed mt-3">
+                Prefer a set number of entries? Choose a custom amount below at ${CUSTOM_PRICE_PER_ENTRY} per entry.
               </p>
               <CustomAmount />
             </div>
 
-            <OneTimeCard />
+            <PrizeWheel />
           </div>
         </div>
       </section>
@@ -247,54 +251,6 @@ function MonthlyCustomAmount() {
         planDetails={{ entries, price: chargeAmount, isOneTime: false }}
       />
     </div>
-  )
-}
-
-function OneTimeCard() {
-  const [loading, setLoading] = useState(false)
-  const [showConsentModal, setShowConsentModal] = useState(false)
-
-  const handleOneTime = async (consent: { email: boolean; sms: boolean }) => {
-    setLoading(true)
-    try {
-      const { url } = await createOneTimeCheckout(consent)
-      if (url) window.location.href = url
-    } catch (error) {
-      console.error("Checkout error:", error)
-      alert("Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
-      setShowConsentModal(false)
-    }
-  }
-
-  return (
-    <>
-      <div className="rounded-[28px] bg-teal text-cream p-8 text-center">
-        <div className="text-cream/80">1 Entry</div>
-        <div className="font-heading text-[3.4rem] leading-none my-1 text-gold2">${ONE_TIME_PRICE}</div>
-        <p className="text-cream/70 text-sm">one-time</p>
-        <p className="text-cream/80 text-sm my-3">Single entry into this month&apos;s watch drawing</p>
-        <button
-          onClick={() => setShowConsentModal(true)}
-          disabled={loading}
-          className="w-full rounded-full px-4 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
-          style={{
-            background: "linear-gradient(135deg, var(--gold), var(--gold2))",
-            boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
-          }}
-        >
-          {loading ? "Processing..." : "Donate Now"}
-        </button>
-      </div>
-
-      <ConsentModal
-        isOpen={showConsentModal}
-        onClose={() => setShowConsentModal(false)}
-        onSubmit={handleOneTime}
-        planDetails={{ entries: 1, price: ONE_TIME_PRICE, isOneTime: true }}
-      />
-    </>
   )
 }
 

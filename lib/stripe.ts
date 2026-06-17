@@ -7,7 +7,7 @@ export function getStripe() {
     throw new Error("STRIPE_SECRET_KEY is not set in environment variables")
   }
   return new Stripe(apiKey, {
-    apiVersion: "2025-05-28.basil",
+    apiVersion: "2025-05-28.basil" as Stripe.LatestApiVersion,
     typescript: true,
   })
 }

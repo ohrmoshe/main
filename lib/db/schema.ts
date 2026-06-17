@@ -32,3 +32,14 @@ export const affiliates = pgTable("affiliates", {
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 })
+
+export const wheelNumbers = pgTable("wheel_numbers", {
+  number: integer("number").primaryKey(),
+  donorName: text("donor_name"),
+  donorEmail: text("donor_email"),
+  donorPhone: text("donor_phone"),
+  amountCents: integer("amount_cents").notNull(),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  referralCode: text("referral_code"),
+  createdAt: timestamp("created_at").defaultNow(),
+})
