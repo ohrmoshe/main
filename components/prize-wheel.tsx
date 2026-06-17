@@ -17,6 +17,10 @@ const SPIN_DURATION = 15000 // 15 seconds
 type Donor = { name: string; email: string; phone: string }
 type Consent = { email: boolean; sms: boolean }
 
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3)
+}
+
 export function PrizeWheel() {
   const [status, setStatus] = useState<{ available: number; soldOut: boolean } | null>(null)
   const [phase, setPhase] = useState<"form" | "card">("form")
@@ -89,14 +93,14 @@ export function PrizeWheel() {
 
   return (
     <div className="rounded-[28px] bg-teal text-cream p-7 md:p-8">
-      <div className="text-center mb-4">
+      <div className="text-center mb-5">
         <div className="text-[0.7rem] font-extrabold tracking-[0.2em] uppercase text-gold">
           Spin to Donate
         </div>
         <h3 className="font-heading text-[1.8rem] leading-tight text-gold2 mt-1">The Prize Wheel</h3>
-        <p className="text-cream/70 text-sm mt-1.5">
-          {status.available} of {WHEEL_MAX} numbers left · land on a number from $1–${WHEEL_MAX}
-        </p>
+
+        {/* Big tickets-remaining counter */}
+        <TicketsRemaining available={status.available} />
       </div>
 
       {phase === "form" && (
@@ -188,6 +192,23 @@ export function PrizeWheel() {
   )
 }
 
+function TicketsRemaining({ available }: { available: number }) {
+  return (
+    <div className="mt-4 flex flex-col items-center">
+      <div
+        className="font-heading text-[clamp(3.5rem,9vw,5.5rem)] leading-none text-gold2 tabular-nums"
+        style={{ textShadow: "0 4px 24px rgba(200,155,92,0.35)" }}
+      >
+        {available}
+      </div>
+      <div className="text-[0.72rem] font-extrabold tracking-[0.22em] uppercase text-gold -mt-1">
+        Tickets Remaining
+      </div>
+      <div className="text-cream/55 text-xs mt-1">of {WHEEL_MAX} · land on a number from $1–${WHEEL_MAX}</div>
+    </div>
+  )
+}
+
 function SpinForm({
   donor,
   consent,
@@ -200,41 +221,79 @@ function SpinForm({
   const stripe = useStripe()
   const elements = useElements()
   const [spinning, setSpinning] = useState(false)
+  const [verifying, setVerifying] = useState(false)
   const [displayNumber, setDisplayNumber] = useState(1)
+  const [rotation, setRotation] = useState(0)
   const [result, setResult] = useState<{ number: number; amount: number } | null>(null)
   const [soldOut, setSoldOut] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const flickerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const rafRef = useRef<number | null>(null)
 
-  const stopFlicker = useCallback(() => {
-    if (flickerRef.current) {
-      clearInterval(flickerRef.current)
-      flickerRef.current = null
+  const stopRaf = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
     }
   }, [])
 
-  useEffect(() => () => stopFlicker(), [stopFlicker])
+  useEffect(() => () => stopRaf(), [stopRaf])
+
+  // Animate the reel: spin fast, then ease-out and land smoothly on `target`.
+  const runSpinAnimation = useCallback(
+    (target: number) =>
+      new Promise<void>((resolve) => {
+        const start = performance.now()
+        // Several full turns plus the final resting angle for the ring.
+        const totalRotation = 360 * 8 + Math.random() * 360
+        let lastChange = 0
+
+        const frame = (now: number) => {
+          const t = Math.min((now - start) / SPIN_DURATION, 1)
+          const eased = easeOutCubic(t)
+
+          // Ring rotation eases to its final angle.
+          setRotation(totalRotation * eased)
+
+          if (t >= 1) {
+            setDisplayNumber(target)
+            stopRaf()
+            resolve()
+            return
+          }
+
+          if (t > 0.88) {
+            // Lock onto the winning number for the final moments.
+            setDisplayNumber(target)
+          } else {
+            // Number changes start fast (~45ms) and slow down (~520ms) as it eases.
+            const interval = 45 + eased * 475
+            if (now - lastChange >= interval) {
+              setDisplayNumber(Math.floor(Math.random() * WHEEL_MAX) + 1)
+              lastChange = now
+            }
+          }
+
+          rafRef.current = requestAnimationFrame(frame)
+        }
+
+        rafRef.current = requestAnimationFrame(frame)
+      }),
+    [stopRaf],
+  )
 
   const handleSpin = async () => {
     if (!stripe || !elements) return
     setError(null)
-    setSpinning(true)
-
-    // Start the visual flicker immediately
-    flickerRef.current = setInterval(() => {
-      setDisplayNumber(Math.floor(Math.random() * WHEEL_MAX) + 1)
-    }, 60)
-    const startTime = Date.now()
+    setVerifying(true)
 
     try {
-      // Confirm the card (saves payment method, handles any 3DS up front)
+      // Confirm the card first (saves payment method, handles any 3DS up front).
       const { error: setupError, setupIntent } = await stripe.confirmSetup({
         elements,
         redirect: "if_required",
       })
       if (setupError || !setupIntent?.payment_method) {
-        stopFlicker()
-        setSpinning(false)
+        setVerifying(false)
         setError(setupError?.message || "Card could not be verified. Please try again.")
         return
       }
@@ -244,6 +303,7 @@ function SpinForm({
           ? setupIntent.payment_method
           : setupIntent.payment_method.id
 
+      // Reserve a number and charge the card.
       const res = await spinAndCharge({
         customerId,
         paymentMethodId,
@@ -253,24 +313,21 @@ function SpinForm({
         consent,
       })
 
-      // Keep the wheel spinning for the full dramatic duration
-      const elapsed = Date.now() - startTime
-      if (elapsed < SPIN_DURATION) {
-        await new Promise((r) => setTimeout(r, SPIN_DURATION - elapsed))
-      }
-      stopFlicker()
+      setVerifying(false)
 
       if (res.soldOut) {
         setSoldOut(true)
-        setSpinning(false)
         return
       }
 
-      setDisplayNumber(res.number)
+      // Now run the full 15s spin that lands on the reserved number.
+      setSpinning(true)
+      await runSpinAnimation(res.number)
       setResult({ number: res.number, amount: res.amount })
       setSpinning(false)
     } catch (e) {
-      stopFlicker()
+      stopRaf()
+      setVerifying(false)
       setSpinning(false)
       setError(e instanceof Error ? e.message : "Something went wrong. Please try again.")
     }
@@ -312,12 +369,12 @@ function SpinForm({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <WheelDial spinning={spinning} displayNumber={displayNumber} />
+      <WheelDial spinning={spinning} displayNumber={displayNumber} rotation={rotation} />
 
       {!spinning && (
         <div className="w-full">
           <p className="text-[0.7rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2 text-center">
-            Enter your card
+            Enter your card to spin
           </p>
           <PaymentElement />
         </div>
@@ -327,16 +384,16 @@ function SpinForm({
 
       <button
         onClick={handleSpin}
-        disabled={spinning || !stripe}
+        disabled={spinning || verifying || !stripe}
         className="w-full rounded-full px-4 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
         style={{
           background: "linear-gradient(135deg, var(--gold), var(--gold2))",
           boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
         }}
       >
-        {spinning ? "Spinning…" : "Lock In Card & Spin"}
+        {verifying ? "Verifying card…" : spinning ? "Spinning…" : "Lock In Card & Spin"}
       </button>
-      {!spinning && (
+      {!spinning && !verifying && (
         <p className="text-cream/55 text-[0.7rem] text-center leading-relaxed">
           Your card is charged automatically once the wheel stops, for the exact amount it lands on.
         </p>
@@ -349,40 +406,43 @@ function WheelDial({
   spinning,
   displayNumber,
   landed = false,
+  rotation = 0,
 }: {
   spinning: boolean
   displayNumber: number
   landed?: boolean
+  rotation?: number
 }) {
   return (
-    <div className="relative w-44 h-44 flex items-center justify-center">
-      {/* Rotating outer ring */}
+    <div className="relative w-48 h-48 flex items-center justify-center">
+      {/* Rotating outer ring (driven by JS rotation while spinning for smooth ease-out) */}
       <div
-        className={`absolute inset-0 rounded-full ${spinning ? "animate-spin" : ""}`}
+        className="absolute inset-0 rounded-full"
         style={{
-          background: "conic-gradient(var(--gold), var(--gold2), var(--teal2), var(--gold))",
-          animationDuration: "0.9s",
-          maskImage: "radial-gradient(circle, transparent 60%, black 61%)",
-          WebkitMaskImage: "radial-gradient(circle, transparent 60%, black 61%)",
+          background: "conic-gradient(var(--gold), var(--gold2), var(--teal2), var(--gold), var(--gold2), var(--gold))",
+          transform: `rotate(${rotation}deg)`,
+          transition: spinning ? "none" : "transform 0.4s ease-out",
+          maskImage: "radial-gradient(circle, transparent 58%, black 59%)",
+          WebkitMaskImage: "radial-gradient(circle, transparent 58%, black 59%)",
         }}
       />
       {/* Pointer */}
       <div
-        className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0"
+        className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 z-10"
         style={{
-          borderLeft: "9px solid transparent",
-          borderRight: "9px solid transparent",
-          borderTop: "14px solid var(--gold)",
+          borderLeft: "11px solid transparent",
+          borderRight: "11px solid transparent",
+          borderTop: "16px solid var(--gold)",
         }}
       />
       {/* Inner face */}
       <div
-        className={`relative w-32 h-32 rounded-full bg-teal2 border-2 flex flex-col items-center justify-center transition-all ${
-          landed ? "border-gold scale-105 shadow-[0_0_40px_rgba(200,155,92,0.5)]" : "border-gold/40"
+        className={`relative w-36 h-36 rounded-full bg-teal2 border-2 flex flex-col items-center justify-center transition-all ${
+          landed ? "border-gold scale-105 shadow-[0_0_44px_rgba(200,155,92,0.55)]" : "border-gold/40"
         }`}
       >
-        <span className="text-cream/55 text-xs font-bold">$</span>
-        <span className="font-heading text-5xl leading-none text-gold2 tabular-nums">{displayNumber}</span>
+        <span className="text-cream/55 text-sm font-bold leading-none">$</span>
+        <span className="font-heading text-6xl leading-none text-gold2 tabular-nums">{displayNumber}</span>
       </div>
     </div>
   )
