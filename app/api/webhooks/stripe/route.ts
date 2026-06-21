@@ -4,11 +4,7 @@ import { db } from "@/lib/db"
 import { donations } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import Stripe from "stripe"
-import { Resend } from "resend"
-
-function getResend() {
-  return new Resend(process.env.RESEND_API_KEY)
-}
+import { sendDonorConfirmation, sendAdminNotification } from "@/lib/email"
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
@@ -36,7 +32,56 @@ export async function POST(request: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
         
-        if (session.mode === "subscription" && session.subscription) {
+        // Handle one-time payment
+        if (session.mode === "payment") {
+          const customer = session.customer 
+            ? await stripe.customers.retrieve(session.customer as string) as Stripe.Customer
+            : null
+
+          const entries = parseInt(session.metadata?.entries || "1")
+          const amountCents = parseInt(session.metadata?.amountCents || "3600")
+          const emailConsent = session.metadata?.emailConsent === "true"
+          const smsConsent = session.metadata?.smsConsent === "true"
+          const referralCode = session.metadata?.referralCode || null
+
+          await db.insert(donations).values({
+            stripeCustomerId: session.customer as string || `onetime_${session.id}`,
+            stripeSubscriptionId: `onetime_${session.id}`,
+            name: customer?.name || session.customer_details?.name || "Unknown",
+            email: customer?.email || session.customer_details?.email || "",
+            phone: session.customer_details?.phone || null,
+            addressLine1: session.customer_details?.address?.line1 || null,
+            addressCity: session.customer_details?.address?.city || null,
+            addressState: session.customer_details?.address?.state || null,
+            addressPostalCode: session.customer_details?.address?.postal_code || null,
+            addressCountry: session.customer_details?.address?.country || null,
+            entries,
+            amountCents,
+            status: "one_time",
+            emailConsent,
+            smsConsent,
+            referralCode,
+          })
+
+          // Send notification email to admin
+          await sendAdminNotification("one_time", {
+            name: customer?.name || session.customer_details?.name || "Unknown",
+            email: customer?.email || session.customer_details?.email || "",
+            entries,
+            amount: amountCents / 100,
+          })
+
+          // Send confirmation with Zoom details to the donor
+          await sendDonorConfirmation({
+            name: customer?.name || session.customer_details?.name || "there",
+            email: customer?.email || session.customer_details?.email || "",
+            entries,
+            amount: amountCents / 100,
+            isOneTime: true,
+          })
+        }
+        // Handle subscription
+        else if (session.mode === "subscription" && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
           )
@@ -45,8 +90,16 @@ export async function POST(request: NextRequest) {
             session.customer as string
           ) as Stripe.Customer
 
-          const entries = parseInt(session.metadata?.entries || "1")
+          // Total entries for this drawing (display); base = permanent monthly weight.
+          const totalEntries = parseInt(session.metadata?.entries || "1")
+          const baseEntries = parseInt(session.metadata?.baseEntries || session.metadata?.entries || "1")
+          const bonusEntries = parseInt(session.metadata?.bonusEntries || "0")
+          const bonusUntilRaw = session.metadata?.bonusUntil || ""
+          const bonusEntriesUntil = bonusUntilRaw ? new Date(bonusUntilRaw) : null
           const amountCents = parseInt(session.metadata?.amountCents || "0")
+          const emailConsent = session.metadata?.emailConsent === "true"
+          const smsConsent = session.metadata?.smsConsent === "true"
+          const referralCode = session.metadata?.referralCode || null
 
           await db.insert(donations).values({
             stripeCustomerId: session.customer as string,
@@ -59,17 +112,31 @@ export async function POST(request: NextRequest) {
             addressState: session.customer_details?.address?.state || null,
             addressPostalCode: session.customer_details?.address?.postal_code || null,
             addressCountry: session.customer_details?.address?.country || null,
-            entries,
+            entries: baseEntries,
+            bonusEntries,
+            bonusEntriesUntil,
             amountCents,
             status: "active",
+            emailConsent,
+            smsConsent,
+            referralCode,
           })
 
           // Send notification email to admin
           await sendAdminNotification("new_subscription", {
             name: customer.name || session.customer_details?.name || "Unknown",
             email: customer.email || session.customer_details?.email || "",
-            entries,
+            entries: totalEntries,
             amount: amountCents / 100,
+          })
+
+          // Send confirmation with Zoom details to the donor
+          await sendDonorConfirmation({
+            name: customer.name || session.customer_details?.name || "there",
+            email: customer.email || session.customer_details?.email || "",
+            entries: totalEntries,
+            amount: amountCents / 100,
+            isOneTime: false,
           })
         }
         break
@@ -126,47 +193,5 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Webhook processing error:", error)
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
-  }
-}
-
-async function sendAdminNotification(
-  type: "new_subscription" | "cancellation",
-  data: { name: string; email: string; entries: number; amount: number }
-) {
-  const adminEmail = "amit@watchnlearn.org"
-  
-  const subject = type === "new_subscription" 
-    ? `New Subscription: ${data.name} - ${data.entries} entries ($${data.amount}/mo)` 
-    : `Subscription Cancelled: ${data.name}`
-
-  const html = type === "new_subscription"
-    ? `
-      <h2>New Monthly Subscription</h2>
-      <p><strong>Name:</strong> ${data.name}</p>
-      <p><strong>Email:</strong> ${data.email}</p>
-      <p><strong>Entries:</strong> ${data.entries}</p>
-      <p><strong>Amount:</strong> $${data.amount}/month</p>
-      <p>This donor has been automatically added to the raffle database.</p>
-    `
-    : `
-      <h2>Subscription Cancelled</h2>
-      <p><strong>Name:</strong> ${data.name}</p>
-      <p><strong>Email:</strong> ${data.email}</p>
-      <p><strong>Entries:</strong> ${data.entries}</p>
-      <p><strong>Amount:</strong> $${data.amount}/month</p>
-      <p>This donor has been marked as cancelled and will not be entered in future raffles.</p>
-    `
-
-  try {
-    const resend = getResend()
-    await resend.emails.send({
-      from: "Watch & Learn <notifications@watchnlearn.org>",
-      to: adminEmail,
-      subject,
-      html,
-    })
-    console.log(`[EMAIL SENT] ${type} notification to ${adminEmail}`)
-  } catch (error) {
-    console.error(`[EMAIL ERROR] Failed to send ${type} notification:`, error)
   }
 }

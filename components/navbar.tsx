@@ -3,51 +3,39 @@ import Link from "next/link"
 
 export function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 lg:px-16 py-4 bg-teal/[0.92] backdrop-blur-sm border-b border-gold/15">
-      <div className="flex items-center gap-4">
-        <Image 
-          src="/images/kollel-logo.png" 
-          alt="Kollel Ohr Moshe Logo" 
-          width={44} 
-          height={44}
-          className="opacity-90"
-        />
-        <div>
-          <div className="font-heading text-xl lg:text-2xl font-light text-gold2 tracking-[0.15em] uppercase">
-            Watch &amp; Learn
+    <header className="fixed top-0 left-0 right-0 z-50 bg-teal/[0.92] backdrop-blur-md border-b border-cream/12">
+      <div className="w-full max-w-[1180px] mx-auto h-[78px] flex items-center justify-between gap-6 px-5 lg:px-0 text-cream">
+        <Link href="#top" className="flex items-center gap-3.5" aria-label="Watch & Learn home">
+          <div>
+            <div className="font-heading text-[1.35rem] font-bold leading-none">Watch &amp; Learn</div>
+            <div className="text-xs text-cream/75 mt-1">A Kollel Ohr Moshe Project</div>
           </div>
-          <span className="text-[0.5rem] tracking-[0.3em] text-gold uppercase block mt-0.5">
-            A Kollel Ohr Moshe Project
-          </span>
+        </Link>
+        <div className="flex items-center gap-6">
+          <nav className="hidden md:flex gap-6 text-[0.92rem] text-cream/90" aria-label="Primary navigation">
+            <Link href="#how" className="transition-colors hover:text-gold2">How It Works</Link>
+            <Link href="#watch" className="transition-colors hover:text-gold2">This Month</Link>
+            <Link href="#donate" className="transition-colors hover:text-gold2">Donate</Link>
+            <Link href="#about" className="transition-colors hover:text-gold2">About</Link>
+            <Link href="#winners" className="transition-colors hover:text-gold2">Winners</Link>
+          </nav>
+          <a
+            href="https://kollelohrmoshe.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visit Kollel Ohr Moshe"
+            className="shrink-0 w-[52px] h-[52px] rounded-full overflow-hidden bg-cream ring-2 ring-gold/70 flex items-center justify-center transition-transform hover:scale-105"
+          >
+            <Image
+              src="/images/kollel-logo.png"
+              alt="Kollel Ohr Moshe Logo"
+              width={52}
+              height={52}
+              className="w-full h-full object-cover scale-110"
+            />
+          </a>
         </div>
       </div>
-      <ul className="hidden md:flex list-none gap-10">
-        <li>
-          <Link href="#how" className="text-foreground/70 text-xs tracking-[0.18em] uppercase transition-colors hover:text-gold2">
-            How It Works
-          </Link>
-        </li>
-        <li>
-          <Link href="#watch" className="text-foreground/70 text-xs tracking-[0.18em] uppercase transition-colors hover:text-gold2">
-            This Month
-          </Link>
-        </li>
-        <li>
-          <Link href="#donate" className="text-foreground/70 text-xs tracking-[0.18em] uppercase transition-colors hover:text-gold2">
-            Donate
-          </Link>
-        </li>
-        <li>
-          <Link href="#about" className="text-foreground/70 text-xs tracking-[0.18em] uppercase transition-colors hover:text-gold2">
-            About
-          </Link>
-        </li>
-        <li>
-          <Link href="#winners" className="text-foreground/70 text-xs tracking-[0.18em] uppercase transition-colors hover:text-gold2">
-            Winners
-          </Link>
-        </li>
-      </ul>
-    </nav>
+    </header>
   )
 }

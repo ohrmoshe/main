@@ -33,7 +33,7 @@ export function AdminLogin() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="font-heading text-3xl text-cream mb-2">Admin Access</h1>
-          <p className="text-foreground/50 text-sm">Enter your password to continue</p>
+          <p className="text-cream/50 text-sm">Enter your password to continue</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -43,7 +43,7 @@ export function AdminLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full bg-teal2 border border-gold/20 text-cream px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors placeholder:text-foreground/30"
+              className="w-full bg-teal2 border border-gold/20 text-cream px-4 py-3 text-sm focus:outline-none focus:border-gold transition-colors placeholder:text-cream/30"
               required
             />
           </div>

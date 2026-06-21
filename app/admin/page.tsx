@@ -1,7 +1,9 @@
 import { getDonations, getDonationStats } from "@/app/actions/admin"
+import { getAffiliateStats } from "@/app/actions/affiliates"
 import { AdminDashboardClient } from "./client"
+import { AffiliatesManager } from "./affiliates-manager"
 import { AdminLogin } from "./login"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 
 export const dynamic = "force-dynamic"
 
@@ -18,12 +20,18 @@ export default async function AdminPage() {
     return <AdminLogin />
   }
 
-  const [donations, stats] = await Promise.all([
+  const [donations, stats, affiliateStats] = await Promise.all([
     getDonations("all"),
     getDonationStats(),
+    getAffiliateStats(),
   ])
 
   const donationsArray = Array.isArray(donations) ? donations : []
+
+  const headersList = await headers()
+  const host = headersList.get("host") || "watchnlearn.org"
+  const protocol = host.includes("localhost") ? "http" : "https"
+  const baseUrl = `${protocol}://${host}`
 
   return (
     <div className="min-h-screen bg-teal">
@@ -36,18 +44,31 @@ export default async function AdminPage() {
             </button>
           </form>
         </div>
-        <p className="text-foreground/60 mb-8">Manage donations and export data for the raffle</p>
+        <p className="text-cream/70 mb-8">Manage donations and export data for the raffle</p>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <StatCard label="Total Donors" value={stats.totalDonors} />
-          <StatCard label="Active Donors" value={stats.activeDonors} highlight />
+          <StatCard label="Active Monthly" value={stats.activeDonors} highlight />
+          <StatCard label="One-Time" value={stats.oneTimeDonors} />
           <StatCard label="Cancelled" value={stats.cancelledDonors} />
+        </div>
+        {/* Revenue */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toLocaleString()}`} />
+          <StatCard label="One-Time Revenue" value={`$${stats.oneTimeRevenue.toLocaleString()}`} />
+          <StatCard label="Total Revenue" value={`$${stats.totalRevenue.toLocaleString()}`} highlight />
+        </div>
+        {/* Entries */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <StatCard label="Monthly Entries" value={stats.monthlyEntries} highlight />
+          <StatCard label="One-Time Entries" value={stats.oneTimeEntries} />
           <StatCard label="Total Entries" value={stats.totalEntries} highlight />
         </div>
 
         <AdminDashboardClient initialDonations={donationsArray} />
+
+        <AffiliatesManager initialAffiliates={affiliateStats} baseUrl={baseUrl} />
       </div>
     </div>
   )

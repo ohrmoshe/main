@@ -1,30 +1,32 @@
 import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
-import { RaffleDateBanner } from "@/components/raffle-date-banner"
 import { ThisMonth } from "@/components/this-month"
 import { HowItWorks } from "@/components/how-it-works"
 import { DonationTiers } from "@/components/donation-tiers"
 import { About } from "@/components/about"
 import { Winners } from "@/components/winners"
 import { Footer } from "@/components/footer"
-import { SectionDivider } from "@/components/section-divider"
+import { StickyDonateButton } from "@/components/sticky-donate-button"
+import { ReferralCapture } from "@/components/referral-capture"
+import { PromoPopup } from "@/components/promo-popup"
+
+// Always render fresh so the live entry counter reflects the current database
+export const dynamic = "force-dynamic"
 
 export default function Home() {
   return (
     <main>
+      <ReferralCapture />
+      <PromoPopup />
       <Navbar />
       <Hero />
-      <RaffleDateBanner />
       <ThisMonth />
-      <SectionDivider />
       <HowItWorks />
-      <SectionDivider className="max-md:hidden" />
       <DonationTiers />
-      <SectionDivider />
       <About />
-      <SectionDivider />
       <Winners />
       <Footer />
+      <StickyDonateButton />
     </main>
   )
 }

@@ -1,66 +1,104 @@
 import Image from "next/image"
 import Link from "next/link"
+import { getDrawingInfo } from "@/lib/drawing"
+import { getEntryStats } from "@/app/actions/stats"
+import { CountdownClock } from "./countdown-clock"
 
-export function Hero() {
+const WATCH_VALUE = "$20,050"
+
+export async function Hero() {
+  const { dateLabel, targetTime } = getDrawingInfo()
+  const { monthlySubscribers } = await getEntryStats()
+
   return (
-    <section className="min-h-screen flex items-center justify-center relative overflow-hidden px-8 pt-24 pb-16">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/hero-bg.png')" }}
-      />
-      
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[rgba(13,59,59,0.45)] via-[rgba(13,59,59,0.55)] to-[rgba(13,59,59,0.75)]" />
-      
-      {/* Decorative Rings */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.06]">
-        <svg viewBox="0 0 700 700" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-[700px] h-[700px]">
-          <circle cx="350" cy="350" r="340" stroke="#c8a45a" strokeWidth="1"/>
-          <circle cx="350" cy="350" r="280" stroke="#c8a45a" strokeWidth="0.5"/>
-          <circle cx="350" cy="350" r="220" stroke="#c8a45a" strokeWidth="1"/>
-          <circle cx="350" cy="350" r="160" stroke="#c8a45a" strokeWidth="0.5"/>
-          <line x1="350" y1="10" x2="350" y2="690" stroke="#c8a45a" strokeWidth="0.5"/>
-          <line x1="10" y1="350" x2="690" y2="350" stroke="#c8a45a" strokeWidth="0.5"/>
-          <line x1="110" y1="110" x2="590" y2="590" stroke="#c8a45a" strokeWidth="0.3"/>
-          <line x1="590" y1="110" x2="110" y2="590" stroke="#c8a45a" strokeWidth="0.3"/>
-        </svg>
-      </div>
+    <section
+      id="top"
+      className="relative overflow-hidden bg-teal text-cream pt-28 pb-16 md:pt-32 md:pb-24 px-5 lg:px-0"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle at 80% 5%, rgba(225,192,141,0.28), transparent 34%), linear-gradient(135deg, var(--teal), var(--teal2))",
+      }}
+    >
+      <div className="w-full max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr] gap-12 lg:gap-14 items-center">
+        {/* Left column */}
+        <div>
+          <Image
+            src="/images/watchnlearn-logo.png"
+            alt="Watch & Learn"
+            width={210}
+            height={105}
+            priority
+            className="w-[min(210px,60vw)] h-auto mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
+          />
+          <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-4">
+            Support a Kollel · Win a {WATCH_VALUE} Watch
+          </div>
+          <h1 className="font-heading font-light text-[clamp(3rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] mb-6">
+            Timeless Watches.
+            <span className="block text-gold2">Eternal Impact.</span>
+          </h1>
+          <p className="text-[1.05rem] leading-relaxed text-cream/85 max-w-[560px] mb-7">
+            Every donation fuels a Kollel dedicated to Torah learning. As a token of our gratitude, you&apos;ll be
+            entered to win this month&apos;s {WATCH_VALUE} luxury timepiece — drawn live on Zoom.
+          </p>
+          <div className="flex flex-wrap gap-3.5">
+            <Link
+              href="#donate"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+              style={{
+                background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+                boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+              }}
+            >
+              Claim Your Entry
+            </Link>
+            <Link
+              href="#donate"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
+            >
+              Enter for $36
+            </Link>
+          </div>
 
-      {/* Content */}
-      <div className="relative text-center max-w-[780px]">
-        <Image 
-          src="/images/watchnlearn-logo.png" 
-          alt="Watch & Learn" 
-          width={340}
-          height={170}
-          className="w-[min(340px,80vw)] h-auto mx-auto mb-8 drop-shadow-[0_4px_32px_rgba(200,164,90,0.18)]"
-        />
-        
-        <div className="text-[0.65rem] tracking-[0.45em] uppercase text-gold mb-7 flex items-center justify-center gap-4">
-          <span className="flex-1 max-w-[60px] h-px bg-gradient-to-r from-transparent to-gold" />
-          Support a Kollel · Win a Watch
-          <span className="flex-1 max-w-[60px] h-px bg-gradient-to-l from-transparent to-gold" />
+          {monthlySubscribers > 0 && (
+            <p className="text-cream/70 text-sm mt-5">
+              <span className="font-bold text-gold2">{monthlySubscribers.toLocaleString()}</span>{" "}
+              {monthlySubscribers === 1 ? "member has" : "members have"} joined this month&apos;s sweepstakes
+            </p>
+          )}
         </div>
-        
-        <h1 className="font-heading text-[clamp(2.8rem,7vw,5.5rem)] font-light leading-[1.05] text-cream tracking-[0.02em] mb-6">
-          Timeless Watches.<br/>
-          <em className="italic text-gold2">Eternal Impact.</em>
-        </h1>
-        
-        <p className="text-[0.9rem] tracking-[0.08em] text-foreground/65 leading-[1.8] max-w-[520px] mx-auto mb-11">
-          Every donation fuels a Kollel dedicated to Torah learning. As a token of our gratitude, you&apos;ll be entered to win a luxury timepiece — drawn live every month.
-        </p>
-        
-        <Link 
-          href="#donate" 
-          className="group relative inline-block px-12 py-4 border border-gold text-gold2 text-xs tracking-[0.35em] uppercase overflow-hidden transition-colors duration-400 hover:text-teal"
-        >
-          <span className="absolute inset-0 bg-gold transform scale-x-0 origin-left transition-transform duration-400 group-hover:scale-x-100" />
-          <span className="relative z-10">Donate &amp; Enter</span>
-        </Link>
-        
-        <div className="w-px h-[60px] bg-gradient-to-b from-gold to-transparent mx-auto mt-12" />
+
+        {/* Right column — countdown card */}
+        <aside className="rounded-[28px] border border-cream/20 bg-cream/[0.11] p-8 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
+          <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2">
+            Next Drawing
+          </div>
+          <h3 className="font-heading text-3xl md:text-4xl font-light mb-1">{dateLabel}</h3>
+          <p className="text-cream/85 text-sm">Live drawing at 8:00 PM PST</p>
+
+          <CountdownClock targetTime={targetTime} />
+
+          <div className="mt-6 pt-5 border-t border-cream/15 flex items-center justify-between gap-4">
+            <div>
+              <div className="font-heading text-2xl text-gold2 leading-none">
+                {monthlySubscribers.toLocaleString()}
+              </div>
+              <div className="text-[0.62rem] font-bold tracking-[0.12em] uppercase text-cream/60 mt-1.5">
+                Monthly Members
+              </div>
+            </div>
+            <Link
+              href="#donate"
+              className="inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+              style={{
+                background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+                boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+              }}
+            >
+              Enter Now
+            </Link>
+          </div>
+        </aside>
       </div>
     </section>
   )

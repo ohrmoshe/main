@@ -40,7 +40,7 @@ export function RaffleDateBanner() {
           <p className="text-gold2 text-lg font-heading">Drawing Today!</p>
         )}
         <p className="text-foreground/50 text-xs mt-2 tracking-[0.1em]">
-          Live drawing at 8:00 PM EST
+          Live drawing at 8:00 PM PST
         </p>
       </div>
     </div>

@@ -33,6 +33,8 @@ export default function TermsPage() {
             <h2 className="font-heading text-2xl text-teal mb-4">Monthly Sweepstakes Program</h2>
             <p>The Kollel Ohr Moshe Monthly Watch Sweepstakes is an ongoing promotional program in which Sponsor may award one luxury watch prize each calendar month.</p>
             <p>Each monthly sweepstakes shall constitute a separate promotion with its own Entry Period, prize description, approximate retail value (&ldquo;ARV&rdquo;), drawing date, and winner.</p>
+            <p>Drawings are ordinarily held on the 15th day of each month (beginning July 15th) at 8:00 PM PST. Where the 15th falls on a Saturday, legal holiday, or other day on which a drawing cannot be conducted, the drawing will be held on the next available business day.</p>
+            <p className="font-bold text-teal">Sponsor reserves the right to postpone any monthly drawing by up to thirty (30) days for any reason, including but not limited to operational, technical, or unforeseen circumstances. Any such postponement will not affect the validity of entries already received.</p>
             <p>Details for the current month&apos;s prize, entry period, and drawing date will be posted on Sponsor&apos;s website.</p>
             <p>Sponsor reserves the right to modify, replace, postpone, or discontinue any monthly sweepstakes or prize offering at any time as permitted by law.</p>
           </section>
