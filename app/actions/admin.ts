@@ -3,8 +3,54 @@
 import { db } from "@/lib/db"
 import { donations } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
+import { revalidatePath } from "next/cache"
 
 type DonationFilter = "all" | "active" | "cancelled" | "one_time"
+
+// Manually add a donor who gave outside the website (e.g. cash, check, or a
+// donation made without a referral link). Status is either "active" (monthly) or "one_time".
+export async function addManualDonation(data: {
+  name: string
+  email: string
+  phone?: string
+  entries: number
+  amountDollars: number
+  status: "active" | "one_time"
+  referralCode?: string
+}) {
+  const name = data.name.trim()
+  const email = data.email.trim()
+  if (!name) throw new Error("Name is required")
+  if (!email) throw new Error("Email is required")
+
+  const entries = Math.max(0, Math.round(Number(data.entries) || 0))
+  const amountCents = Math.max(0, Math.round((Number(data.amountDollars) || 0) * 100))
+
+  await db.insert(donations).values({
+    name,
+    email,
+    phone: data.phone?.trim() || null,
+    entries,
+    amountCents,
+    status: data.status,
+    referralCode: data.referralCode?.trim() || null,
+  })
+
+  revalidatePath("/admin")
+  return { success: true }
+}
+
+// Override the entry count for an existing donor (e.g. honoring a special rate).
+export async function updateDonationEntries(id: number, entries: number) {
+  const newEntries = Math.max(0, Math.round(Number(entries) || 0))
+  await db
+    .update(donations)
+    .set({ entries: newEntries, updatedAt: new Date() })
+    .where(eq(donations.id, id))
+
+  revalidatePath("/admin")
+  return { success: true }
+}
 
 export async function getDonations(filter: DonationFilter = "all") {
   if (filter === "active" || filter === "cancelled" || filter === "one_time") {
