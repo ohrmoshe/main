@@ -5,6 +5,7 @@ import { createCheckoutSession, createOneTimeCheckout } from "@/app/actions/stri
 import { SUBSCRIPTION_TIERS } from "@/lib/products"
 import { ConsentModal } from "./consent-modal"
 import { PrizeWheel } from "./prize-wheel"
+import { DealBanner } from "./deal-banner"
 
 const CUSTOM_PRICE_PER_ENTRY = 42
 const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
@@ -16,6 +17,8 @@ export function DonationTiers() {
       {/* Monthly Plans — green band */}
       <section className="py-16 md:py-20 px-5 lg:px-0 bg-teal text-cream" id="donate">
         <div className="w-full max-w-[1180px] mx-auto">
+          <DealBanner />
+
           <div className="text-center max-w-[740px] mx-auto mb-10">
             <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
               Monthly Giving

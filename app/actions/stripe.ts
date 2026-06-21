@@ -2,6 +2,7 @@
 
 import { stripe } from "@/lib/stripe"
 import { SUBSCRIPTION_TIERS, calculateCustomTier, calculateMonthlyCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
+import { isDealActive } from "@/lib/deal"
 import { headers, cookies } from "next/headers"
 
 async function getReferralCode() {
@@ -41,6 +42,13 @@ export async function createCheckoutSession(
       productName = `Watch & Learn - ${entries} ${entries === 1 ? "Entry" : "Entries"}/month`
     }
 
+    // Limited-time promo: subscribe before 8:00 PM ET today and entries are doubled.
+    const dealDoubled = isDealActive()
+    if (dealDoubled) {
+      entries = entries * 2
+      productName = `${productName} (Double Entries Deal)`
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       // Omitting payment_method_types lets Stripe automatically offer all
@@ -71,6 +79,7 @@ export async function createCheckoutSession(
         emailConsent: consent?.email ? "true" : "false",
         smsConsent: consent?.sms ? "true" : "false",
         referralCode,
+        dealDoubled: dealDoubled ? "true" : "false",
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#donate`,
