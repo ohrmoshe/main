@@ -1,7 +1,7 @@
-// Promo: subscribe before 8:00 PM Eastern today and every entry is doubled.
+// Promo: subscribe before 12:00 PM Eastern today and every entry is doubled.
 // All logic is timezone-aware (America/New_York) so it works in both EST and EDT.
 
-export const DEAL_END_HOUR = 20 // 8:00 PM
+export const DEAL_END_HOUR = 12 // 12:00 PM (noon)
 
 // Returns the offset of America/New_York from UTC, in minutes, at the given instant.
 // Example: EDT (summer) => -240, EST (winter) => -300.

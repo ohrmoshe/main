@@ -1,11 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createCheckoutSession, createOneTimeCheckout } from "@/app/actions/stripe"
 import { SUBSCRIPTION_TIERS } from "@/lib/products"
+import { isDealActive } from "@/lib/deal"
 import { ConsentModal } from "./consent-modal"
 import { PrizeWheel } from "./prize-wheel"
 import { DealBanner } from "./deal-banner"
+
+// Client-side hook: tracks whether the double-entry deal is currently active.
+// Computed after mount (and re-checked each second) to avoid hydration mismatch.
+function useDealActive() {
+  const [active, setActive] = useState(false)
+  useEffect(() => {
+    const tick = () => setActive(isDealActive())
+    tick()
+    const interval = setInterval(tick, 1000)
+    return () => clearInterval(interval)
+  }, [])
+  return active
+}
 
 const CUSTOM_PRICE_PER_ENTRY = 42
 const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
@@ -113,6 +127,8 @@ function Tier({
 }) {
   const [loading, setLoading] = useState(false)
   const [showConsentModal, setShowConsentModal] = useState(false)
+  const dealActive = useDealActive()
+  const displayedEntries = dealActive ? entries * 2 : entries
 
   const handleSubscribe = async (consent: { email: boolean; sms: boolean }) => {
     setLoading(true)
@@ -142,9 +158,23 @@ function Tier({
         )}
         {savings && <div className="text-[0.78rem] font-extrabold text-gold2">Save {savings}</div>}
         <div className="font-heading text-[1.35rem] text-gold2 leading-tight mt-1">{label}</div>
-        <div className="text-base text-cream/75 mt-0.5">
-          {entries} {entries === 1 ? "Entry" : "Entries"}
-        </div>
+        {dealActive ? (
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-base text-red-400 line-through decoration-2">
+              {entries} {entries === 1 ? "Entry" : "Entries"}
+            </span>
+            <span className="text-base font-bold text-gold2">
+              {displayedEntries} {displayedEntries === 1 ? "Entry" : "Entries"}
+            </span>
+            <span className="text-[0.62rem] font-extrabold uppercase tracking-wide bg-gold text-teal2 rounded-full px-1.5 py-0.5">
+              2x
+            </span>
+          </div>
+        ) : (
+          <div className="text-base text-cream/75 mt-0.5">
+            {entries} {entries === 1 ? "Entry" : "Entries"}
+          </div>
+        )}
         <div className="font-heading text-[3.4rem] leading-none my-2.5">
           ${price}
           <small className="font-heading text-base">/month</small>
@@ -168,7 +198,7 @@ function Tier({
         isOpen={showConsentModal}
         onClose={() => setShowConsentModal(false)}
         onSubmit={handleSubscribe}
-        planDetails={{ entries, price, isOneTime: false }}
+        planDetails={{ entries: displayedEntries, price, isOneTime: false }}
       />
     </>
   )
@@ -179,8 +209,10 @@ function MonthlyCustomAmount() {
   const [loading, setLoading] = useState(false)
   const [showConsentModal, setShowConsentModal] = useState(false)
 
+  const dealActive = useDealActive()
   const numericAmount = parseFloat(amount) || 0
   const entries = Math.floor(numericAmount / MONTHLY_CUSTOM_PRICE_PER_ENTRY)
+  const displayedEntries = dealActive ? entries * 2 : entries
   // Charge the full amount entered; entries = amount ÷ 20 (rounded down)
   const chargeAmount = numericAmount
   const isValid = numericAmount > MONTHLY_CUSTOM_MIN_AMOUNT && entries >= 1
@@ -209,10 +241,17 @@ function MonthlyCustomAmount() {
         <p className="text-cream/80 text-[0.96rem]">
           Give a custom monthly gift above ${MONTHLY_CUSTOM_MIN_AMOUNT} and earn an entry for every $
           {MONTHLY_CUSTOM_PRICE_PER_ENTRY} donated.
-          {isValid && (
+          {isValid && !dealActive && (
             <span className="text-gold2 font-semibold">
               {" "}
               {entries} entries for ${chargeAmount}/month
+            </span>
+          )}
+          {isValid && dealActive && (
+            <span className="font-semibold">
+              {" "}
+              <span className="text-red-400 line-through decoration-2">{entries} entries</span>{" "}
+              <span className="text-gold2">{displayedEntries} entries</span> for ${chargeAmount}/month
             </span>
           )}
         </p>
@@ -251,7 +290,7 @@ function MonthlyCustomAmount() {
         isOpen={showConsentModal}
         onClose={() => setShowConsentModal(false)}
         onSubmit={handleSubscribe}
-        planDetails={{ entries, price: chargeAmount, isOneTime: false }}
+        planDetails={{ entries: displayedEntries, price: chargeAmount, isOneTime: false }}
       />
     </div>
   )

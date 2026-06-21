@@ -34,14 +34,14 @@ export function DealBanner() {
     <div className="mb-9 rounded-[22px] border border-gold/60 bg-gold/[0.12] px-5 py-5 md:px-8 md:py-6 flex flex-col md:flex-row items-center gap-4 md:gap-7 text-center md:text-left">
       <div className="flex-1">
         <div className="text-[0.72rem] font-extrabold tracking-[0.18em] uppercase text-gold mb-1.5">
-          Today Only · Limited Time
+          Today Only · June 21, 2026
         </div>
         <h3 className="font-heading text-[clamp(1.5rem,2.6vw,2.1rem)] font-light leading-tight text-cream">
           Every Entry <span className="text-gold2 font-normal">Doubled</span> When You Subscribe
         </h3>
         <p className="text-cream/75 text-[0.97rem] mt-1.5">
-          Start any monthly plan before 8:00 PM ET tonight and we&apos;ll double your entries into the drawing —
-          same monthly donation, twice the chances.
+          Start any monthly plan before <span className="font-semibold text-cream">12:00 PM ET today</span> and
+          we&apos;ll double your entries into the drawing — same monthly donation, twice the chances.
         </p>
       </div>
 
