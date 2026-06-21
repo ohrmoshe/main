@@ -20,10 +20,18 @@ type Donation = {
   addressState: string | null
   addressPostalCode: string | null
   entries: number
+  bonusEntries?: number | null
+  bonusEntriesUntil?: Date | string | null
   amountCents: number
   status: string
   createdAt: Date | null
   cancelledAt: Date | null
+}
+
+// Whether a donor's promo bonus is still valid for the upcoming drawing.
+function bonusActive(d: Donation): boolean {
+  if (!d.bonusEntries || !d.bonusEntriesUntil) return false
+  return new Date(d.bonusEntriesUntil).getTime() >= Date.now()
 }
 
 export function AdminDashboardClient({ initialDonations }: { initialDonations: Donation[] }) {
@@ -308,7 +316,19 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        {donation.entries}
+                        {bonusActive(donation) ? (
+                          <span className="flex items-center gap-1">
+                            <span>{donation.entries + (donation.bonusEntries || 0)}</span>
+                            <span
+                              className="text-[0.5rem] tracking-[0.1em] uppercase bg-gold/20 text-gold2 px-1 py-0.5 rounded"
+                              title={`Base ${donation.entries} + ${donation.bonusEntries} promo bonus (this drawing only)`}
+                            >
+                              +{donation.bonusEntries} promo
+                            </span>
+                          </span>
+                        ) : (
+                          <span>{donation.entries}</span>
+                        )}
                         <button
                           onClick={() => startEdit(donation)}
                           className="text-[0.55rem] tracking-[0.15em] uppercase text-gold2/70 border border-gold/30 px-1.5 py-0.5 hover:border-gold hover:text-gold"

@@ -13,6 +13,10 @@ export const donations = pgTable("donations", {
   addressPostalCode: text("address_postal_code"),
   addressCountry: text("address_country"),
   entries: integer("entries").notNull(),
+  // Promo bonus entries that count toward ONLY one specific drawing (bonusEntriesUntil).
+  // After that drawing passes, the bonus expires and the donor reverts to base `entries`.
+  bonusEntries: integer("bonus_entries").notNull().default(0),
+  bonusEntriesUntil: timestamp("bonus_entries_until"),
   amountCents: integer("amount_cents").notNull(),
   status: text("status").notNull().default("active"),
   emailConsent: boolean("email_consent").default(false),

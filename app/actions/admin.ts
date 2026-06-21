@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { donations } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
+import { effectiveEntries, isBonusActive } from "@/lib/drawing"
 
 type DonationFilter = "all" | "active" | "cancelled" | "one_time"
 
@@ -77,9 +78,11 @@ export async function getDonationStats() {
   // Total collected = recurring monthly revenue + all one-time donations
   const totalRevenue = monthlyRevenue + oneTimeRevenue
 
-  // Entries split by type
-  const monthlyEntries = active.reduce((sum, d) => sum + d.entries, 0)
-  const oneTimeEntries = oneTime.reduce((sum, d) => sum + d.entries, 0)
+  // Entries split by type — counts toward THIS month's drawing, so promo bonus
+  // entries are included only while they are still valid (effectiveEntries).
+  const now = new Date()
+  const monthlyEntries = active.reduce((sum, d) => sum + effectiveEntries(d, now), 0)
+  const oneTimeEntries = oneTime.reduce((sum, d) => sum + effectiveEntries(d, now), 0)
   const totalEntries = monthlyEntries + oneTimeEntries
 
   return {
@@ -99,6 +102,8 @@ export async function getDonationStats() {
 export async function exportDonationsCSV(filter: DonationFilter = "all") {
   const data = await getDonations(filter)
   
+  const now = new Date()
+
   const headers = [
     "ID",
     "Name",
@@ -109,7 +114,9 @@ export async function exportDonationsCSV(filter: DonationFilter = "all") {
     "State",
     "Postal Code",
     "Country",
-    "Entries",
+    "Base Entries",
+    "Bonus Entries (This Drawing)",
+    "Total Entries (This Drawing)",
     "Amount ($)",
     "Status",
     "Created At",
@@ -127,6 +134,8 @@ export async function exportDonationsCSV(filter: DonationFilter = "all") {
     d.addressPostalCode || "",
     d.addressCountry || "",
     d.entries,
+    isBonusActive(d, now) ? d.bonusEntries : 0,
+    effectiveEntries(d, now),
     (d.amountCents / 100).toFixed(2),
     d.status,
     d.createdAt ? new Date(d.createdAt).toISOString() : "",

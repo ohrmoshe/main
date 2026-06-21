@@ -24,6 +24,26 @@ export function getCycleStart(now: Date = new Date()): Date {
   return programStart
 }
 
+// How many entries a donor has for the CURRENT (upcoming) drawing.
+// Base entries always count; promo bonus entries only count while we are still
+// before the drawing they were granted for (bonusEntriesUntil). After that
+// drawing passes, the bonus expires and the donor reverts to base entries.
+export function isBonusActive(
+  d: { bonusEntries?: number | null; bonusEntriesUntil?: Date | string | null },
+  now: Date = new Date(),
+): boolean {
+  if (!d.bonusEntries || !d.bonusEntriesUntil) return false
+  const until = d.bonusEntriesUntil instanceof Date ? d.bonusEntriesUntil : new Date(d.bonusEntriesUntil)
+  return until.getTime() >= now.getTime()
+}
+
+export function effectiveEntries(
+  d: { entries: number; bonusEntries?: number | null; bonusEntriesUntil?: Date | string | null },
+  now: Date = new Date(),
+): number {
+  return d.entries + (isBonusActive(d, now) ? (d.bonusEntries || 0) : 0)
+}
+
 export function getDrawingInfo(now: Date = new Date()) {
   const raffleDate = getDrawingDate(now)
   const monthName = raffleDate.toLocaleString("en-US", { month: "long" })

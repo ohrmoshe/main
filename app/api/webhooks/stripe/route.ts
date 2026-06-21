@@ -90,7 +90,12 @@ export async function POST(request: NextRequest) {
             session.customer as string
           ) as Stripe.Customer
 
-          const entries = parseInt(session.metadata?.entries || "1")
+          // Total entries for this drawing (display); base = permanent monthly weight.
+          const totalEntries = parseInt(session.metadata?.entries || "1")
+          const baseEntries = parseInt(session.metadata?.baseEntries || session.metadata?.entries || "1")
+          const bonusEntries = parseInt(session.metadata?.bonusEntries || "0")
+          const bonusUntilRaw = session.metadata?.bonusUntil || ""
+          const bonusEntriesUntil = bonusUntilRaw ? new Date(bonusUntilRaw) : null
           const amountCents = parseInt(session.metadata?.amountCents || "0")
           const emailConsent = session.metadata?.emailConsent === "true"
           const smsConsent = session.metadata?.smsConsent === "true"
@@ -107,7 +112,9 @@ export async function POST(request: NextRequest) {
             addressState: session.customer_details?.address?.state || null,
             addressPostalCode: session.customer_details?.address?.postal_code || null,
             addressCountry: session.customer_details?.address?.country || null,
-            entries,
+            entries: baseEntries,
+            bonusEntries,
+            bonusEntriesUntil,
             amountCents,
             status: "active",
             emailConsent,
@@ -119,7 +126,7 @@ export async function POST(request: NextRequest) {
           await sendAdminNotification("new_subscription", {
             name: customer.name || session.customer_details?.name || "Unknown",
             email: customer.email || session.customer_details?.email || "",
-            entries,
+            entries: totalEntries,
             amount: amountCents / 100,
           })
 
@@ -127,7 +134,7 @@ export async function POST(request: NextRequest) {
           await sendDonorConfirmation({
             name: customer.name || session.customer_details?.name || "there",
             email: customer.email || session.customer_details?.email || "",
-            entries,
+            entries: totalEntries,
             amount: amountCents / 100,
             isOneTime: false,
           })

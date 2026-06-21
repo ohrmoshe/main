@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { affiliates, donations } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
+import { effectiveEntries } from "@/lib/drawing"
 
 function slugifyCode(raw: string) {
   return raw
@@ -29,7 +30,7 @@ export async function getAffiliateStats() {
     const referred = allDonations.filter((d) => d.referralCode === a.code)
     const activeReferred = referred.filter((d) => d.status === "active" || d.status === "one_time")
     const revenueCents = activeReferred.reduce((sum, d) => sum + d.amountCents, 0)
-    const entries = activeReferred.reduce((sum, d) => sum + d.entries, 0)
+    const entries = activeReferred.reduce((sum, d) => sum + effectiveEntries(d), 0)
 
     return {
       ...a,

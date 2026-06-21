@@ -3,6 +3,7 @@
 import { stripe } from "@/lib/stripe"
 import { SUBSCRIPTION_TIERS, calculateCustomTier, calculateMonthlyCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
 import { isDealActive } from "@/lib/deal"
+import { getDrawingDate, getDrawingInfo } from "@/lib/drawing"
 import { headers, cookies } from "next/headers"
 
 async function getReferralCode() {
@@ -20,34 +21,42 @@ export async function createCheckoutSession(
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"
     const referralCode = await getReferralCode()
 
-    let entries: number
+    // baseEntries = the donor's permanent monthly entry weight (every drawing).
+    let baseEntries: number
     let amountCents: number
-    let productName: string
 
     if (tierId === "custom" && customAmountCents) {
       const customTier = calculateMonthlyCustomTier(customAmountCents)
       if (!customTier) {
         throw new Error("Invalid custom amount")
       }
-      entries = customTier.entries
+      baseEntries = customTier.entries
       amountCents = customTier.amountCents
-      productName = `Watch & Learn - ${entries} ${entries === 1 ? "Entry" : "Entries"}/month`
     } else {
       const tier = SUBSCRIPTION_TIERS.find((t) => t.id === tierId)
       if (!tier) {
         throw new Error("Invalid tier")
       }
-      entries = tier.entries
+      baseEntries = tier.entries
       amountCents = tier.priceInCents
-      productName = `Watch & Learn - ${entries} ${entries === 1 ? "Entry" : "Entries"}/month`
     }
 
-    // Limited-time promo: subscribe before 8:00 PM ET today and entries are doubled.
+    // Limited-time promo: subscribe before the deadline and entries are DOUBLED,
+    // but only for THIS month's drawing. The bonus is stored separately and
+    // expires after the upcoming drawing, then the donor reverts to baseEntries.
     const dealDoubled = isDealActive()
-    if (dealDoubled) {
-      entries = entries * 2
-      productName = `${productName} (Double Entries Deal)`
-    }
+    const bonusEntries = dealDoubled ? baseEntries : 0
+    const totalThisDrawing = baseEntries + bonusEntries
+    const bonusUntil = dealDoubled ? getDrawingDate() : null
+    const drawingLabel = getDrawingInfo().dateLabel
+
+    const productName = dealDoubled
+      ? `Watch & Learn - ${baseEntries} → ${totalThisDrawing} Entries (Double Entries Deal!)`
+      : `Watch & Learn - ${baseEntries} ${baseEntries === 1 ? "Entry" : "Entries"}/month`
+
+    const description = dealDoubled
+      ? `Monthly donation supporting Kollel Ohr Moshe. LIMITED-TIME DEAL: entries doubled to ${totalThisDrawing} for the ${drawingLabel} drawing (normally ${baseEntries}), then ${baseEntries} every month after.`
+      : `Monthly donation supporting Kollel Ohr Moshe with ${baseEntries} raffle ${baseEntries === 1 ? "entry" : "entries"} every drawing`
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -63,7 +72,7 @@ export async function createCheckoutSession(
             currency: "usd",
             product_data: {
               name: productName,
-              description: `Monthly donation supporting Kollel Ohr Moshe with ${entries} raffle ${entries === 1 ? "entry" : "entries"}`,
+              description,
             },
             unit_amount: amountCents,
             recurring: {
@@ -74,7 +83,11 @@ export async function createCheckoutSession(
         },
       ],
       metadata: {
-        entries: entries.toString(),
+        // `entries` carries the total for THIS drawing (used by success page & emails)
+        entries: totalThisDrawing.toString(),
+        baseEntries: baseEntries.toString(),
+        bonusEntries: bonusEntries.toString(),
+        bonusUntil: bonusUntil ? bonusUntil.toISOString() : "",
         amountCents: amountCents.toString(),
         emailConsent: consent?.email ? "true" : "false",
         smsConsent: consent?.sms ? "true" : "false",
