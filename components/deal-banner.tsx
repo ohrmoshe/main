@@ -40,8 +40,9 @@ export function DealBanner() {
           Every Entry <span className="text-gold2 font-normal">Doubled</span> When You Subscribe
         </h3>
         <p className="text-cream/75 text-[0.97rem] mt-1.5">
-          Start any monthly plan before <span className="font-semibold text-cream">12:00 PM ET today</span> and
-          we&apos;ll double your entries into the drawing — same monthly donation, twice the chances.
+          Start any monthly plan before{" "}
+          <span className="font-semibold text-cream">midnight ET tonight (12:00 AM)</span> and we&apos;ll double your
+          entries into the drawing — same monthly donation, twice the chances.
         </p>
       </div>
 
