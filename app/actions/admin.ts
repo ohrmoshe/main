@@ -5,8 +5,17 @@ import { donations } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { effectiveEntries, isBonusActive } from "@/lib/drawing"
+import { requireAdmin } from "@/lib/auth"
 
 type DonationFilter = "all" | "active" | "cancelled" | "one_time"
+
+// FIX (#8): neutralize spreadsheet formula injection. A cell starting with = + - @ (or tab/CR) is
+// treated as a live formula by Excel/Sheets, so prefix those with a single quote before quoting.
+function csvCell(value: unknown): string {
+  let s = String(value ?? "")
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s
+  return `"${s.replace(/"/g, '""')}"`
+}
 
 // Manually add a donor who gave outside the website (e.g. cash, check, or a
 // donation made without a referral link). Status is either "active" (monthly) or "one_time".
@@ -19,6 +28,7 @@ export async function addManualDonation(data: {
   status: "active" | "one_time"
   referralCode?: string
 }) {
+  await requireAdmin()
   const name = data.name.trim()
   const email = data.email.trim()
   if (!name) throw new Error("Name is required")
@@ -43,6 +53,7 @@ export async function addManualDonation(data: {
 
 // Override the entry count for an existing donor (e.g. honoring a special rate).
 export async function updateDonationEntries(id: number, entries: number) {
+  await requireAdmin()
   const newEntries = Math.max(0, Math.round(Number(entries) || 0))
   await db
     .update(donations)
@@ -54,6 +65,7 @@ export async function updateDonationEntries(id: number, entries: number) {
 }
 
 export async function getDonations(filter: DonationFilter = "all") {
+  await requireAdmin()
   if (filter === "active" || filter === "cancelled" || filter === "one_time") {
     const results = await db
       .select()
@@ -67,6 +79,7 @@ export async function getDonations(filter: DonationFilter = "all") {
 }
 
 export async function getDonationStats() {
+  await requireAdmin()
   const allDonations = await db.select().from(donations)
 
   const active = allDonations.filter((d) => d.status === "active")
@@ -100,8 +113,9 @@ export async function getDonationStats() {
 }
 
 export async function exportDonationsCSV(filter: DonationFilter = "all") {
+  await requireAdmin()
   const data = await getDonations(filter)
-  
+
   const now = new Date()
 
   const headers = [
@@ -122,7 +136,7 @@ export async function exportDonationsCSV(filter: DonationFilter = "all") {
     "Created At",
     "Cancelled At",
   ]
-  
+
   const rows = (Array.isArray(data) ? data : []).map((d) => [
     d.id,
     d.name,
@@ -141,11 +155,11 @@ export async function exportDonationsCSV(filter: DonationFilter = "all") {
     d.createdAt ? new Date(d.createdAt).toISOString() : "",
     d.cancelledAt ? new Date(d.cancelledAt).toISOString() : "",
   ])
-  
+
   const csvContent = [
     headers.join(","),
-    ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
+    ...rows.map((row) => row.map(csvCell).join(",")),
   ].join("\n")
-  
+
   return csvContent
 }

@@ -5,6 +5,7 @@ import { affiliates, donations } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { effectiveEntries } from "@/lib/drawing"
+import { requireAdmin } from "@/lib/auth"
 
 function slugifyCode(raw: string) {
   return raw
@@ -16,11 +17,13 @@ function slugifyCode(raw: string) {
 }
 
 export async function getAffiliates() {
+  await requireAdmin()
   return db.select().from(affiliates).orderBy(desc(affiliates.createdAt))
 }
 
 // Returns affiliates joined with their referral performance (donors + revenue + entries)
 export async function getAffiliateStats() {
+  await requireAdmin()
   const [affiliateList, allDonations] = await Promise.all([
     db.select().from(affiliates).orderBy(desc(affiliates.createdAt)),
     db.select().from(donations),
@@ -49,6 +52,7 @@ export async function createAffiliate(data: {
   code?: string
   notes?: string
 }) {
+  await requireAdmin()
   const name = data.name.trim()
   if (!name) throw new Error("Name is required")
 
@@ -77,6 +81,7 @@ export async function createAffiliate(data: {
 }
 
 export async function deleteAffiliate(id: number) {
+  await requireAdmin()
   await db.delete(affiliates).where(eq(affiliates.id, id))
   revalidatePath("/admin")
 }

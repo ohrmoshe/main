@@ -3,14 +3,14 @@ import { getAffiliateStats } from "@/app/actions/affiliates"
 import { AdminDashboardClient } from "./client"
 import { AffiliatesManager } from "./affiliates-manager"
 import { AdminLogin } from "./login"
-import { cookies, headers } from "next/headers"
+import { headers } from "next/headers"
+import { isAdminAuthenticated } from "@/lib/auth"
 
 export const dynamic = "force-dynamic"
 
 async function isAuthenticated() {
-  const cookieStore = await cookies()
-  const authCookie = cookieStore.get("admin_auth")
-  return authCookie?.value === process.env.ADMIN_PASSWORD
+  // FIX (#3): validate the signed session token instead of comparing the cookie to the password.
+  return isAdminAuthenticated()
 }
 
 export default async function AdminPage() {

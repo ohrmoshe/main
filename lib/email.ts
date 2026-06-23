@@ -120,3 +120,42 @@ export async function sendAdminNotification(
     console.error(`[EMAIL ERROR] Failed to send ${type} notification:`, error)
   }
 }
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!)
+}
+
+// FIX (#2): magic-link email so a donor proves they control the email before cancelling.
+export async function sendCancelLinkEmail(email: string, name: string, link: string) {
+  if (!email) return
+  const safeName = escapeHtml(name || "there")
+  const subject = "Manage your Watch & Learn subscription"
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background-color: #0e2a2a; color: #f5efe6; padding: 32px; border-radius: 12px;">
+      <h1 style="color: #c89b5c; font-size: 24px; margin: 0 0 12px;">Manage your subscription</h1>
+      <p style="color: #e8e0d2; font-size: 16px; line-height: 1.6;">
+        Hi ${safeName}, you (or someone using your email) asked to manage your Watch &amp; Learn subscription.
+        Click below to view or cancel it. This link expires in 30 minutes.
+      </p>
+      <p style="margin: 24px 0;">
+        <a href="${link}" style="display: inline-block; background-color: #c89b5c; color: #0e2a2a; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold;">
+          View / cancel my subscription
+        </a>
+      </p>
+      <p style="color: #b9b0a2; font-size: 13px; line-height: 1.6;">
+        If you didn't request this, you can safely ignore this email — no changes will be made.
+      </p>
+    </div>
+  `
+  try {
+    const resend = await getResend()
+    if (!resend) {
+      console.log(`[EMAIL SKIPPED] No RESEND_API_KEY configured - cancel link not sent`)
+      return
+    }
+    await resend.emails.send({ from: FROM, to: email, subject, html })
+    console.log(`[EMAIL SENT] Cancel link to ${email}`)
+  } catch (error) {
+    console.error(`[EMAIL ERROR] Failed to send cancel link:`, error)
+  }
+}
