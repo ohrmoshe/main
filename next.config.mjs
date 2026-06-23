@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // FIX (#7): type errors now fail the build instead of shipping silently (tsc passes clean).
   images: {
     unoptimized: true,
   },
@@ -23,6 +21,24 @@ const nextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            // FIX (#6): Content-Security-Policy. 'unsafe-inline' is required because Next.js injects
+            // inline scripts/styles without nonces; a nonce-based strict CSP is a future hardening.
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: https:",
+              "frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+              "connect-src 'self' https://api.stripe.com https://va.vercel-scripts.com",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "object-src 'none'",
+            ].join("; "),
           },
         ],
       },
