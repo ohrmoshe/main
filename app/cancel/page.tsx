@@ -69,7 +69,7 @@ export default function CancelPage() {
         {mode === "request" && (
           <>
             <h1 className="font-heading text-4xl text-cream text-center mb-4">Cancel Subscription</h1>
-            <p className="text-foreground/60 text-center mb-8">
+            <p className="text-cream/80 text-center mb-8">
               Enter your email and we&apos;ll send you a secure link to manage or cancel your subscription.
             </p>
             <form onSubmit={handleRequest}>
@@ -99,7 +99,7 @@ export default function CancelPage() {
         {mode === "sent" && (
           <div className="text-center">
             <h1 className="font-heading text-4xl text-cream mb-4">Check Your Email</h1>
-            <p className="text-foreground/60 mb-8">
+            <p className="text-cream/80 mb-8">
               If that email has an active subscription, we&apos;ve sent a secure link to manage or cancel it. The link
               expires in 30 minutes.
             </p>
@@ -110,7 +110,7 @@ export default function CancelPage() {
         {mode === "invalid" && (
           <div className="text-center">
             <h1 className="font-heading text-4xl text-cream mb-4">Link Expired</h1>
-            <p className="text-foreground/60 mb-8">This link is invalid or has expired. Please request a new one.</p>
+            <p className="text-cream/80 mb-8">This link is invalid or has expired. Please request a new one.</p>
             <button
               onClick={() => {
                 setMode("request")
@@ -126,16 +126,16 @@ export default function CancelPage() {
         {mode === "manage" && donor && (
           <>
             <h1 className="font-heading text-4xl text-cream text-center mb-4">Confirm Cancellation</h1>
-            <p className="text-foreground/60 text-center mb-8">Are you sure you want to cancel your subscription?</p>
+            <p className="text-cream/80 text-center mb-8">Are you sure you want to cancel your subscription?</p>
             <div className="bg-teal2 border border-gold/20 p-6 mb-8">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-foreground/50">Name</span><p className="text-cream">{donor.name}</p></div>
-                <div><span className="text-foreground/50">Email</span><p className="text-cream">{donor.email}</p></div>
-                <div><span className="text-foreground/50">Monthly Amount</span><p className="text-cream">${donor.amount}</p></div>
-                <div><span className="text-foreground/50">Entries/Month</span><p className="text-cream">{donor.entries}</p></div>
+                <div><span className="text-cream/70">Name</span><p className="text-cream">{donor.name}</p></div>
+                <div><span className="text-cream/70">Email</span><p className="text-cream">{donor.email}</p></div>
+                <div><span className="text-cream/70">Monthly Amount</span><p className="text-cream">${donor.amount}</p></div>
+                <div><span className="text-cream/70">Entries/Month</span><p className="text-cream">{donor.entries}</p></div>
               </div>
             </div>
-            <p className="text-foreground/50 text-sm text-center mb-6">
+            <p className="text-cream/70 text-sm text-center mb-6">
               After cancellation, you will no longer be entered into future drawings.
             </p>
             {error && <p className="text-red-400 text-sm mb-4 text-center">{error}</p>}
@@ -165,7 +165,7 @@ export default function CancelPage() {
               </svg>
             </div>
             <h1 className="font-heading text-4xl text-cream mb-4">Subscription Cancelled</h1>
-            <p className="text-foreground/60 mb-8">
+            <p className="text-cream/80 mb-8">
               Your subscription has been cancelled successfully. We&apos;re sorry to see you go.
             </p>
             <Link
