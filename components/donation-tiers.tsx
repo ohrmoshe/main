@@ -6,6 +6,7 @@ import { SUBSCRIPTION_TIERS } from "@/lib/products"
 import { isDealActive } from "@/lib/deal"
 import { ConsentModal } from "./consent-modal"
 import { DealBanner } from "./deal-banner"
+import { PrizeWheel } from "./prize-wheel"
 
 // Client-side hook: tracks whether the double-entry deal is currently active.
 // Computed after mount (and re-checked each second) to avoid hydration mismatch.
@@ -83,16 +84,17 @@ export function DonationTiers() {
                 One-Time Entry
               </div>
               <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-text leading-none mb-3">
-                Try Your Luck
+                Spin the Prize Wheel
               </h2>
               <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
-                Not ready to commit monthly? Make a one-time ${ONE_TIME_PRICE} donation and get entered into this
-                month&apos;s drawing — or choose a custom amount at ${CUSTOM_PRICE_PER_ENTRY} per entry.
+                Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
+                exact amount it lands on — from $1 up. Every spin earns you one entry into this month&apos;s drawing.
+                Prefer a fixed amount? Choose a custom donation at ${CUSTOM_PRICE_PER_ENTRY} per entry.
               </p>
               <CustomAmount />
             </div>
 
-            <OneTimeCard />
+            <PrizeWheel />
           </div>
         </div>
       </section>
