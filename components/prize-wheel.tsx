@@ -185,7 +185,16 @@ export function PrizeWheel() {
             appearance: { theme: "night", variables: { colorPrimary: "#c89b5c" } },
           }}
         >
-          <SpinForm donor={donor} consent={consent} customerId={customerId} />
+          <SpinForm
+            donor={donor}
+            consent={consent}
+            customerId={customerId}
+            onCharged={() =>
+              setStatus((prev) =>
+                prev ? { available: Math.max(0, prev.available - 1), soldOut: prev.available - 1 <= 0 } : prev,
+              )
+            }
+          />
         </Elements>
       )}
     </div>
@@ -213,10 +222,12 @@ function SpinForm({
   donor,
   consent,
   customerId,
+  onCharged,
 }: {
   donor: Donor
   consent: Consent
   customerId: string
+  onCharged: () => void
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -319,6 +330,9 @@ function SpinForm({
         setSoldOut(true)
         return
       }
+
+      // Charge succeeded and a number is reserved -> decrement the live counter.
+      onCharged()
 
       // Now run the full 15s spin that lands on the reserved number.
       setSpinning(true)
