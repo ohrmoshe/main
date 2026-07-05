@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createCheckoutSession, createOneTimeCheckout } from "@/app/actions/stripe"
+import { createCheckoutSession } from "@/app/actions/stripe"
 import { SUBSCRIPTION_TIERS } from "@/lib/products"
 import { isDealActive } from "@/lib/deal"
 import { ConsentModal } from "./consent-modal"
@@ -21,10 +21,8 @@ function useDealActive() {
   return active
 }
 
-const CUSTOM_PRICE_PER_ENTRY = 42
 const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
 const MONTHLY_CUSTOM_MIN_AMOUNT = 360
-const ONE_TIME_PRICE = 42
 
 export function DonationTiers() {
   return (
@@ -89,9 +87,7 @@ export function DonationTiers() {
               <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
                 Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
                 exact amount it lands on — from $1 up. Every spin earns you one entry into this month&apos;s drawing.
-                Prefer a fixed amount? Choose a custom donation at ${CUSTOM_PRICE_PER_ENTRY} per entry.
               </p>
-              <CustomAmount />
             </div>
 
             <PrizeWheel />
@@ -294,121 +290,3 @@ function MonthlyCustomAmount() {
   )
 }
 
-function OneTimeCard() {
-  const [loading, setLoading] = useState(false)
-  const [showConsentModal, setShowConsentModal] = useState(false)
-
-  const handleOneTime = async (consent: { email: boolean; sms: boolean }) => {
-    setLoading(true)
-    try {
-      const { url } = await createOneTimeCheckout(consent)
-      if (url) window.location.href = url
-    } catch (error) {
-      console.error("Checkout error:", error)
-      alert("Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
-      setShowConsentModal(false)
-    }
-  }
-
-  return (
-    <>
-      <div className="rounded-[28px] bg-teal text-cream p-8 text-center">
-        <div className="text-cream/80">1 Entry</div>
-        <div className="font-heading text-[3.4rem] leading-none my-1 text-gold2">${ONE_TIME_PRICE}</div>
-        <p className="text-cream/70 text-sm">one-time</p>
-        <p className="text-cream/80 text-sm my-3">Single entry into this month&apos;s watch drawing</p>
-        <button
-          onClick={() => setShowConsentModal(true)}
-          disabled={loading}
-          className="w-full rounded-full px-4 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
-          style={{
-            background: "linear-gradient(135deg, var(--gold), var(--gold2))",
-            boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
-          }}
-        >
-          {loading ? "Processing..." : "Donate Now"}
-        </button>
-      </div>
-
-      <ConsentModal
-        isOpen={showConsentModal}
-        onClose={() => setShowConsentModal(false)}
-        onSubmit={handleOneTime}
-        planDetails={{ entries: 1, price: ONE_TIME_PRICE, isOneTime: true }}
-      />
-    </>
-  )
-}
-
-function CustomAmount() {
-  const [amount, setAmount] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [showConsentModal, setShowConsentModal] = useState(false)
-
-  const numericAmount = parseFloat(amount) || 0
-  const entries = Math.floor(numericAmount / CUSTOM_PRICE_PER_ENTRY)
-  const chargeAmount = entries * CUSTOM_PRICE_PER_ENTRY
-  const isValid = entries >= 1
-
-  const handleDonate = async (consent: { email: boolean; sms: boolean }) => {
-    setLoading(true)
-    try {
-      const { url } = await createOneTimeCheckout(consent, chargeAmount * 100)
-      if (url) window.location.href = url
-    } catch (error) {
-      console.error("Checkout error:", error)
-      alert("Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
-      setShowConsentModal(false)
-    }
-  }
-
-  return (
-    <div className="mt-6 max-w-[360px]">
-      <label className="text-[0.7rem] font-extrabold tracking-[0.16em] uppercase text-gold block mb-2">
-        Custom Amount
-      </label>
-      <div className="flex gap-2.5">
-        <div className="relative flex-1">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold font-heading text-lg">$</span>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Amount"
-            className="w-full bg-white border border-teal/20 rounded-full text-text font-heading text-xl py-2.5 pl-8 pr-4 placeholder:text-text/30 placeholder:text-base placeholder:font-sans focus:outline-none focus:border-gold transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          />
-        </div>
-        <button
-          onClick={() => isValid && setShowConsentModal(true)}
-          disabled={loading || !isValid}
-          className="rounded-full px-6 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 whitespace-nowrap"
-          style={{
-            background: "linear-gradient(135deg, var(--gold), var(--gold2))",
-            boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
-          }}
-        >
-          {loading ? "..." : "Donate"}
-        </button>
-      </div>
-      <p className="text-muted-foreground text-xs mt-2">
-        ${CUSTOM_PRICE_PER_ENTRY} per entry.{" "}
-        {isValid && (
-          <span className="text-teal font-semibold">
-            {entries} {entries === 1 ? "entry" : "entries"} for ${chargeAmount}
-          </span>
-        )}
-      </p>
-
-      <ConsentModal
-        isOpen={showConsentModal}
-        onClose={() => setShowConsentModal(false)}
-        onSubmit={handleDonate}
-        planDetails={{ entries, price: chargeAmount, isOneTime: true }}
-      />
-    </div>
-  )
-}
