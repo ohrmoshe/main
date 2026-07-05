@@ -60,10 +60,35 @@ export async function Hero() {
             </Link>
           </div>
 
+          {/* Two independent entry options */}
+          <div className="grid grid-cols-2 gap-3.5 max-w-[440px] mt-7">
+            <Link
+              href="#donate"
+              className="rounded-2xl border border-cream/25 bg-cream/[0.08] p-4 transition-colors hover:border-gold hover:bg-cream/[0.12]"
+            >
+              <div className="font-heading text-[1.75rem] leading-none text-gold2">$36</div>
+              <div className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-cream/65 mt-1.5">
+                Monthly
+              </div>
+            </Link>
+            <Link
+              href="#prize-wheel"
+              className="rounded-2xl border border-cream/25 bg-cream/[0.08] p-4 transition-colors hover:border-gold hover:bg-cream/[0.12]"
+            >
+              <div className="font-heading text-[1.75rem] leading-none text-gold2">$1–299</div>
+              <div className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-cream/65 mt-1.5">
+                One Time
+              </div>
+            </Link>
+          </div>
+
           {monthlySubscribers > 0 && (
-            <p className="text-cream/70 text-sm mt-5">
-              <span className="font-bold text-gold2">{monthlySubscribers.toLocaleString()}</span>{" "}
-              {monthlySubscribers === 1 ? "member has" : "members have"} joined this month&apos;s sweepstakes
+            <p className="text-cream/80 text-lg md:text-xl mt-6">
+              <span className="font-bold text-gold2 text-2xl md:text-3xl">
+                {monthlySubscribers.toLocaleString()}
+              </span>{" "}
+              {monthlySubscribers === 1 ? "member has" : "members have"}{" "}
+              joined this month&apos;s sweepstakes
             </p>
           )}
         </div>
