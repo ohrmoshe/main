@@ -372,7 +372,8 @@ function SpinForm({
 // (hundreds, tens, ones), each with a gold selection band and cream digits that
 // physically roll on a vertical strip. The hundreds reel only cycles 0-2 (max
 // is 299); the other two cycle 0-9. Reels stop in a staggered sequence.
-const REEL_BG = "#123636" // --teal2
+const REEL_NAVY = "#2f4463" // dark navy window
+const REEL_BAND = "#aeb9e6" // periwinkle selection band
 const CELL_H = 60 // px per digit cell
 
 // A single digit column that rolls a vertical strip of digits and lands on
@@ -422,11 +423,8 @@ function DigitReel({
   }, [spinning, digit])
 
   return (
-    <div
-      className="relative flex-1 overflow-hidden rounded-xl"
-      style={{ height: CELL_H * 3, background: REEL_BG }}
-    >
-      {/* Rolling strip of digits */}
+    <div className="relative flex-1 overflow-hidden" style={{ height: CELL_H * 3 }}>
+      {/* Rolling strip of digits (transparent; sits over the shared box + band) */}
       <div
         className="absolute left-0 right-0 top-0 flex flex-col items-center will-change-transform"
         style={{
@@ -437,26 +435,13 @@ function DigitReel({
         {strip.map((d, i) => (
           <span
             key={i}
-            className="font-heading text-5xl text-cream tabular-nums leading-none flex items-center justify-center"
+            className="font-heading text-5xl text-white tabular-nums leading-none flex items-center justify-center"
             style={{ height: CELL_H, width: "100%" }}
           >
             {d}
           </span>
         ))}
       </div>
-
-      {/* Gold selection band with definition lines */}
-      <div
-        className="absolute left-0 right-0 top-1/2 -translate-y-1/2 pointer-events-none border-y-2 border-gold"
-        style={{ height: CELL_H, background: "rgba(200,155,92,0.22)" }}
-      />
-      {/* Fade top/bottom so digits roll out of view softly */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `linear-gradient(${REEL_BG}, transparent 30%, transparent 70%, ${REEL_BG})`,
-        }}
-      />
     </div>
   )
 }
@@ -475,17 +460,40 @@ function WheelDial({
   const ones = displayNumber % 10
 
   return (
-    <div className="relative w-full max-w-[300px] mx-auto select-none">
+    <div className="relative w-full max-w-[320px] mx-auto select-none">
       <div
-        className={`flex items-center gap-2 rounded-2xl p-3 transition-all ${
-          landed ? "shadow-[0_0_44px_rgba(200,155,92,0.5)] scale-[1.03]" : ""
+        className={`relative overflow-hidden transition-all ${
+          landed ? "shadow-[0_0_44px_rgba(174,185,230,0.55)] scale-[1.02]" : ""
         }`}
-        style={{ background: REEL_BG, border: "1px solid rgba(200,155,92,0.3)" }}
+        style={{ height: CELL_H * 3, background: REEL_NAVY }}
       >
-        <span className="font-heading text-4xl text-gold2 leading-none pl-1 pr-0.5">$</span>
-        <DigitReel digit={hundreds} max={2} spinning={spinning} order={0} />
-        <DigitReel digit={tens} max={9} spinning={spinning} order={1} />
-        <DigitReel digit={ones} max={9} spinning={spinning} order={2} />
+        {/* Single continuous periwinkle selection band (behind the digits) */}
+        <div
+          className="absolute left-0 right-0 top-1/2 -translate-y-1/2 pointer-events-none"
+          style={{ height: CELL_H, background: REEL_BAND }}
+        />
+
+        {/* Three independently-rolling digit columns share the box + band */}
+        <div className="absolute inset-0 flex items-stretch pl-10">
+          <DigitReel digit={hundreds} max={2} spinning={spinning} order={0} />
+          <DigitReel digit={tens} max={9} spinning={spinning} order={1} />
+          <DigitReel digit={ones} max={9} spinning={spinning} order={2} />
+        </div>
+
+        {/* Top/bottom navy fade so neighbor digits recede softly */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(${REEL_NAVY}, transparent 34%, transparent 66%, ${REEL_NAVY})`,
+          }}
+        />
+
+        {/* Dollar sign, inside the band on the left, on top of everything */}
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 font-heading text-4xl text-white leading-none pointer-events-none"
+        >
+          $
+        </span>
       </div>
     </div>
   )
