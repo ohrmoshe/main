@@ -1,23 +1,32 @@
-import Header from '@/components/header'
-import Hero from '@/components/hero'
-import WatchNLearnFeature from '@/components/watchnlearn-feature'
-import AboutSection from '@/components/about-section'
-import UpdatesGrid from '@/components/updates-grid'
-import DonationSection from '@/components/donation-section'
-import ContactSection from '@/components/contact-section'
-import Footer from '@/components/footer'
+import { Navbar } from "@/components/navbar"
+import { Hero } from "@/components/hero"
+import { ThisMonth } from "@/components/this-month"
+import { HowItWorks } from "@/components/how-it-works"
+import { DonationTiers } from "@/components/donation-tiers"
+import { About } from "@/components/about"
+import { Winners } from "@/components/winners"
+import { Footer } from "@/components/footer"
+import { StickyDonateButton } from "@/components/sticky-donate-button"
+import { ReferralCapture } from "@/components/referral-capture"
+import { PromoPopup } from "@/components/promo-popup"
+
+// Always render fresh so the live entry counter reflects the current database
+export const dynamic = "force-dynamic"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <Header />
-      <WatchNLearnFeature />
+    <main>
+      <ReferralCapture />
+      <PromoPopup />
+      <Navbar />
       <Hero />
-      <AboutSection />
-      <UpdatesGrid />
-      <DonationSection />
-      <ContactSection />
+      <ThisMonth />
+      <HowItWorks />
+      <DonationTiers />
+      <About />
+      <Winners />
       <Footer />
+      <StickyDonateButton />
     </main>
   )
 }

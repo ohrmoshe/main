@@ -1,138 +1,124 @@
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import Link from "next/link"
 
 export const metadata = {
-  title: 'Privacy Policy | Kollel Ohr Moshe',
-  description: 'Privacy Policy for Kollel Ohr Moshe - How we collect, use, and protect your information.',
+  title: "Privacy Policy | Watch & Learn",
+  description: "Privacy Policy for Watch & Learn and Kollel Ohr Moshe",
 }
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors mb-8"
-        >
-          <ArrowLeft size={20} />
-          Back to Home
+    <main className="min-h-screen bg-cream py-20 px-6 lg:px-16">
+      <div className="max-w-3xl mx-auto">
+        <Link href="/" className="text-gold hover:text-gold2 text-sm tracking-[0.2em] uppercase mb-8 inline-block">
+          &larr; Back to Home
         </Link>
         
-        <h1 className="font-serif text-3xl lg:text-4xl font-bold text-foreground mb-8">Privacy Policy</h1>
+        <h1 className="font-heading text-4xl lg:text-5xl font-light text-teal mb-4">
+          Privacy Policy
+        </h1>
+        <p className="text-teal/60 text-sm mb-8">Last Updated: June 2026</p>
         
-        <div className="prose prose-neutral max-w-none">
-          <p className="text-muted-foreground mb-6">
-            <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
-          
-          <p className="text-foreground leading-relaxed mb-6">
-            Kollel Ohr Moshe (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy. 
-            This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
-            when you visit our website or interact with our services.
-          </p>
+        <div className="prose prose-teal max-w-none space-y-8 text-teal/80">
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Introduction</h2>
+            <p>Kollel Ohr Moshe (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) operates the Watch &amp; Learn website at watchnlearn.org. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or participate in our sweepstakes program.</p>
+          </section>
 
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">Information We Collect</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              We may collect information about you in various ways, including:
-            </p>
-            <ul className="list-disc pl-6 text-foreground space-y-2 mb-4">
-              <li><strong>Personal Data:</strong> Name, email address, phone number, mailing address, and payment information when you make a donation or subscribe to our communications.</li>
-              <li><strong>Usage Data:</strong> Information about how you use our website, including pages visited, time spent, and browsing patterns.</li>
-              <li><strong>Device Data:</strong> Information about your device, including IP address, browser type, and operating system.</li>
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Information We Collect</h2>
+            <h3 className="font-heading text-xl text-teal mb-2">Personal Information</h3>
+            <p>When you make a donation or enter our sweepstakes, we may collect:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Full name</li>
+              <li>Email address</li>
+              <li>Phone number</li>
+              <li>Mailing address</li>
+              <li>Payment information (processed securely through Stripe)</li>
+            </ul>
+            
+            <h3 className="font-heading text-xl text-teal mb-2 mt-6">Automatically Collected Information</h3>
+            <p>When you visit our website, we may automatically collect certain information about your device, including:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>IP address</li>
+              <li>Browser type</li>
+              <li>Operating system</li>
+              <li>Access times</li>
+              <li>Pages viewed</li>
             </ul>
           </section>
 
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">How We Use Your Information</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              We use the information we collect to:
-            </p>
-            <ul className="list-disc pl-6 text-foreground space-y-2 mb-4">
-              <li>Process your donations and provide tax receipts</li>
-              <li>Send you updates about our programs and events (if you opt in)</li>
-              <li>Respond to your inquiries and provide customer support</li>
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">How We Use Your Information</h2>
+            <p>We use the information we collect to:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Process donations and subscriptions</li>
+              <li>Administer our monthly sweepstakes</li>
+              <li>Contact winners and deliver prizes</li>
+              <li>Send receipts and tax documentation</li>
+              <li>Respond to your inquiries</li>
               <li>Improve our website and services</li>
               <li>Comply with legal obligations</li>
             </ul>
           </section>
 
-          <section className="mb-8 p-6 bg-primary/5 border border-primary/20 rounded-lg">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">Mobile Information & SMS Communications</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              <strong>No mobile information will be shared with third parties/affiliates for marketing/promotional purposes.</strong>
-            </p>
-            <p className="text-foreground leading-relaxed mb-4">
-              All other categories exclude text messaging originator opt-in data and consent; 
-              this information will not be shared with any third parties.
-            </p>
-            <p className="text-foreground leading-relaxed mb-4">
-              If you opt in to receive SMS messages from Kollel Ohr Moshe:
-            </p>
-            <ul className="list-disc pl-6 text-foreground space-y-2">
-              <li>Message frequency varies (approximately 2-4 messages per month)</li>
-              <li>Message and data rates may apply</li>
-              <li>You can opt out at any time by replying STOP to any message</li>
-              <li>For help, reply HELP or contact us at amit@kollelohrmoshe.com</li>
-              <li>Consent to receive SMS is not a condition of purchase or donation</li>
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Information Sharing</h2>
+            <p>We do not sell, trade, or rent your personal information to third parties. We may share your information with:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li><strong>Service Providers:</strong> Third-party vendors who assist us in operating our website, processing payments (Stripe), and conducting our business</li>
+              <li><strong>Legal Requirements:</strong> When required by law, subpoena, or other legal process</li>
+              <li><strong>Winner Announcements:</strong> Winner names may be publicly announced on our website and social media (first name and last initial only, unless you consent to full name disclosure)</li>
             </ul>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">Information Sharing</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              We do not sell, trade, or rent your personal information to third parties. We may share 
-              your information in the following circumstances:
-            </p>
-            <ul className="list-disc pl-6 text-foreground space-y-2 mb-4">
-              <li><strong>Service Providers:</strong> With trusted third-party service providers who assist us in operating our website and processing donations (e.g., payment processors).</li>
-              <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and the safety of others.</li>
-              <li><strong>With Your Consent:</strong> In any other circumstance with your explicit consent.</li>
-            </ul>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">Data Security</h2>
-            <p className="text-foreground leading-relaxed">
-              We implement appropriate technical and organizational measures to protect your personal 
-              information against unauthorized access, alteration, disclosure, or destruction. However, 
-              no method of transmission over the Internet or electronic storage is 100% secure.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">Your Rights</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              You have the right to:
-            </p>
-            <ul className="list-disc pl-6 text-foreground space-y-2 mb-4">
-              <li>Access the personal information we hold about you</li>
-              <li>Request correction of inaccurate information</li>
-              <li>Request deletion of your information (subject to legal requirements)</li>
-              <li>Opt out of marketing communications at any time</li>
-              <li>Opt out of SMS messages by replying STOP</li>
-            </ul>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">Contact Us</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              If you have any questions about this Privacy Policy or our data practices, please contact us:
-            </p>
-            <div className="text-foreground space-y-1">
-              <p><strong>Kollel Ohr Moshe</strong></p>
-              <p>Email: <a href="mailto:amit@kollelohrmoshe.com" className="text-primary hover:underline">amit@kollelohrmoshe.com</a></p>
-              <p>Phone: <a href="tel:+18187442970" className="text-primary hover:underline">(818) 744-2970</a></p>
-              <p>Address: Los Angeles, California</p>
-            </div>
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">Changes to This Policy</h2>
-            <p className="text-foreground leading-relaxed">
-              We may update this Privacy Policy from time to time. We will notify you of any changes 
-              by posting the new Privacy Policy on this page and updating the &quot;Last Updated&quot; date.
-            </p>
+            <h2 className="font-heading text-2xl text-teal mb-4">Payment Security</h2>
+            <p>All payment transactions are processed through Stripe, a PCI-DSS compliant payment processor. We do not store your full credit card information on our servers. Stripe&apos;s privacy policy and security practices can be found at <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-gold hover:text-gold2">stripe.com/privacy</a>.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Data Retention</h2>
+            <p>We retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, comply with legal obligations, resolve disputes, and enforce our agreements. Donation and subscription records are retained for tax and legal compliance purposes.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Your Rights</h2>
+            <p>You have the right to:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Access the personal information we hold about you</li>
+              <li>Request correction of inaccurate information</li>
+              <li>Request deletion of your personal information (subject to legal retention requirements)</li>
+              <li>Opt out of marketing communications</li>
+              <li>Cancel your subscription at any time</li>
+            </ul>
+            <p className="mt-4">To exercise these rights, please contact us at <a href="mailto:amit@watchnlearn.org" className="text-gold hover:text-gold2">amit@watchnlearn.org</a>.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Cookies</h2>
+            <p>Our website may use cookies and similar tracking technologies to enhance your browsing experience. You can set your browser to refuse cookies, but this may limit some features of our website.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Children&apos;s Privacy</h2>
+            <p>Our website and sweepstakes are not intended for individuals under the age of 18. We do not knowingly collect personal information from children under 18. If we become aware that we have collected such information, we will take steps to delete it.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Changes to This Policy</h2>
+            <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &ldquo;Last Updated&rdquo; date.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Contact Us</h2>
+            <p>If you have questions about this Privacy Policy, please contact us:</p>
+            <address className="not-italic bg-teal/5 p-4 rounded my-4">
+              Kollel Ohr Moshe<br />
+              1428 S Shenandoah St #4<br />
+              Los Angeles, CA 90035<br /><br />
+              Email: <a href="mailto:amit@watchnlearn.org" className="text-gold hover:text-gold2">amit@watchnlearn.org</a><br />
+              Phone: <a href="tel:+13106924235" className="text-gold hover:text-gold2">(310) 692-4235</a>
+            </address>
           </section>
         </div>
       </div>

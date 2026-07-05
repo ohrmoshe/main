@@ -1,101 +1,64 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import Image from "next/image"
+import Link from "next/link"
 
-export default function Footer() {
+export function Footer() {
   return (
-    <footer className="bg-foreground text-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <Image
-                src="/images/logo-gold-black.png"
-                alt="Kollel Ohr Moshe Logo"
-                width={60}
-                height={60}
-                className="h-14 w-auto"
-              />
-              <h3 className="font-serif text-2xl font-semibold">Kollel Ohr Moshe</h3>
-            </div>
-            <p className="text-background/70 leading-relaxed max-w-md">
-              Under the presidency of Maran HaRishon LeTzion, Chief Rabbi of Israel. 
-              Dedicated to Torah learning, community support, and spreading the light of Torah worldwide.
+    <footer className="bg-teal2 text-cream py-14 px-5 lg:px-0">
+      <div className="w-full max-w-[1180px] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-[1.2fr_.8fr_.8fr] gap-8">
+          {/* Branding */}
+          <div>
+            <h2 className="font-heading text-2xl">Watch &amp; Learn</h2>
+            <p className="text-cream/80 text-sm mt-1">Support a Kollel · Win a Watch</p>
+            <Image
+              src="/images/kollel-logo.png"
+              alt="Kollel Ohr Moshe Logo"
+              width={82}
+              height={82}
+              className="w-[82px] h-auto mt-4"
+            />
+            <p className="text-cream/80 text-sm mt-3">
+              A project of{" "}
+              <Link href="https://kollelohrmoshe.org" target="_blank" className="hover:text-gold2 transition-colors">
+                Kollel Ohr Moshe
+              </Link>
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Links */}
           <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
-            <nav className="flex flex-col gap-3">
-              <Link href="#about" className="text-background/70 hover:text-background transition-colors text-sm">
-                About Us
-              </Link>
-              <Link href="#updates" className="text-background/70 hover:text-background transition-colors text-sm">
-                Latest Updates
-              </Link>
-              <Link href="#donate" className="text-background/70 hover:text-background transition-colors text-sm">
-                Make a Donation
-              </Link>
-              <Link href="#contact" className="text-background/70 hover:text-background transition-colors text-sm">
-                Contact Us
-              </Link>
-            </nav>
+            <h3 className="font-semibold mb-3">Links</h3>
+            <div className="flex flex-wrap gap-3 text-cream/80 text-sm">
+              <Link href="#how" className="hover:text-gold2 transition-colors">How It Works</Link>
+              <Link href="#watch" className="hover:text-gold2 transition-colors">This Month</Link>
+              <Link href="#donate" className="hover:text-gold2 transition-colors">Donate</Link>
+              <Link href="#winners" className="hover:text-gold2 transition-colors">Winners</Link>
+              <Link href="/cancel" className="hover:text-gold2 transition-colors">Cancel Subscription</Link>
+              <Link href="/terms" className="hover:text-gold2 transition-colors">Terms &amp; Conditions</Link>
+              <Link href="/privacy" className="hover:text-gold2 transition-colors">Privacy Policy</Link>
+            </div>
           </div>
 
-          {/* Contact Info */}
+          {/* Contact */}
           <div>
-            <h4 className="font-semibold mb-4">Contact</h4>
-            <div className="flex flex-col gap-3">
-              <a 
-                href="mailto:amit@kollelohrmoshe.com" 
-                className="flex items-center gap-2 text-background/70 hover:text-background transition-colors text-sm"
-              >
-                <Mail size={16} />
-                amit@kollelohrmoshe.com
+            <h3 className="font-semibold mb-3">Contact</h3>
+            <p className="text-cream/80 text-sm leading-relaxed">
+              <a href="mailto:amit@watchnlearn.org" className="hover:text-gold2 transition-colors">
+                amit@watchnlearn.org
               </a>
-              <a 
-                href="tel:+18187442970" 
-                className="flex items-center gap-2 text-background/70 hover:text-background transition-colors text-sm"
-              >
-                <Phone size={16} />
-                (818) 744-2970
+              <br />
+              <a href="tel:+13106924235" className="hover:text-gold2 transition-colors">
+                (310) 692-4235
               </a>
-              <div className="flex items-start gap-2 text-background/70 text-sm">
-                <MapPin size={16} className="mt-0.5 shrink-0" />
-                <span>Los Angeles, California</span>
-              </div>
-            </div>
+              <br />
+              <br />
+              Los Angeles, California
+            </p>
           </div>
         </div>
 
-        {/* Legal Links */}
-        <div className="mt-8 pt-8 border-t border-background/20">
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
-            <Link 
-              href="/privacy" 
-              className="text-background/60 hover:text-background transition-colors text-sm"
-            >
-              Privacy Policy
-            </Link>
-            <span className="text-background/30">|</span>
-            <Link 
-              href="/terms" 
-              className="text-background/60 hover:text-background transition-colors text-sm"
-            >
-              Terms & Conditions
-            </Link>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-background/60 text-sm">
-              &copy; {new Date().getFullYear()} Kollel Ohr Moshe. All rights reserved.
-            </p>
-            <p className="text-background/60 text-sm">
-              A 501(c)(3) tax-exempt organization
-            </p>
-          </div>
+        <div className="border-t border-cream/12 mt-9 pt-6 text-cream/60 text-sm">
+          © 2026 Watch &amp; Learn · A project of Kollel Ohr Moshe · All Rights Reserved
         </div>
       </div>
     </footer>

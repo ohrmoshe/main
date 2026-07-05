@@ -1,142 +1,104 @@
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import Link from "next/link"
 
 export const metadata = {
-  title: 'Terms & Conditions | Kollel Ohr Moshe',
-  description: 'Terms and Conditions for Kollel Ohr Moshe website and services.',
+  title: "Terms & Conditions | Watch & Learn",
+  description: "Official sweepstakes rules for the Kollel Ohr Moshe Monthly Watch Sweepstakes",
 }
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors mb-8"
-        >
-          <ArrowLeft size={20} />
-          Back to Home
+    <main className="min-h-screen bg-cream py-20 px-6 lg:px-16">
+      <div className="max-w-3xl mx-auto">
+        <Link href="/" className="text-gold hover:text-gold2 text-sm tracking-[0.2em] uppercase mb-8 inline-block">
+          &larr; Back to Home
         </Link>
         
-        <h1 className="font-serif text-3xl lg:text-4xl font-bold text-foreground mb-8">Terms & Conditions</h1>
+        <h1 className="font-heading text-4xl lg:text-5xl font-light text-teal mb-8">
+          Terms &amp; Conditions
+        </h1>
         
-        <div className="prose prose-neutral max-w-none">
-          <p className="text-muted-foreground mb-6">
-            <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
-          
-          <p className="text-foreground leading-relaxed mb-6">
-            Welcome to Kollel Ohr Moshe. By accessing or using our website, making donations, 
-            or subscribing to our communications, you agree to be bound by these Terms & Conditions.
-          </p>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">1. Acceptance of Terms</h2>
-            <p className="text-foreground leading-relaxed">
-              By using our website and services, you acknowledge that you have read, understood, 
-              and agree to be bound by these Terms & Conditions and our Privacy Policy. If you 
-              do not agree, please do not use our website or services.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">2. Donations</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              All donations made to Kollel Ohr Moshe are voluntary and tax-deductible to the extent 
-              permitted by law. By making a donation, you agree that:
-            </p>
-            <ul className="list-disc pl-6 text-foreground space-y-2 mb-4">
-              <li>Donations are final and non-refundable unless made in error</li>
-              <li>You are authorized to use the payment method provided</li>
-              <li>For recurring donations, you authorize us to charge your payment method on a recurring basis until canceled</li>
-              <li>You may cancel recurring donations at any time by contacting us</li>
-            </ul>
-          </section>
-
-          <section className="mb-8 p-6 bg-primary/5 border border-primary/20 rounded-lg">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">3. SMS/Text Message Terms</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              By opting in to receive SMS/text messages from Kollel Ohr Moshe, you agree to the following:
-            </p>
-            <ul className="list-disc pl-6 text-foreground space-y-2 mb-4">
-              <li><strong>Program:</strong> You will receive recurring automated promotional and informational text messages from Kollel Ohr Moshe.</li>
-              <li><strong>Frequency:</strong> Message frequency varies, approximately 2-4 messages per month.</li>
-              <li><strong>Costs:</strong> Message and data rates may apply. Check with your mobile carrier for details about your plan.</li>
-              <li><strong>Opt-Out:</strong> You may opt out at any time by texting STOP to any message you receive. You will receive one final confirmation message.</li>
-              <li><strong>Help:</strong> For assistance, text HELP to any message or contact us at amit@kollelohrmoshe.com.</li>
-              <li><strong>Consent:</strong> Consent to receive text messages is not a condition of making a donation or using our services.</li>
-              <li><strong>Carriers:</strong> Supported carriers include but are not limited to AT&T, Verizon, T-Mobile, Sprint, and other major carriers. Carrier participation may vary.</li>
-            </ul>
-            <p className="text-foreground leading-relaxed">
-              <strong>Your mobile information will not be shared with third parties for marketing purposes.</strong>
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">4. Email Communications</h2>
-            <p className="text-foreground leading-relaxed">
-              By subscribing to our email list, you agree to receive periodic emails about our programs, 
-              events, and updates. You may unsubscribe at any time by clicking the unsubscribe link 
-              in any email or by contacting us directly.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">5. Intellectual Property</h2>
-            <p className="text-foreground leading-relaxed">
-              All content on this website, including text, images, logos, and design, is the property 
-              of Kollel Ohr Moshe and is protected by copyright and other intellectual property laws. 
-              You may not reproduce, distribute, or use our content without prior written permission.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">6. Limitation of Liability</h2>
-            <p className="text-foreground leading-relaxed">
-              Kollel Ohr Moshe provides this website and its services on an &quot;as is&quot; basis. We make no 
-              warranties, express or implied, regarding the accuracy, reliability, or availability of 
-              our website. To the fullest extent permitted by law, we shall not be liable for any 
-              damages arising from your use of our website or services.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">7. Privacy</h2>
-            <p className="text-foreground leading-relaxed">
-              Your use of our website is also governed by our{' '}
-              <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>, 
-              which is incorporated into these Terms by reference.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">8. Changes to Terms</h2>
-            <p className="text-foreground leading-relaxed">
-              We reserve the right to modify these Terms & Conditions at any time. Changes will be 
-              effective immediately upon posting to our website. Your continued use of our website 
-              after changes are posted constitutes acceptance of the modified terms.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">9. Governing Law</h2>
-            <p className="text-foreground leading-relaxed">
-              These Terms & Conditions shall be governed by and construed in accordance with the 
-              laws of the State of New York, without regard to its conflict of law provisions.
-            </p>
+        <div className="prose prose-teal max-w-none space-y-8 text-teal/80">
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Kollel Ohr Moshe Monthly Watch Sweepstakes</h2>
+            <p className="font-bold text-teal">NO PURCHASE OR DONATION NECESSARY TO ENTER OR WIN.</p>
+            <p>A purchase or donation will not increase your chances of winning. Void where prohibited by law.</p>
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold text-foreground mb-4">10. Contact Us</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              If you have any questions about these Terms & Conditions, please contact us:
-            </p>
-            <div className="text-foreground space-y-1">
-              <p><strong>Kollel Ohr Moshe</strong></p>
-              <p>Email: <a href="mailto:amit@kollelohrmoshe.com" className="text-primary hover:underline">amit@kollelohrmoshe.com</a></p>
-              <p>Phone: <a href="tel:+18187442970" className="text-primary hover:underline">(818) 744-2970</a></p>
-              <p>Address: Los Angeles, California</p>
-            </div>
+            <h2 className="font-heading text-2xl text-teal mb-4">Sponsor</h2>
+            <p>Kollel Ohr Moshe (&ldquo;Sponsor&rdquo;)</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Monthly Sweepstakes Program</h2>
+            <p>The Kollel Ohr Moshe Monthly Watch Sweepstakes is an ongoing promotional program in which Sponsor may award one luxury watch prize each calendar month.</p>
+            <p>Each monthly sweepstakes shall constitute a separate promotion with its own Entry Period, prize description, approximate retail value (&ldquo;ARV&rdquo;), drawing date, and winner.</p>
+            <p>Drawings are ordinarily held on the 15th day of each month (beginning July 15th) at 8:00 PM PST. Where the 15th falls on a Saturday, legal holiday, or other day on which a drawing cannot be conducted, the drawing will be held on the next available business day.</p>
+            <p className="font-bold text-teal">Sponsor reserves the right to postpone any monthly drawing by up to thirty (30) days for any reason, including but not limited to operational, technical, or unforeseen circumstances. Any such postponement will not affect the validity of entries already received.</p>
+            <p>Details for the current month&apos;s prize, entry period, and drawing date will be posted on Sponsor&apos;s website.</p>
+            <p>Sponsor reserves the right to modify, replace, postpone, or discontinue any monthly sweepstakes or prize offering at any time as permitted by law.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Eligibility</h2>
+            <p>Open only to legal residents of the fifty (50) United States and the District of Columbia who are at least eighteen (18) years old at the time of entry.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Monthly Prize</h2>
+            <p>Each month, Sponsor will award one luxury watch selected by Sponsor.</p>
+            <p>Examples may include watches manufactured by Rolex, Audemars Piguet, Patek Philippe, Cartier, Omega, Tudor, Breitling, or other luxury brands.</p>
+            <p>The specific prize, model, and approximate retail value for each monthly sweepstakes will be disclosed on the applicable promotion page.</p>
+            <p>No cash redemption shall be permitted except at Sponsor&apos;s sole discretion.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">How To Enter</h2>
+            <p>Participants may enter by making a voluntary donation through Sponsor&apos;s website or through the Free Alternative Method of Entry described below.</p>
+            <p className="font-bold text-teal">A donation is not required to enter or win.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Free Alternative Method of Entry (AMOE)</h2>
+            <p>To enter without making a donation, handwrite your:</p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Full Legal Name</li>
+              <li>Mailing Address</li>
+              <li>Phone Number</li>
+              <li>Email Address</li>
+            </ul>
+            <p>on a 3&rdquo; × 5&rdquo; card and mail it in a stamped envelope to:</p>
+            <address className="not-italic bg-teal/5 p-4 rounded my-4">
+              Kollel Ohr Moshe Sweepstakes<br />
+              1428 S Shenandoah St #4<br />
+              Los Angeles, CA 90035
+            </address>
+            <p>Mail-in entries must be postmarked no later than the final day of the applicable monthly Entry Period and received within seven (7) calendar days thereafter.</p>
+            <p>Limit one entry per person per monthly sweepstakes.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Winner Selection</h2>
+            <p>One winner will be selected in a random drawing from all eligible entries received during the applicable monthly Entry Period.</p>
+            <p>Odds of winning depend on the number of eligible entries received.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Winner Notification</h2>
+            <p>Winner will be contacted by telephone and/or email within approximately seven (7) days following the drawing.</p>
+            <p>If a selected winner cannot be contacted, is found ineligible, or fails to provide required documentation within seven (7) days, Sponsor may select an alternate winner.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Taxes</h2>
+            <p>Winner is solely responsible for all federal, state, and local taxes associated with the prize.</p>
+            <p>Sponsor may issue IRS Form 1099-MISC or any other tax forms required by law.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-teal mb-4">Current Sweepstakes Information</h2>
+            <p>Current prize details, retail value, entry deadlines, drawing dates, winner announcements, and complete promotion information will be posted at:</p>
+            <p><Link href="https://watchnlearn.org" className="text-gold hover:text-gold2">https://watchnlearn.org/</Link></p>
           </section>
         </div>
       </div>
