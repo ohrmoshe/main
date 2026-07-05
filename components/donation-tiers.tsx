@@ -86,7 +86,8 @@ export function DonationTiers() {
               </h2>
               <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
                 Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
-                exact amount it lands on — from $1 up. Every spin earns you one entry into this month&apos;s drawing.
+                exact amount it lands on — from $1 to 299 max. Every spin earns you one entry into this
+                month&apos;s drawing.
               </p>
             </div>
 

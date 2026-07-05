@@ -58,27 +58,11 @@ export async function Hero() {
             >
               Enter for $36
             </Link>
-          </div>
-
-          {/* Two independent entry options */}
-          <div className="grid grid-cols-2 gap-3.5 max-w-[440px] mt-7">
-            <Link
-              href="#donate"
-              className="rounded-2xl border border-cream/25 bg-cream/[0.08] p-4 transition-colors hover:border-gold hover:bg-cream/[0.12]"
-            >
-              <div className="font-heading text-[1.75rem] leading-none text-gold2">$36</div>
-              <div className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-cream/65 mt-1.5">
-                Monthly
-              </div>
-            </Link>
             <Link
               href="#prize-wheel"
-              className="rounded-2xl border border-cream/25 bg-cream/[0.08] p-4 transition-colors hover:border-gold hover:bg-cream/[0.12]"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
             >
-              <div className="font-heading text-[1.75rem] leading-none text-gold2">$1–299</div>
-              <div className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-cream/65 mt-1.5">
-                One Time
-              </div>
+              $1–299 One Time
             </Link>
           </div>
 
