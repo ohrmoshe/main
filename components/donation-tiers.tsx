@@ -45,7 +45,8 @@ export function DonationTiers() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5 gap-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4.5 gap-y-5">
+            <OneTimeRaffleBox />
             {SUBSCRIPTION_TIERS.map((tier) => (
               <Tier
                 key={tier.id}
@@ -71,7 +72,7 @@ export function DonationTiers() {
       </section>
 
       {/* One-Time + Custom — cream band */}
-      <section className="py-16 md:py-20 px-5 lg:px-0 bg-cream">
+      <section id="prize-wheel" className="py-16 md:py-20 px-5 lg:px-0 bg-cream">
         <div className="w-full max-w-[1180px] mx-auto">
           <div
             className="rounded-[34px] p-8 md:p-11 grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-6 items-center shadow-[0_24px_70px_rgba(18,54,54,0.16)]"
@@ -95,6 +96,43 @@ export function DonationTiers() {
         </div>
       </section>
     </>
+  )
+}
+
+// Top-of-grid box for the one-time raffle (numbers 1–299, charged once).
+// Scrolls the user down to the Prize Wheel section.
+function OneTimeRaffleBox() {
+  const scrollToWheel = () => {
+    document.getElementById("prize-wheel")?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  return (
+    <article className="relative rounded-[28px] p-6 min-h-[310px] flex flex-col border-2 border-gold bg-gold/[0.12]">
+      <div className="absolute -top-3 left-5.5 bg-gold text-teal2 text-xs font-extrabold rounded-full px-2.5 py-1.5">
+        One-Time
+      </div>
+      <div className="font-heading text-[1.35rem] text-gold2 leading-tight mt-1">Spin the Wheel</div>
+      <div className="text-base text-cream/75 mt-0.5">1 Entry</div>
+      <div className="my-2.5">
+        <div className="font-heading text-[2.6rem] leading-none">$1–299</div>
+        <div className="font-heading text-sm text-cream/70 mt-1">one time</div>
+      </div>
+      <div className="text-cream/70 font-bold mb-3.5">Pay what you spin</div>
+      <p className="text-cream/80 text-[0.94rem]">
+        Spin once, get charged the exact number it lands on (1–299), and earn one entry into this month&apos;s
+        drawing.
+      </p>
+      <button
+        onClick={scrollToWheel}
+        className="mt-auto w-full rounded-full px-4 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+        style={{
+          background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+          boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+        }}
+      >
+        Spin the Wheel
+      </button>
+    </article>
   )
 }
 
@@ -169,9 +207,9 @@ function Tier({
             {entries} {entries === 1 ? "Entry" : "Entries"}
           </div>
         )}
-        <div className="font-heading text-[3.4rem] leading-none my-2.5">
-          ${price}
-          <small className="font-heading text-base">/month</small>
+        <div className="my-2.5">
+          <div className="font-heading text-[3.1rem] leading-none">${price}</div>
+          <div className="font-heading text-sm text-cream/70 mt-1">monthly raffle</div>
         </div>
         <div className="text-cream/70 font-bold mb-3.5">${perEntry}/entry</div>
         <p className="text-cream/80 text-[0.94rem]">{description}</p>
