@@ -416,47 +416,66 @@ function SpinForm({
   )
 }
 
+// Slot-machine style number reel: navy window with a light-blue highlight band
+// across the middle and the landed dollar amount shown in white (matches the
+// reference design). Faded neighbor numbers sell the vertical "reel" look.
+const REEL_NAVY = "#2f4463"
+const REEL_BAND = "#aeb9e6"
+
 function WheelDial({
   spinning,
   displayNumber,
   landed = false,
-  rotation = 0,
 }: {
   spinning: boolean
   displayNumber: number
   landed?: boolean
   rotation?: number
 }) {
+  // Wrap neighbor numbers within 1..WHEEL_MAX for the reel illusion.
+  const wrap = (n: number) => ((((n - 1) % WHEEL_MAX) + WHEEL_MAX) % WHEEL_MAX) + 1
+  const up1 = wrap(displayNumber + 1)
+  const up2 = wrap(displayNumber + 2)
+  const dn1 = wrap(displayNumber - 1)
+  const dn2 = wrap(displayNumber - 2)
+
   return (
-    <div className="relative w-48 h-48 flex items-center justify-center">
-      {/* Rotating outer ring (driven by JS rotation while spinning for smooth ease-out) */}
+    <div className="relative w-full max-w-[300px] mx-auto select-none">
       <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: "conic-gradient(var(--gold), var(--gold2), var(--teal2), var(--gold), var(--gold2), var(--gold))",
-          transform: `rotate(${rotation}deg)`,
-          transition: spinning ? "none" : "transform 0.4s ease-out",
-          maskImage: "radial-gradient(circle, transparent 58%, black 59%)",
-          WebkitMaskImage: "radial-gradient(circle, transparent 58%, black 59%)",
-        }}
-      />
-      {/* Pointer */}
-      <div
-        className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 z-10"
-        style={{
-          borderLeft: "11px solid transparent",
-          borderRight: "11px solid transparent",
-          borderTop: "16px solid var(--gold)",
-        }}
-      />
-      {/* Inner face */}
-      <div
-        className={`relative w-36 h-36 rounded-full bg-teal2 border-2 flex flex-col items-center justify-center transition-all ${
-          landed ? "border-gold scale-105 shadow-[0_0_44px_rgba(200,155,92,0.55)]" : "border-gold/40"
+        className={`relative overflow-hidden rounded-2xl transition-shadow ${
+          landed ? "shadow-[0_0_44px_rgba(174,185,230,0.6)]" : ""
         }`}
+        style={{ height: 190, background: REEL_NAVY }}
       >
-        <span className="text-cream/55 text-sm font-bold leading-none">$</span>
-        <span className="font-heading text-6xl leading-none text-gold2 tabular-nums">{displayNumber}</span>
+        {/* Faded neighbor numbers behind the band */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center font-heading tabular-nums leading-none">
+          <span className="text-3xl text-white/15 py-1">{up2}</span>
+          <span className="text-4xl text-white/30 py-1">{up1}</span>
+          <span className="text-6xl opacity-0 py-1">{displayNumber}</span>
+          <span className="text-4xl text-white/30 py-1">{dn1}</span>
+          <span className="text-3xl text-white/15 py-1">{dn2}</span>
+        </div>
+
+        {/* Light-blue highlight band (the selection window) */}
+        <div
+          className="absolute left-0 right-0 top-1/2 -translate-y-1/2"
+          style={{ height: 72, background: REEL_BAND }}
+        />
+
+        {/* Landed / current number on top of the band */}
+        <div
+          className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 flex items-center justify-center gap-1 transition-transform ${
+            landed ? "scale-105" : ""
+          }`}
+          style={{ height: 72 }}
+        >
+          <span className="text-white text-2xl font-bold leading-none">$</span>
+          <span
+            className={`font-heading text-6xl text-white tabular-nums leading-none ${spinning ? "blur-[0.4px]" : ""}`}
+          >
+            {displayNumber}
+          </span>
+        </div>
       </div>
     </div>
   )
