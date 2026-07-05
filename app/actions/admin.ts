@@ -64,6 +64,14 @@ export async function updateDonationEntries(id: number, entries: number) {
   return { success: true }
 }
 
+// Permanently remove a donor record (e.g. test entries added during setup).
+export async function deleteDonation(id: number) {
+  await requireAdmin()
+  await db.delete(donations).where(eq(donations.id, id))
+  revalidatePath("/admin")
+  return { success: true }
+}
+
 export async function getDonations(filter: DonationFilter = "all") {
   await requireAdmin()
   if (filter === "active" || filter === "cancelled" || filter === "one_time") {

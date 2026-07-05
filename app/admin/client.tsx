@@ -6,6 +6,7 @@ import {
   exportDonationsCSV,
   addManualDonation,
   updateDonationEntries,
+  deleteDonation,
 } from "@/app/actions/admin"
 
 type DonationFilter = "all" | "active" | "cancelled" | "one_time"
@@ -117,6 +118,24 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
       alert("Failed to add donation. Please try again.")
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  const handleDelete = async (d: Donation) => {
+    if (!confirm(`Delete "${d.name}" (${d.email})? This permanently removes the record and cannot be undone.`)) {
+      return
+    }
+    setDeletingId(d.id)
+    try {
+      await deleteDonation(d.id)
+      await refresh()
+    } catch (error) {
+      console.error("Error deleting donation:", error)
+      alert("Failed to delete. Please try again.")
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -270,12 +289,13 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Amount</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Status</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Date</th>
+              <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Actions</th>
             </tr>
           </thead>
           <tbody>
             {donations.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-cream/50">
+                <td colSpan={9} className="p-8 text-center text-cream/50">
                   No donations found
                 </td>
               </tr>
@@ -356,6 +376,15 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
                     {donation.createdAt
                       ? new Date(donation.createdAt).toLocaleDateString()
                       : "-"}
+                  </td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => handleDelete(donation)}
+                      disabled={deletingId === donation.id}
+                      className="text-[0.55rem] tracking-[0.15em] uppercase text-red-400/80 border border-red-500/30 px-1.5 py-0.5 hover:border-red-500 hover:text-red-400 disabled:opacity-50"
+                    >
+                      {deletingId === donation.id ? "..." : "Delete"}
+                    </button>
                   </td>
                 </tr>
               ))
