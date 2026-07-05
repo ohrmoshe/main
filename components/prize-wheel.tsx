@@ -12,7 +12,7 @@ import { WHEEL_MAX } from "@/lib/products"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-const SPIN_DURATION = 4400 // matches the reels' staggered stop (last reel ~4s)
+const SPIN_DURATION = 20000 // matches the reels' staggered stop (last reel ~19.6s)
 
 type Donor = { name: string; email: string; phone: string }
 type Consent = { email: boolean; sms: boolean }
@@ -372,8 +372,8 @@ function SpinForm({
 // (hundreds, tens, ones), each with a gold selection band and cream digits that
 // physically roll on a vertical strip. The hundreds reel only cycles 0-2 (max
 // is 299); the other two cycle 0-9. Reels stop in a staggered sequence.
-const REEL_NAVY = "#2f4463" // dark navy window
-const REEL_BAND = "#aeb9e6" // periwinkle selection band
+const REEL_NAVY = "#123636" // dark teal window (--teal2)
+const REEL_BAND = "#c89b5c" // gold selection band (--gold)
 const CELL_H = 60 // px per digit cell
 
 // A single digit column that rolls a vertical strip of digits and lands on
@@ -390,7 +390,7 @@ function DigitReel({
   order: number
 }) {
   const cycle = max + 1
-  const loops = 16 + order * 4
+  const loops = 60 + order * 16
   const strip = useMemo(
     () => Array.from({ length: loops * cycle }, (_, i) => i % cycle),
     [loops, cycle],
@@ -410,7 +410,7 @@ function DigitReel({
       setY(yFor(digit))
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
-          setDurationMs(2600 + order * 700) // staggered: hundreds stop first
+          setDurationMs(15600 + order * 2000) // staggered: hundreds stop first (~19.6s last)
           setY(yFor(finalIndex))
         }),
       )
@@ -463,7 +463,7 @@ function WheelDial({
     <div className="relative w-full max-w-[320px] mx-auto select-none">
       <div
         className={`relative overflow-hidden transition-all ${
-          landed ? "shadow-[0_0_44px_rgba(174,185,230,0.55)] scale-[1.02]" : ""
+          landed ? "shadow-[0_0_44px_rgba(200,155,92,0.55)] scale-[1.02]" : ""
         }`}
         style={{ height: CELL_H * 3, background: REEL_NAVY }}
       >
