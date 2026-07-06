@@ -37,9 +37,12 @@ export async function Hero() {
             Timeless Watches.
             <span className="block text-gold2">Eternal Impact.</span>
           </h1>
-          <p className="text-[1.05rem] leading-relaxed text-cream/85 max-w-[560px] mb-7">
-            Every donation fuels a Kollel dedicated to Torah learning. As a token of our gratitude, you&apos;ll be
-            entered to win this month&apos;s {WATCH_VALUE} luxury timepiece — drawn live on Zoom.
+          <p className="text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mb-4">
+            Donate to support a Kollel of Torah learning — and every gift enters you to win this month&apos;s{" "}
+            {WATCH_VALUE} luxury watch, drawn <strong className="text-cream">live on Zoom</strong>.
+          </p>
+          <p className="text-cream/70 text-[0.95rem] mb-7">
+            Give monthly for the best odds, or make a one-time gift. Both enter you to win.
           </p>
           <div className="flex flex-wrap gap-3.5">
             <Link
@@ -50,19 +53,13 @@ export async function Hero() {
                 boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
               }}
             >
-              Claim Your Entry
-            </Link>
-            <Link
-              href="#donate"
-              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
-            >
-              Enter for $36
+              Enter for $36/mo
             </Link>
             <Link
               href="#prize-wheel"
               className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
             >
-              $1–299 One Time
+              One-Time Gift ($1–299)
             </Link>
           </div>
 
@@ -77,36 +74,49 @@ export async function Hero() {
           )}
         </div>
 
-        {/* Right column — countdown card */}
-        <aside className="rounded-[28px] border border-cream/20 bg-cream/[0.11] p-8 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
-          <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2">
-            Next Drawing
+        {/* Right column — prize watch + countdown card */}
+        <aside className="rounded-[28px] border border-cream/20 bg-cream/[0.11] p-6 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
+          {/* Prize watch */}
+          <div
+            className="relative rounded-[22px] p-5 flex items-center justify-center mb-5"
+            style={{ background: "linear-gradient(180deg, #fff, #f0eadf)" }}
+          >
+            <span className="absolute top-3 right-3 rounded-full bg-teal2 text-gold2 text-[0.6rem] font-extrabold tracking-[0.12em] uppercase px-2.5 py-1">
+              {WATCH_VALUE} Value
+            </span>
+            <Image
+              src="/images/rolex-gmt-rootbeer.avif"
+              alt="Rolex GMT-Master II Root Beer — this month's prize"
+              width={420}
+              height={420}
+              className="max-h-[240px] w-auto object-contain"
+            />
           </div>
-          <h3 className="font-heading text-3xl md:text-4xl font-light mb-1">{dateLabel}</h3>
-          <p className="text-cream/85 text-sm">Live drawing at 8:00 PM PST</p>
-
-          <CountdownClock targetTime={targetTime} />
-
-          <div className="mt-6 pt-5 border-t border-cream/15 flex items-center justify-between gap-4">
+          <div className="flex items-baseline justify-between gap-3 mb-5">
             <div>
-              <div className="font-heading text-2xl text-gold2 leading-none">
-                {monthlySubscribers.toLocaleString()}
-              </div>
-              <div className="text-[0.62rem] font-bold tracking-[0.12em] uppercase text-cream/60 mt-1.5">
-                Monthly Members
-              </div>
+              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">GMT-Master II</h3>
+              <p className="text-cream/70 text-xs mt-1">Oystersteel &amp; Everose Gold · 40mm</p>
             </div>
-            <Link
-              href="#donate"
-              className="inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
-              style={{
-                background: "linear-gradient(135deg, var(--gold), var(--gold2))",
-                boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
-              }}
-            >
-              Enter Now
-            </Link>
           </div>
+
+          <div className="pt-5 border-t border-cream/15">
+            <div className="text-[0.72rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-1.5">
+              Next Drawing · {dateLabel}
+            </div>
+            <p className="text-cream/85 text-sm mb-1">Live on Zoom at 8:00 PM PST</p>
+            <CountdownClock targetTime={targetTime} />
+          </div>
+
+          <Link
+            href="#donate"
+            className="mt-6 w-full inline-flex items-center justify-center rounded-full px-5 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+            style={{
+              background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+              boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+            }}
+          >
+            Enter to Win
+          </Link>
         </aside>
       </div>
     </section>

@@ -30,7 +30,7 @@ export function Footer() {
             <h3 className="font-semibold mb-3">Links</h3>
             <div className="flex flex-wrap gap-3 text-cream/80 text-sm">
               <Link href="#how" className="hover:text-gold2 transition-colors">How It Works</Link>
-              <Link href="#watch" className="hover:text-gold2 transition-colors">This Month</Link>
+              <Link href="#top" className="hover:text-gold2 transition-colors">The Prize</Link>
               <Link href="#donate" className="hover:text-gold2 transition-colors">Donate</Link>
               <Link href="#winners" className="hover:text-gold2 transition-colors">Winners</Link>
               <Link href="/cancel" className="hover:text-gold2 transition-colors">Cancel Subscription</Link>

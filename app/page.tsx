@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
-import { ThisMonth } from "@/components/this-month"
 import { HowItWorks } from "@/components/how-it-works"
 import { DonationTiers } from "@/components/donation-tiers"
 import { About } from "@/components/about"
@@ -20,11 +19,10 @@ export default function Home() {
       <PromoPopup />
       <Navbar />
       <Hero />
-      <ThisMonth />
       <HowItWorks />
       <DonationTiers />
-      <About />
       <Winners />
+      <About />
       <Footer />
       <StickyDonateButton />
     </main>
