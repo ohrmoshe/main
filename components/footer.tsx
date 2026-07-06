@@ -58,7 +58,11 @@ export function Footer() {
         </div>
 
         <div className="border-t border-cream/12 mt-9 pt-6 text-cream/60 text-sm">
-          © 2026 Watch &amp; Learn · A project of Kollel Ohr Moshe · All Rights Reserved
+          © 2026 Watch &amp; Learn · A project of{" "}
+          <Link href="https://kollelohrmoshe.org" target="_blank" className="hover:text-gold2 transition-colors">
+            Kollel Ohr Moshe
+          </Link>{" "}
+          · Tax ID 33-3914717 · All Rights Reserved
         </div>
       </div>
     </footer>

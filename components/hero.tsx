@@ -63,6 +63,18 @@ export async function Hero() {
             </Link>
           </div>
 
+          <p className="text-cream/60 text-xs mt-4 leading-relaxed">
+            Tax-deductible donation to{" "}
+            <Link
+              href="https://kollelohrmoshe.org"
+              target="_blank"
+              className="text-gold2 underline underline-offset-2 hover:text-gold"
+            >
+              Kollel Ohr Moshe
+            </Link>{" "}
+            · Tax ID 33-3914717
+          </p>
+
           {monthlySubscribers > 0 && (
             <p className="text-cream/80 text-lg md:text-xl mt-6">
               <span className="font-bold text-gold2 text-2xl md:text-3xl">
