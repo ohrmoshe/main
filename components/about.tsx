@@ -13,20 +13,13 @@ export function About() {
 
           <div className="space-y-4 text-[0.95rem] leading-relaxed text-muted-foreground">
             <p>
-              Kollel Ohr Moshe was established in Jerusalem under the guidance of Maran HaRishon LeTzion, the Chief Rabbi
-              of Israel, HaRav Yitzchak Yosef Shlit&quot;a. What started as a small initiative has grown into a major
-              center of Torah learning, community support, and chesed activities serving Avreichim, Yeshiva students, and
-              families in need.
+              Founded in Jerusalem under the guidance of the Chief Rabbi of Israel, HaRav Yitzchak Yosef Shlit&quot;a,
+              Kollel Ohr Moshe is a leading center of Torah learning and chesed. Its daily programs in Talmud and
+              Halacha take place in the Chief Rabbi&apos;s own Beit Midrash and serve Avreichim from Israel and abroad.
             </p>
             <p>
-              All activities take place in the Beit Midrash of the Chief Rabbi himself. The Kollel provides intensive
-              daily learning programs for Avreichim covering Talmud, Halacha, and in-depth Torah study with expert
-              guidance, while also serving as a home away from home for non-Israeli and American Avreichim.
-            </p>
-            <p>
-              Through your participation in Watch &amp; Learn, you become a partner in the timeless relationship between
-              those who learn Torah and those who make that learning possible. Every donation supports families in need
-              with food packages during holidays and provides a welcoming environment for Torah scholars.
+              By joining Watch &amp; Learn, you become a partner in that learning — supporting Torah scholars and
+              providing food packages to families in need.
             </p>
           </div>
 

@@ -14,7 +14,7 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <nav className="hidden md:flex gap-6 text-[0.92rem] text-cream/90" aria-label="Primary navigation">
             <Link href="#how" className="transition-colors hover:text-gold2">How It Works</Link>
-            <Link href="#watch" className="transition-colors hover:text-gold2">This Month</Link>
+            <Link href="#top" className="transition-colors hover:text-gold2">The Prize</Link>
             <Link href="#donate" className="transition-colors hover:text-gold2">Donate</Link>
             <Link href="#about" className="transition-colors hover:text-gold2">About</Link>
             <Link href="#winners" className="transition-colors hover:text-gold2">Winners</Link>

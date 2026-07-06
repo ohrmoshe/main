@@ -30,7 +30,7 @@ export function Footer() {
             <h3 className="font-semibold mb-3">Links</h3>
             <div className="flex flex-wrap gap-3 text-cream/80 text-sm">
               <Link href="#how" className="hover:text-gold2 transition-colors">How It Works</Link>
-              <Link href="#watch" className="hover:text-gold2 transition-colors">This Month</Link>
+              <Link href="#top" className="hover:text-gold2 transition-colors">The Prize</Link>
               <Link href="#donate" className="hover:text-gold2 transition-colors">Donate</Link>
               <Link href="#winners" className="hover:text-gold2 transition-colors">Winners</Link>
               <Link href="/cancel" className="hover:text-gold2 transition-colors">Cancel Subscription</Link>
@@ -58,7 +58,11 @@ export function Footer() {
         </div>
 
         <div className="border-t border-cream/12 mt-9 pt-6 text-cream/60 text-sm">
-          © 2026 Watch &amp; Learn · A project of Kollel Ohr Moshe · All Rights Reserved
+          © 2026 Watch &amp; Learn · A project of{" "}
+          <Link href="https://kollelohrmoshe.org" target="_blank" className="hover:text-gold2 transition-colors">
+            Kollel Ohr Moshe
+          </Link>{" "}
+          · Tax ID 33-3914717 · All Rights Reserved
         </div>
       </div>
     </footer>
