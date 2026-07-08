@@ -1,7 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { getTransactionsByMonth, backfillTransactionsFromStripe } from "@/app/actions/transactions"
+import {
+  getTransactionsByMonth,
+  backfillTransactionsFromStripe,
+  deleteTransaction,
+  updateTransaction,
+} from "@/app/actions/transactions"
 
 type TransactionRow = {
   id: number
@@ -13,6 +18,8 @@ type TransactionRow = {
   status: string
   billingMonth: string
   stripeSubscriptionId: string | null
+  referralCode: string | null
+  affiliateName: string | null
   chargedAt: Date | string | null
 }
 
@@ -37,6 +44,10 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
   const [syncing, setSyncing] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [openKey, setOpenKey] = useState<string | null>(initialMonths[0]?.key ?? null)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editAmount, setEditAmount] = useState("")
+  const [editEntries, setEditEntries] = useState("")
+  const [busyId, setBusyId] = useState<number | null>(null)
 
   const refresh = async () => {
     const data = await getTransactionsByMonth()
@@ -58,6 +69,49 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
       setMessage("Failed to sync from Stripe. Please try again.")
     } finally {
       setSyncing(false)
+    }
+  }
+
+  const startEdit = (row: TransactionRow) => {
+    setEditingId(row.id)
+    setEditAmount((row.amountCents / 100).toFixed(2))
+    setEditEntries(String(row.entries))
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditAmount("")
+    setEditEntries("")
+  }
+
+  const saveEdit = async (id: number) => {
+    setBusyId(id)
+    try {
+      await updateTransaction(id, {
+        amountCents: Math.round(Number.parseFloat(editAmount) * 100),
+        entries: Number.parseInt(editEntries, 10),
+      })
+      await refresh()
+      cancelEdit()
+    } catch (error) {
+      console.error("Error updating transaction:", error)
+      setMessage("Failed to update the charge. Please try again.")
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete this charge? This only affects the admin record, not Stripe.")) return
+    setBusyId(id)
+    try {
+      await deleteTransaction(id)
+      await refresh()
+    } catch (error) {
+      console.error("Error deleting transaction:", error)
+      setMessage("Failed to delete the charge. Please try again.")
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -119,35 +173,116 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Name</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Email</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Type</th>
+                          <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Affiliate</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Entries</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Amount</th>
+                          <th className="text-right p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {month.rows.map((row) => (
-                          <tr key={row.id} className="border-b border-gold/10 hover:bg-gold/5">
-                            <td className="p-3 text-cream/60 text-xs">
-                              {row.chargedAt ? new Date(row.chargedAt).toLocaleDateString() : "-"}
-                            </td>
-                            <td className="p-3 text-cream">{row.name}</td>
-                            <td className="p-3 text-cream/80">{row.email || "-"}</td>
-                            <td className="p-3">
-                              <span
-                                className={`px-2 py-1 text-[0.55rem] tracking-[0.15em] uppercase ${
-                                  row.type === "subscription_renewal"
-                                    ? "bg-green-500/20 text-green-400"
-                                    : row.type === "subscription_initial"
-                                      ? "bg-blue-500/20 text-blue-300"
-                                      : "bg-gold/20 text-gold2"
-                                }`}
-                              >
-                                {TYPE_LABELS[row.type] || row.type}
-                              </span>
-                            </td>
-                            <td className="p-3 text-gold">{row.entries}</td>
-                            <td className="p-3 text-cream">${(row.amountCents / 100).toFixed(2)}</td>
-                          </tr>
-                        ))}
+                        {month.rows.map((row) => {
+                          const isEditing = editingId === row.id
+                          const isBusy = busyId === row.id
+                          return (
+                            <tr key={row.id} className="border-b border-gold/10 hover:bg-gold/5">
+                              <td className="p-3 text-cream/60 text-xs">
+                                {row.chargedAt ? new Date(row.chargedAt).toLocaleDateString() : "-"}
+                              </td>
+                              <td className="p-3 text-cream">{row.name}</td>
+                              <td className="p-3 text-cream/80">{row.email || "-"}</td>
+                              <td className="p-3">
+                                <span
+                                  className={`px-2 py-1 text-[0.55rem] tracking-[0.15em] uppercase ${
+                                    row.type === "subscription_renewal"
+                                      ? "bg-green-500/20 text-green-400"
+                                      : row.type === "subscription_initial"
+                                        ? "bg-blue-500/20 text-blue-300"
+                                        : "bg-gold/20 text-gold2"
+                                  }`}
+                                >
+                                  {TYPE_LABELS[row.type] || row.type}
+                                </span>
+                              </td>
+                              <td className="p-3 text-cream/80">
+                                {row.affiliateName ? (
+                                  <span className="text-gold2">{row.affiliateName}</span>
+                                ) : row.referralCode ? (
+                                  <span className="text-cream/50" title="No matching affiliate record">
+                                    {row.referralCode}
+                                  </span>
+                                ) : (
+                                  <span className="text-cream/30">-</span>
+                                )}
+                              </td>
+                              <td className="p-3 text-gold">
+                                {isEditing ? (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={editEntries}
+                                    onChange={(e) => setEditEntries(e.target.value)}
+                                    className="w-20 bg-teal border border-gold/40 px-2 py-1 text-cream"
+                                  />
+                                ) : (
+                                  row.entries
+                                )}
+                              </td>
+                              <td className="p-3 text-cream">
+                                {isEditing ? (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={editAmount}
+                                    onChange={(e) => setEditAmount(e.target.value)}
+                                    className="w-24 bg-teal border border-gold/40 px-2 py-1 text-cream"
+                                  />
+                                ) : (
+                                  `$${(row.amountCents / 100).toFixed(2)}`
+                                )}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex gap-2 justify-end">
+                                  {isEditing ? (
+                                    <>
+                                      <button
+                                        onClick={() => saveEdit(row.id)}
+                                        disabled={isBusy}
+                                        className="px-3 py-1 text-[0.55rem] tracking-[0.15em] uppercase border border-gold bg-gold text-teal hover:bg-gold2 disabled:opacity-50"
+                                      >
+                                        {isBusy ? "..." : "Save"}
+                                      </button>
+                                      <button
+                                        onClick={cancelEdit}
+                                        disabled={isBusy}
+                                        className="px-3 py-1 text-[0.55rem] tracking-[0.15em] uppercase border border-cream/30 text-cream/70 hover:bg-cream/10 disabled:opacity-50"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => startEdit(row)}
+                                        disabled={isBusy}
+                                        className="px-3 py-1 text-[0.55rem] tracking-[0.15em] uppercase border border-gold/40 text-gold2 hover:bg-gold/10 disabled:opacity-50"
+                                      >
+                                        Adjust
+                                      </button>
+                                      <button
+                                        onClick={() => handleDelete(row.id)}
+                                        disabled={isBusy}
+                                        className="px-3 py-1 text-[0.55rem] tracking-[0.15em] uppercase border border-red-500/40 text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                                      >
+                                        {isBusy ? "..." : "Delete"}
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>
