@@ -37,6 +37,34 @@ export const affiliates = pgTable("affiliates", {
   createdAt: timestamp("created_at").defaultNow(),
 })
 
+// One row per individual charge (initial subscription payment, each recurring
+// renewal, one-time payments, and manual entries). This is separate from
+// `donations`, which holds one row per donor/subscription. Every Stripe charge
+// becomes its own transaction so the admin can see recurring revenue over time.
+export const transactions = pgTable("transactions", {
+  id: serial("id").primaryKey(),
+  // Optional link back to the donor record this charge belongs to.
+  donationId: integer("donation_id"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  // Unique per Stripe invoice — used to dedupe recurring charges.
+  stripeInvoiceId: text("stripe_invoice_id").unique(),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripeChargeId: text("stripe_charge_id"),
+  name: text("name").notNull().default(""),
+  email: text("email").notNull().default(""),
+  amountCents: integer("amount_cents").notNull().default(0),
+  entries: integer("entries").notNull().default(0),
+  // "subscription_initial" | "subscription_renewal" | "one_time" | "manual"
+  type: text("type").notNull().default("subscription_renewal"),
+  status: text("status").notNull().default("paid"),
+  // The 15th-to-15th billing window this charge counts toward, e.g. "2026-06".
+  billingMonth: text("billing_month").notNull().default(""),
+  referralCode: text("referral_code"),
+  chargedAt: timestamp("charged_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+})
+
 export const wheelNumbers = pgTable("wheel_numbers", {
   number: integer("number").primaryKey(),
   donorName: text("donor_name"),

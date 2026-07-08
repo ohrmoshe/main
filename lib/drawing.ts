@@ -44,6 +44,40 @@ export function effectiveEntries(
   return d.entries + (isBonusActive(d, now) ? (d.bonusEntries || 0) : 0)
 }
 
+// --- Billing months (15th-to-15th windows) ---------------------------------
+// A charge counts toward the drawing on the 15th. The window runs from the 15th
+// of one month to the 15th of the next. A charge dated BEFORE the 15th belongs
+// to the window ENDING on the 15th of that same month; a charge on/after the
+// 15th belongs to the window ending on the 15th of the NEXT month.
+// Example: June 7 -> "2026-06" (June 15 drawing). June 20 -> "2026-07" (July 15).
+
+// The drawing date (the 15th) a given charge date counts toward.
+export function getBillingDrawingDate(date: Date): Date {
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = d.getMonth()
+  if (d.getDate() < 15) {
+    return new Date(year, month, 15, 20, 0, 0)
+  }
+  return new Date(year, month + 1, 15, 20, 0, 0)
+}
+
+// Stable sortable key for the billing window, e.g. "2026-06".
+export function getBillingMonthKey(date: Date): string {
+  const drawing = getBillingDrawingDate(date)
+  const y = drawing.getFullYear()
+  const m = String(drawing.getMonth() + 1).padStart(2, "0")
+  return `${y}-${m}`
+}
+
+// Human label for the billing window, e.g. "June 2026".
+export function getBillingMonthLabel(key: string): string {
+  const [y, m] = key.split("-").map(Number)
+  if (!y || !m) return key
+  const d = new Date(y, m - 1, 15)
+  return `${d.toLocaleString("en-US", { month: "long" })} ${y}`
+}
+
 export function getDrawingInfo(now: Date = new Date()) {
   const raffleDate = getDrawingDate(now)
   const monthName = raffleDate.toLocaleString("en-US", { month: "long" })
