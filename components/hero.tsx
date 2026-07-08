@@ -13,13 +13,13 @@ export async function Hero() {
   return (
     <section
       id="top"
-      className="relative overflow-hidden bg-teal text-cream pt-24 pb-14 md:pt-32 md:pb-24 px-5 lg:px-0"
+      className="relative overflow-hidden bg-teal text-cream pt-20 pb-14 md:pt-32 md:pb-24 px-5 lg:px-0"
       style={{
         backgroundImage:
           "radial-gradient(circle at 80% 5%, rgba(225,192,141,0.28), transparent 34%), linear-gradient(135deg, var(--teal), var(--teal2))",
       }}
     >
-      <div className="w-full max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr] gap-8 lg:gap-14 items-center">
+      <div className="w-full max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr] gap-5 lg:gap-14 items-center">
         {/* Intro block — compact on mobile so the watch + raffle are seen fast */}
         <div className="lg:col-start-1 lg:row-start-1">
           {/* Logo + headline sit side by side on mobile to save vertical space
@@ -44,7 +44,7 @@ export async function Hero() {
               </div>
             </div>
           </div>
-          <p className="text-[1.02rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-4 lg:mt-0">
+          <p className="text-[0.98rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-3 lg:mt-0">
             Donate to support a Kollel of Torah learning — and every gift enters you to win this month&apos;s{" "}
             {WATCH_VALUE} luxury watch, drawn <strong className="text-cream">live on Zoom</strong>.
           </p>
@@ -53,7 +53,7 @@ export async function Hero() {
         {/* Supporting copy + CTAs — above the watch card on mobile, under intro on desktop */}
         <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-2">
           {monthlySubscribers > 0 && (
-            <p className="text-cream/80 text-base md:text-xl mb-5">
+            <p className="text-cream/80 text-base md:text-xl mb-4">
               <span className="font-bold text-gold2 text-2xl md:text-3xl">
                 {monthlySubscribers.toLocaleString()}
               </span>{" "}
@@ -64,7 +64,7 @@ export async function Hero() {
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             <Link
               href="#donate"
-              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
               style={{
                 background: "linear-gradient(135deg, var(--gold), var(--gold2))",
                 boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
@@ -74,13 +74,13 @@ export async function Hero() {
             </Link>
             <Link
               href="#prize-wheel"
-              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
             >
               One-Time Gift ($1–299)
             </Link>
           </div>
 
-          <p className="text-cream/60 text-xs mt-4 leading-relaxed">
+          <p className="text-cream/60 text-xs mt-3 leading-relaxed">
             Tax-deductible donation to{" "}
             <Link
               href="https://kollelohrmoshe.org"
