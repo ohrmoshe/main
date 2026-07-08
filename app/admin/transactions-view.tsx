@@ -48,6 +48,29 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
   const [editAmount, setEditAmount] = useState("")
   const [editEntries, setEditEntries] = useState("")
   const [busyId, setBusyId] = useState<number | null>(null)
+  // Affiliate filter: "all" = everyone, "none" = direct (no affiliate), or a specific key.
+  const [affiliateFilter, setAffiliateFilter] = useState<string>("all")
+
+  // A stable label + key for each charge's affiliate (name if known, else raw code).
+  const affiliateLabelOf = (row: TransactionRow): string | null =>
+    row.affiliateName || row.referralCode || null
+
+  // Unique affiliates present across all charges, for the filter dropdown.
+  const affiliateOptions = Array.from(
+    new Map(
+      months
+        .flatMap((m) => m.rows)
+        .map((r) => affiliateLabelOf(r))
+        .filter((v): v is string => Boolean(v))
+        .map((label) => [label, label] as const),
+    ).keys(),
+  ).sort((a, b) => a.localeCompare(b))
+
+  const rowMatchesFilter = (row: TransactionRow): boolean => {
+    if (affiliateFilter === "all") return true
+    if (affiliateFilter === "none") return !affiliateLabelOf(row)
+    return affiliateLabelOf(row) === affiliateFilter
+  }
 
   const refresh = async () => {
     const data = await getTransactionsByMonth()
@@ -124,13 +147,31 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
             Each charge is grouped into its billing month (the 15th to the 15th).
           </p>
         </div>
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="px-6 py-2 border border-gold bg-gold text-teal text-xs tracking-[0.2em] uppercase transition-all hover:bg-gold2 disabled:opacity-50"
-        >
-          {syncing ? "Syncing..." : "Sync from Stripe"}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-[0.6rem] tracking-[0.2em] uppercase text-gold">
+            Affiliate
+            <select
+              value={affiliateFilter}
+              onChange={(e) => setAffiliateFilter(e.target.value)}
+              className="bg-teal border border-gold/40 text-cream text-xs px-3 py-2 tracking-normal normal-case"
+            >
+              <option value="all">All</option>
+              <option value="none">Direct (no affiliate)</option>
+              {affiliateOptions.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="px-6 py-2 border border-gold bg-gold text-teal text-xs tracking-[0.2em] uppercase transition-all hover:bg-gold2 disabled:opacity-50"
+          >
+            {syncing ? "Syncing..." : "Sync from Stripe"}
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -145,6 +186,12 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
         <div className="flex flex-col gap-4">
           {months.map((month) => {
             const isOpen = openKey === month.key
+            const visibleRows = month.rows.filter(rowMatchesFilter)
+            // Hide months that have nothing matching the active affiliate filter.
+            if (affiliateFilter !== "all" && visibleRows.length === 0) return null
+            const filteredCount = visibleRows.length
+            const filteredEntries = visibleRows.reduce((s, r) => s + r.entries, 0)
+            const filteredTotal = visibleRows.reduce((s, r) => s + r.amountCents, 0)
             return (
               <div key={month.key} className="border border-gold/20">
                 <button
@@ -154,12 +201,12 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
                   <span className="font-heading text-xl text-cream">{month.label}</span>
                   <span className="flex flex-wrap gap-6 items-center text-sm">
                     <span className="text-cream/70">
-                      <span className="text-gold">{month.count}</span> charges
+                      <span className="text-gold">{filteredCount}</span> charges
                     </span>
                     <span className="text-cream/70">
-                      <span className="text-gold">{month.entries}</span> entries
+                      <span className="text-gold">{filteredEntries}</span> entries
                     </span>
-                    <span className="text-cream font-medium">${(month.total / 100).toLocaleString()}</span>
+                    <span className="text-cream font-medium">${(filteredTotal / 100).toLocaleString()}</span>
                     <span className="text-gold2 text-lg leading-none">{isOpen ? "−" : "+"}</span>
                   </span>
                 </button>
@@ -180,7 +227,7 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
                         </tr>
                       </thead>
                       <tbody>
-                        {month.rows.map((row) => {
+                        {visibleRows.map((row) => {
                           const isEditing = editingId === row.id
                           const isBusy = busyId === row.id
                           return (
@@ -203,15 +250,20 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
                                   {TYPE_LABELS[row.type] || row.type}
                                 </span>
                               </td>
-                              <td className="p-3 text-cream/80">
+                              <td className="p-3">
                                 {row.affiliateName ? (
-                                  <span className="text-gold2">{row.affiliateName}</span>
+                                  <span className="inline-block px-2 py-1 text-[0.6rem] tracking-[0.1em] uppercase bg-gold/20 text-gold2 font-medium">
+                                    {row.affiliateName}
+                                  </span>
                                 ) : row.referralCode ? (
-                                  <span className="text-cream/50" title="No matching affiliate record">
+                                  <span
+                                    className="inline-block px-2 py-1 text-[0.6rem] tracking-[0.1em] uppercase bg-cream/10 text-cream/60"
+                                    title="Referral code has no matching affiliate record"
+                                  >
                                     {row.referralCode}
                                   </span>
                                 ) : (
-                                  <span className="text-cream/30">-</span>
+                                  <span className="text-cream/30">Direct</span>
                                 )}
                               </td>
                               <td className="p-3 text-gold">
