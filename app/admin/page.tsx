@@ -1,6 +1,8 @@
 import { getDonations, getDonationStats } from "@/app/actions/admin"
 import { getAffiliateStats } from "@/app/actions/affiliates"
+import { getTransactionsByMonth } from "@/app/actions/transactions"
 import { AdminDashboardClient } from "./client"
+import { TransactionsView } from "./transactions-view"
 import { AffiliatesManager } from "./affiliates-manager"
 import { AdminLogin } from "./login"
 import { headers } from "next/headers"
@@ -20,10 +22,11 @@ export default async function AdminPage() {
     return <AdminLogin />
   }
 
-  const [donations, stats, affiliateStats] = await Promise.all([
+  const [donations, stats, affiliateStats, transactionMonths] = await Promise.all([
     getDonations("all"),
     getDonationStats(),
     getAffiliateStats(),
+    getTransactionsByMonth(),
   ])
 
   const donationsArray = Array.isArray(donations) ? donations : []
@@ -67,6 +70,8 @@ export default async function AdminPage() {
         </div>
 
         <AdminDashboardClient initialDonations={donationsArray} />
+
+        <TransactionsView initialMonths={transactionMonths} />
 
         <AffiliatesManager initialAffiliates={affiliateStats} baseUrl={baseUrl} />
       </div>
