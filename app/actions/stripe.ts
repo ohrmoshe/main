@@ -1,6 +1,6 @@
 "use server"
 
-import { stripe } from "@/lib/stripe"
+import { stripe, SITE_ID } from "@/lib/stripe"
 import { SUBSCRIPTION_TIERS, calculateCustomTier, calculateMonthlyCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
 import { isDealActive } from "@/lib/deal"
 import { getDrawingDate, getDrawingInfo } from "@/lib/drawing"
@@ -82,7 +82,17 @@ export async function createCheckoutSession(
           quantity: 1,
         },
       ],
+      // Tag the subscription itself so every future renewal invoice carries the
+      // site marker (invoices inherit subscription metadata).
+      subscription_data: {
+        metadata: {
+          site: SITE_ID,
+          referralCode,
+        },
+      },
       metadata: {
+        // Marks this charge as belonging to Watch & Learn (shared Stripe account).
+        site: SITE_ID,
         // `entries` carries the total for THIS drawing (used by success page & emails)
         entries: totalThisDrawing.toString(),
         baseEntries: baseEntries.toString(),
@@ -155,12 +165,20 @@ export async function createOneTimeCheckout(
         },
       ],
       metadata: {
+        // Marks this charge as belonging to Watch & Learn (shared Stripe account).
+        site: SITE_ID,
         entries: entries.toString(),
         amountCents: amountCents.toString(),
         type: "one_time",
         emailConsent: consent?.email ? "true" : "false",
         smsConsent: consent?.sms ? "true" : "false",
         referralCode,
+      },
+      payment_intent_data: {
+        metadata: {
+          site: SITE_ID,
+          referralCode,
+        },
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#donate`,

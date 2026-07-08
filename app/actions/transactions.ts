@@ -122,6 +122,11 @@ export async function backfillTransactionsFromStripe(): Promise<{
       .from(donations)
       .where(eq(donations.stripeSubscriptionId, subscriptionId))
 
+    // Shared Stripe account: this backfill only claims charges whose
+    // subscription already exists in OUR donations table. Charges from our
+    // other websites have no matching donor row and are skipped.
+    if (!donor) continue
+
     const paidAt = invoice.status_transitions?.paid_at
       ? new Date(invoice.status_transitions.paid_at * 1000)
       : new Date((invoice.created || Math.floor(Date.now() / 1000)) * 1000)
