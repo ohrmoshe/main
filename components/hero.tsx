@@ -39,8 +39,12 @@ export async function Hero() {
                 Timeless Watches.
                 <span className="block text-gold2">Eternal Impact.</span>
               </h1>
-              <div className="text-[0.58rem] md:text-[0.66rem] font-extrabold tracking-[0.16em] uppercase text-gold lg:mb-4">
-                Support a Kollel · Win a {WATCH_VALUE} Watch
+              {/* Stepped lines that curve in toward the logo's corner:
+                  first line sits furthest out, each following line tucks closer. */}
+              <div className="text-[0.58rem] md:text-[0.66rem] font-extrabold tracking-[0.16em] uppercase text-gold leading-[1.7] lg:mb-4">
+                <span className="block pl-8 md:pl-10">Support a Kollel</span>
+                <span className="block pl-4 md:pl-5">· Win a</span>
+                <span className="block pl-0">{WATCH_VALUE} Watch</span>
               </div>
             </div>
           </div>
