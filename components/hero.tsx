@@ -31,16 +31,16 @@ export async function Hero() {
               width={210}
               height={105}
               priority
-              className="w-20 shrink-0 md:w-28 lg:w-[min(210px,60vw)] h-auto lg:mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
+              className="w-28 shrink-0 md:w-36 lg:w-[min(240px,64vw)] h-auto lg:mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
             />
             <div>
-              <div className="text-[0.7rem] md:text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2 lg:mb-4">
-                Support a Kollel · Win a {WATCH_VALUE} Watch
-              </div>
-              <h1 className="font-heading font-light text-[clamp(2rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] lg:mb-6">
+              <h1 className="font-heading font-light text-[clamp(2rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] mb-2 lg:mb-4">
                 Timeless Watches.
                 <span className="block text-gold2">Eternal Impact.</span>
               </h1>
+              <div className="text-[0.7rem] md:text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold lg:mb-4">
+                Support a Kollel · Win a {WATCH_VALUE} Watch
+              </div>
             </div>
           </div>
           <p className="text-[1.02rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-4 lg:mt-0">
