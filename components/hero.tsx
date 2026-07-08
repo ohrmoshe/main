@@ -43,8 +43,17 @@ export async function Hero() {
           </p>
         </div>
 
-        {/* Supporting copy + CTAs — after the watch card on mobile, under intro on desktop */}
-        <div className="order-3 lg:order-none lg:col-start-1 lg:row-start-2">
+        {/* Supporting copy + CTAs — above the watch card on mobile, under intro on desktop */}
+        <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-2">
+          {monthlySubscribers > 0 && (
+            <p className="text-cream/80 text-base md:text-xl mb-5">
+              <span className="font-bold text-gold2 text-2xl md:text-3xl">
+                {monthlySubscribers.toLocaleString()}
+              </span>{" "}
+              {monthlySubscribers === 1 ? "member has" : "members have"}{" "}
+              joined this month&apos;s sweepstakes
+            </p>
+          )}
           <p className="text-cream/70 text-[0.95rem] mb-6 md:mb-7">
             Give monthly for the best odds, or make a one-time gift. Both enter you to win.
           </p>
@@ -78,21 +87,11 @@ export async function Hero() {
             </Link>{" "}
             · Tax ID 33-3914717
           </p>
-
-          {monthlySubscribers > 0 && (
-            <p className="text-cream/80 text-lg md:text-xl mt-6">
-              <span className="font-bold text-gold2 text-2xl md:text-3xl">
-                {monthlySubscribers.toLocaleString()}
-              </span>{" "}
-              {monthlySubscribers === 1 ? "member has" : "members have"}{" "}
-              joined this month&apos;s sweepstakes
-            </p>
-          )}
         </div>
 
         {/* Prize watch + countdown card — pulled high on mobile so the watch and
             monthly raffle are immediately visible right under the headline */}
-        <aside className="order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
+        <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
           {/* Prize watch */}
           <div
             className="relative rounded-[22px] p-5 flex items-center justify-center mb-5"
