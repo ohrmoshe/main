@@ -13,41 +13,58 @@ export async function Hero() {
   return (
     <section
       id="top"
-      className="relative overflow-hidden bg-teal text-cream pt-28 pb-16 md:pt-32 md:pb-24 px-5 lg:px-0"
+      className="relative overflow-hidden bg-teal text-cream pt-20 pb-14 md:pt-32 md:pb-24 px-5 lg:px-0"
       style={{
         backgroundImage:
           "radial-gradient(circle at 80% 5%, rgba(225,192,141,0.28), transparent 34%), linear-gradient(135deg, var(--teal), var(--teal2))",
       }}
     >
-      <div className="w-full max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr] gap-12 lg:gap-14 items-center">
-        {/* Left column */}
-        <div>
-          <Image
-            src="/images/watchnlearn-logo.png"
-            alt="Watch & Learn"
-            width={210}
-            height={105}
-            priority
-            className="w-[min(210px,60vw)] h-auto mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
-          />
-          <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-4">
-            Support a Kollel · Win a {WATCH_VALUE} Watch
+      <div className="w-full max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr] gap-5 lg:gap-14 items-center">
+        {/* Intro block — compact on mobile so the watch + raffle are seen fast */}
+        <div className="lg:col-start-1 lg:row-start-1">
+          {/* Logo + headline sit side by side on mobile to save vertical space
+              (shifting everything up), then stack normally on desktop. */}
+          <div className="flex items-center gap-4 lg:block">
+            <Image
+              src="/images/watchnlearn-logo.png"
+              alt="Watch & Learn"
+              width={210}
+              height={105}
+              priority
+              style={{ height: "auto" }}
+              className="w-36 shrink-0 md:w-44 lg:w-[min(280px,68vw)] lg:mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
+            />
+            <div>
+              <h1 className="font-heading font-light text-[clamp(2rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] mb-2 lg:mb-4">
+                Timeless Watches.
+                <span className="block text-gold2">Eternal Impact.</span>
+              </h1>
+              <div className="text-[0.58rem] md:text-[0.66rem] font-extrabold tracking-[0.16em] uppercase text-gold lg:mb-4">
+                Support a Kollel · Win a {WATCH_VALUE} Watch
+              </div>
+            </div>
           </div>
-          <h1 className="font-heading font-light text-[clamp(3rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] mb-6">
-            Timeless Watches.
-            <span className="block text-gold2">Eternal Impact.</span>
-          </h1>
-          <p className="text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mb-4">
+          <p className="text-[0.98rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-3 lg:mt-0">
             Donate to support a Kollel of Torah learning — and every gift enters you to win this month&apos;s{" "}
             {WATCH_VALUE} luxury watch, drawn <strong className="text-cream">live on Zoom</strong>.
           </p>
-          <p className="text-cream/70 text-[0.95rem] mb-7">
-            Give monthly for the best odds, or make a one-time gift. Both enter you to win.
-          </p>
-          <div className="flex flex-wrap gap-3.5">
+        </div>
+
+        {/* Supporting copy + CTAs — above the watch card on mobile, under intro on desktop */}
+        <div className="order-2 lg:order-none lg:col-start-1 lg:row-start-2">
+          {monthlySubscribers > 0 && (
+            <p className="text-cream/80 text-base md:text-xl mb-4">
+              <span className="font-bold text-gold2 text-2xl md:text-3xl">
+                {monthlySubscribers.toLocaleString()}
+              </span>{" "}
+              {monthlySubscribers === 1 ? "member has" : "members have"}{" "}
+              joined this month&apos;s sweepstakes
+            </p>
+          )}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             <Link
               href="#donate"
-              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
               style={{
                 background: "linear-gradient(135deg, var(--gold), var(--gold2))",
                 boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
@@ -57,13 +74,13 @@ export async function Hero() {
             </Link>
             <Link
               href="#prize-wheel"
-              className="inline-flex items-center justify-center rounded-full px-7 py-3.5 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
+              className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
             >
               One-Time Gift ($1–299)
             </Link>
           </div>
 
-          <p className="text-cream/60 text-xs mt-4 leading-relaxed">
+          <p className="text-cream/60 text-xs mt-3 leading-relaxed">
             Tax-deductible donation to{" "}
             <Link
               href="https://kollelohrmoshe.org"
@@ -74,20 +91,11 @@ export async function Hero() {
             </Link>{" "}
             · Tax ID 33-3914717
           </p>
-
-          {monthlySubscribers > 0 && (
-            <p className="text-cream/80 text-lg md:text-xl mt-6">
-              <span className="font-bold text-gold2 text-2xl md:text-3xl">
-                {monthlySubscribers.toLocaleString()}
-              </span>{" "}
-              {monthlySubscribers === 1 ? "member has" : "members have"}{" "}
-              joined this month&apos;s sweepstakes
-            </p>
-          )}
         </div>
 
-        {/* Right column — prize watch + countdown card */}
-        <aside className="rounded-[28px] border border-cream/20 bg-cream/[0.11] p-6 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
+        {/* Prize watch + countdown card — pulled high on mobile so the watch and
+            monthly raffle are immediately visible right under the headline */}
+        <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
           {/* Prize watch */}
           <div
             className="relative rounded-[22px] p-5 flex items-center justify-center mb-5"

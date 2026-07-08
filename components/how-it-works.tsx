@@ -1,17 +1,17 @@
 export function HowItWorks() {
   return (
-    <section className="py-16 md:py-20 px-5 lg:px-0 bg-cream" id="how">
+    <section className="py-10 md:py-14 px-5 lg:px-0 bg-cream" id="how">
       <div className="w-full max-w-[1180px] mx-auto">
-        <div className="text-center max-w-[740px] mx-auto mb-10">
-          <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
+        <div className="text-center max-w-[740px] mx-auto mb-6">
+          <div className="text-[0.68rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2">
             The Process
           </div>
-          <h2 className="font-heading text-[clamp(2.2rem,4vw,4rem)] font-light text-text leading-none tracking-[-0.035em]">
+          <h2 className="font-heading text-[clamp(1.8rem,3.2vw,3rem)] font-light text-text leading-none tracking-[-0.035em]">
             How It Works
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Step
             number="01"
             title="Make a Donation"
@@ -29,7 +29,7 @@ export function HowItWorks() {
           />
         </div>
 
-        <p className="text-center mt-6 text-muted-foreground text-sm">
+        <p className="text-center mt-5 text-muted-foreground text-sm">
           *No donation is required to enter. See Terms &amp; Conditions.
         </p>
       </div>
@@ -39,10 +39,10 @@ export function HowItWorks() {
 
 function Step({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <article className="bg-cream2 border border-teal/[0.08] rounded-[26px] p-8 shadow-[0_14px_35px_rgba(18,54,54,0.07)]">
-      <div className="font-heading text-5xl text-gold/45 leading-none">{number}</div>
-      <h3 className="text-[1.35rem] font-semibold text-text mt-3 mb-2">{title}</h3>
-      <p className="text-[0.95rem] leading-relaxed text-muted-foreground">{description}</p>
+    <article className="bg-cream2 border border-teal/[0.08] rounded-[22px] p-6 shadow-[0_14px_35px_rgba(18,54,54,0.07)]">
+      <div className="font-heading text-4xl text-gold/45 leading-none">{number}</div>
+      <h3 className="text-[1.2rem] font-semibold text-text mt-2.5 mb-1.5">{title}</h3>
+      <p className="text-[0.9rem] leading-relaxed text-muted-foreground">{description}</p>
     </article>
   )
 }
