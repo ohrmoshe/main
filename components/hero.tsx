@@ -22,22 +22,28 @@ export async function Hero() {
       <div className="w-full max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr] gap-8 lg:gap-14 items-center">
         {/* Intro block — compact on mobile so the watch + raffle are seen fast */}
         <div className="lg:col-start-1 lg:row-start-1">
-          <Image
-            src="/images/watchnlearn-logo.png"
-            alt="Watch & Learn"
-            width={210}
-            height={105}
-            priority
-            className="w-[min(148px,40vw)] md:w-[min(210px,60vw)] h-auto mb-4 md:mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
-          />
-          <div className="text-[0.7rem] md:text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-3 md:mb-4">
-            Support a Kollel · Win a {WATCH_VALUE} Watch
+          {/* Logo + headline sit side by side on mobile to save vertical space
+              (shifting everything up), then stack normally on desktop. */}
+          <div className="flex items-center gap-4 lg:block">
+            <Image
+              src="/images/watchnlearn-logo.png"
+              alt="Watch & Learn"
+              width={210}
+              height={105}
+              priority
+              className="w-20 shrink-0 md:w-28 lg:w-[min(210px,60vw)] h-auto lg:mb-6 drop-shadow-[0_4px_32px_rgba(200,155,92,0.18)]"
+            />
+            <div>
+              <div className="text-[0.7rem] md:text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2 lg:mb-4">
+                Support a Kollel · Win a {WATCH_VALUE} Watch
+              </div>
+              <h1 className="font-heading font-light text-[clamp(2rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] lg:mb-6">
+                Timeless Watches.
+                <span className="block text-gold2">Eternal Impact.</span>
+              </h1>
+            </div>
           </div>
-          <h1 className="font-heading font-light text-[clamp(2.5rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em] mb-4 md:mb-6">
-            Timeless Watches.
-            <span className="block text-gold2">Eternal Impact.</span>
-          </h1>
-          <p className="text-[1.02rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px]">
+          <p className="text-[1.02rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-4 lg:mt-0">
             Donate to support a Kollel of Torah learning — and every gift enters you to win this month&apos;s{" "}
             {WATCH_VALUE} luxury watch, drawn <strong className="text-cream">live on Zoom</strong>.
           </p>
