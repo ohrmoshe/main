@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe"
+import { stripe, SITE_ID } from "@/lib/stripe"
 import { db } from "@/lib/db"
 import { donations } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
@@ -32,7 +32,11 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
-        
+
+        // This Stripe account is shared with our other websites. Ignore any
+        // checkout that this app did not create (i.e. not tagged for this site).
+        if (session.metadata?.site !== SITE_ID) break
+
         // Handle one-time payment
         if (session.mode === "payment") {
           const customer = session.customer 
@@ -200,6 +204,29 @@ export async function POST(request: NextRequest) {
               .from(donations)
               .where(eq(donations.stripeSubscriptionId, subscriptionId))
           : []
+
+        // Shared Stripe account: only record charges that belong to this site.
+        // A charge is ours if the donor already exists in our table, or if the
+        // subscription is tagged with our site marker. Metadata may be embedded
+        // on the invoice; if not, retrieve the subscription to confirm.
+        let ownedByThisSite = Boolean(donor)
+        if (!ownedByThisSite) {
+          const embeddedMeta =
+            inv.subscription_details?.metadata ||
+            inv.parent?.subscription_details?.metadata ||
+            null
+          if (embeddedMeta?.site === SITE_ID) {
+            ownedByThisSite = true
+          } else {
+            try {
+              const sub = await stripe.subscriptions.retrieve(subscriptionId)
+              ownedByThisSite = sub.metadata?.site === SITE_ID
+            } catch {
+              ownedByThisSite = false
+            }
+          }
+        }
+        if (!ownedByThisSite) break
 
         const paidAt = invoice.status_transitions?.paid_at
           ? new Date(invoice.status_transitions.paid_at * 1000)
