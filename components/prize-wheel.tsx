@@ -6,6 +6,8 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 import {
   getWheelStatus,
   createWheelSetupIntent,
+  createRespinSetupIntent,
+  getPaymentMethodInfo,
   spinAndCharge,
 } from "@/app/actions/wheel"
 import { WHEEL_MAX } from "@/lib/products"
@@ -59,6 +61,16 @@ export function PrizeWheel() {
       setLoading(false)
     }
   }
+
+  // Apple Pay / Google Pay re-spin: mint a fresh SetupIntent for the same
+  // customer and swap the client secret. Keying <Elements> on the secret
+  // remounts the payment sheet so the donor can authorize the next charge
+  // without re-entering any of their details.
+  const handleWalletRespin = useCallback(async () => {
+    if (!customerId) return
+    const { clientSecret } = await createRespinSetupIntent(customerId)
+    setClientSecret(clientSecret)
+  }, [customerId])
 
   if (status === null) {
     return (
@@ -175,6 +187,7 @@ export function PrizeWheel() {
 
       {phase === "card" && clientSecret && customerId && (
         <Elements
+          key={clientSecret}
           stripe={stripePromise}
           options={{
             clientSecret,
@@ -190,6 +203,7 @@ export function PrizeWheel() {
                 prev ? { available: Math.max(0, prev.available - 1), soldOut: prev.available - 1 <= 0 } : prev,
               )
             }
+            onWalletRespin={handleWalletRespin}
           />
         </Elements>
       )}
@@ -219,11 +233,13 @@ function SpinForm({
   consent,
   customerId,
   onCharged,
+  onWalletRespin,
 }: {
   donor: Donor
   consent: Consent
   customerId: string
   onCharged: () => void
+  onWalletRespin: () => Promise<void>
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -233,6 +249,12 @@ function SpinForm({
   const [result, setResult] = useState<{ number: number; amount: number } | null>(null)
   const [soldOut, setSoldOut] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Saved after the first verified charge so re-spins can reuse the card
+  // without asking for any details again.
+  const [savedPaymentMethodId, setSavedPaymentMethodId] = useState<string | null>(null)
+  const [isWallet, setIsWallet] = useState(false)
+  // Per-respin authorization checkbox (must be re-checked for each extra spin).
+  const [respinAuthorized, setRespinAuthorized] = useState(false)
 
   // The reels self-animate (CSS) to the digits of `target`. We just set the
   // target, let the reels roll for SPIN_DURATION, then resolve.
@@ -244,6 +266,34 @@ function SpinForm({
       }),
     [],
   )
+
+  // Reserve a number, charge the given payment method, then run the spin.
+  const doCharge = async (paymentMethodId: string) => {
+    const res = await spinAndCharge({
+      customerId,
+      paymentMethodId,
+      name: donor.name,
+      email: donor.email,
+      phone: donor.phone,
+      consent,
+    })
+
+    setVerifying(false)
+
+    if (res.soldOut) {
+      setSoldOut(true)
+      return
+    }
+
+    // Charge succeeded and a number is reserved -> decrement the live counter.
+    onCharged()
+
+    // Now run the full spin that lands on the reserved number.
+    setSpinning(true)
+    await runSpinAnimation(res.number)
+    setResult({ number: res.number, amount: res.amount })
+    setSpinning(false)
+  }
 
   const handleSpin = async () => {
     if (!stripe || !elements) return
@@ -267,35 +317,53 @@ function SpinForm({
           ? setupIntent.payment_method
           : setupIntent.payment_method.id
 
-      // Reserve a number and charge the card.
-      const res = await spinAndCharge({
-        customerId,
-        paymentMethodId,
-        name: donor.name,
-        email: donor.email,
-        phone: donor.phone,
-        consent,
-      })
+      // Remember the card + whether it's a wallet so re-spins know how to charge.
+      setSavedPaymentMethodId(paymentMethodId)
+      const info = await getPaymentMethodInfo(paymentMethodId)
+      setIsWallet(info.isWallet)
 
-      setVerifying(false)
-
-      if (res.soldOut) {
-        setSoldOut(true)
-        return
-      }
-
-      // Charge succeeded and a number is reserved -> decrement the live counter.
-      onCharged()
-
-      // Now run the full 15s spin that lands on the reserved number.
-      setSpinning(true)
-      await runSpinAnimation(res.number)
-      setResult({ number: res.number, amount: res.amount })
-      setSpinning(false)
+      await doCharge(paymentMethodId)
     } catch (e) {
       setVerifying(false)
       setSpinning(false)
       setError(e instanceof Error ? e.message : "Something went wrong. Please try again.")
+    }
+  }
+
+  // Spin again reusing the details already on file. Cards re-charge off-session
+  // instantly; Apple Pay / Google Pay re-open the payment sheet to authorize.
+  const handleRespin = async () => {
+    setError(null)
+    if (!respinAuthorized) {
+      setError("Please authorize the charge to spin again.")
+      return
+    }
+
+    if (isWallet) {
+      // Re-authorize through a fresh payment sheet (no details re-entered).
+      setVerifying(true)
+      try {
+        await onWalletRespin()
+      } catch (e) {
+        setVerifying(false)
+        setError(e instanceof Error ? e.message : "Something went wrong. Please try again.")
+      }
+      return
+    }
+
+    if (!savedPaymentMethodId) return
+
+    // Off-session re-charge on the saved card. Keep the previous result visible
+    // until the new spin starts.
+    setRespinAuthorized(false)
+    setVerifying(true)
+    setResult(null)
+    try {
+      await doCharge(savedPaymentMethodId)
+    } catch (e) {
+      setVerifying(false)
+      setSpinning(false)
+      setError(e instanceof Error ? e.message : "We couldn't charge your card again. Please try a different card.")
     }
   }
 
@@ -329,40 +397,99 @@ function SpinForm({
             Zoom Meeting ID: 834 637 5415 · Passcode: ohrmoshe. We also emailed you the full link.
           </p>
         </div>
+
+        {/* Spin again reusing the details already on file — the only new input
+            required is the fresh authorization checkbox below. */}
+        <div className="mt-3 w-full border-t border-cream/15 pt-4 flex flex-col gap-3">
+          <p className="text-[0.7rem] font-extrabold tracking-[0.16em] uppercase text-gold">
+            Feeling lucky? Spin again
+          </p>
+          <label className="flex items-start gap-3 cursor-pointer text-left">
+            <input
+              type="checkbox"
+              checked={respinAuthorized}
+              onChange={(e) => setRespinAuthorized(e.target.checked)}
+              className="mt-1 w-4 h-4 accent-gold cursor-pointer"
+            />
+            <span className="text-xs text-cream/80 leading-relaxed">
+              I authorize my card to be charged the dollar amount the wheel lands on, between $1 and ${WHEEL_MAX}.
+            </span>
+          </label>
+
+          {error && <p className="text-gold2 text-sm font-semibold">{error}</p>}
+
+          <button
+            onClick={handleRespin}
+            disabled={verifying || !respinAuthorized}
+            className="w-full rounded-full px-4 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+            style={{
+              background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+              boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+            }}
+          >
+            {verifying
+              ? isWallet
+                ? "Opening payment sheet…"
+                : "Charging…"
+              : isWallet
+                ? "Authorize & Spin Again"
+                : "Spin Again"}
+          </button>
+          {isWallet && !verifying && (
+            <p className="text-cream/55 text-[0.7rem] leading-relaxed">
+              You&apos;ll confirm the next charge with your wallet — no need to re-enter any details.
+            </p>
+          )}
+        </div>
       </div>
     )
   }
+
+  // A card is only "entered" the first time (or when a wallet re-spin remounts a
+  // fresh payment sheet). Off-session card re-spins skip the PaymentElement.
+  const needsCardEntry = !savedPaymentMethodId
 
   return (
     <div className="flex flex-col items-center gap-4">
         <WheelDial spinning={spinning} displayNumber={displayNumber} />
 
-      {!spinning && (
-        <div className="w-full">
-          <p className="text-[0.7rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2 text-center">
-            Enter your card to spin
+      {needsCardEntry ? (
+        <>
+          {!spinning && (
+            <div className="w-full">
+              <p className="text-[0.7rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2 text-center">
+                Enter your card to spin
+              </p>
+              <PaymentElement />
+            </div>
+          )}
+
+          {error && <p className="text-gold2 text-sm font-semibold text-center">{error}</p>}
+
+          <button
+            onClick={handleSpin}
+            disabled={spinning || verifying || !stripe}
+            className="w-full rounded-full px-4 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+            style={{
+              background: "linear-gradient(135deg, var(--gold), var(--gold2))",
+              boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
+            }}
+          >
+            {verifying ? "Verifying card…" : spinning ? "Spinning…" : "Lock In Card & Spin"}
+          </button>
+          {!spinning && !verifying && (
+            <p className="text-cream/55 text-[0.7rem] text-center leading-relaxed">
+              Your card is charged automatically once the wheel stops, for the exact amount it lands on.
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          {error && <p className="text-gold2 text-sm font-semibold text-center">{error}</p>}
+          <p className="text-cream/70 text-sm font-semibold text-center">
+            {verifying ? "Charging your card…" : "Spinning…"}
           </p>
-          <PaymentElement />
-        </div>
-      )}
-
-      {error && <p className="text-gold2 text-sm font-semibold text-center">{error}</p>}
-
-      <button
-        onClick={handleSpin}
-        disabled={spinning || verifying || !stripe}
-        className="w-full rounded-full px-4 py-3.5 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
-        style={{
-          background: "linear-gradient(135deg, var(--gold), var(--gold2))",
-          boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
-        }}
-      >
-        {verifying ? "Verifying card…" : spinning ? "Spinning…" : "Lock In Card & Spin"}
-      </button>
-      {!spinning && !verifying && (
-        <p className="text-cream/55 text-[0.7rem] text-center leading-relaxed">
-          Your card is charged automatically once the wheel stops, for the exact amount it lands on.
-        </p>
+        </>
       )}
     </div>
   )

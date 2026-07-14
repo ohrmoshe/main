@@ -1,10 +1,61 @@
 // Shared drawing-date logic. First drawing is July 15th, 2026,
 // then the 15th of every subsequent month.
 
+const DRAWING_TZ = "America/Los_Angeles"
+
+// Offset (in ms) of a time zone from UTC at a given instant. Positive means
+// ahead of UTC. For Pacific this is negative (-7h PDT, -8h PST).
+function tzOffsetMs(timeZone: string, date: Date): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+  const parts = dtf.formatToParts(date)
+  const map: Record<string, string> = {}
+  for (const p of parts) map[p.type] = p.value
+  const asUTC = Date.UTC(
+    Number(map.year),
+    Number(map.month) - 1,
+    Number(map.day),
+    Number(map.hour),
+    Number(map.minute),
+    Number(map.second),
+  )
+  return asUTC - date.getTime()
+}
+
+// Build the exact UTC instant for a Pacific wall-clock time (e.g. 8:00 PM on
+// the 15th), correctly accounting for whether that date is in PST or PDT.
+// month is 0-indexed. This is timezone-safe regardless of the server's TZ.
+export function pacificWallClock(
+  year: number,
+  month: number,
+  day: number,
+  hour = 0,
+  minute = 0,
+): Date {
+  const guess = new Date(Date.UTC(year, month, day, hour, minute, 0))
+  const offset = tzOffsetMs(DRAWING_TZ, guess)
+  return new Date(guess.getTime() - offset)
+}
+
 export function getDrawingDate(now: Date = new Date()): Date {
-  let raffleDate = new Date(2026, 6, 15, 20, 0, 0) // July 15, 2026, 8:00 PM
+  let raffleDate = pacificWallClock(2026, 6, 15, 20, 0) // July 15, 2026, 8:00 PM Pacific
+  let month = 6
+  let year = 2026
   while (raffleDate.getTime() < now.getTime()) {
-    raffleDate = new Date(raffleDate.getFullYear(), raffleDate.getMonth() + 1, 15, 20, 0, 0)
+    month += 1
+    if (month > 11) {
+      month = 0
+      year += 1
+    }
+    raffleDate = pacificWallClock(year, month, 15, 20, 0)
   }
   return raffleDate
 }
@@ -14,8 +65,8 @@ export function getDrawingDate(now: Date = new Date()): Date {
 export function getCycleStart(now: Date = new Date()): Date {
   const programStart = new Date(2026, 5, 1) // June 1, 2026 — program launch
   const nextDrawing = getDrawingDate(now)
-  // The drawing immediately before the upcoming one
-  const prevDrawing = new Date(nextDrawing.getFullYear(), nextDrawing.getMonth() - 1, 15, 20, 0, 0)
+  // The drawing immediately before the upcoming one (also 8 PM Pacific)
+  const prevDrawing = pacificWallClock(nextDrawing.getFullYear(), nextDrawing.getMonth() - 1, 15, 20, 0)
   // Only use the previous drawing as the cycle start if it has actually passed
   // AND is after launch; otherwise we're still in the inaugural cycle.
   if (prevDrawing.getTime() <= now.getTime() && prevDrawing.getTime() > programStart.getTime()) {

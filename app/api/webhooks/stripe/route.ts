@@ -39,6 +39,18 @@ export async function POST(request: NextRequest) {
 
         // Handle one-time payment
         if (session.mode === "payment") {
+          // Idempotency: Stripe re-delivers the same event on timeouts/retries.
+          // The donations row is keyed on stripeSubscriptionId (unique), so if we
+          // already recorded this checkout, acknowledge (200) and do nothing else.
+          // Without this, the duplicate insert throws and we return 500 forever.
+          const oneTimeSubId = `onetime_${session.id}`
+          const [existingOneTime] = await db
+            .select({ id: donations.id })
+            .from(donations)
+            .where(eq(donations.stripeSubscriptionId, oneTimeSubId))
+            .limit(1)
+          if (existingOneTime) break
+
           const customer = session.customer 
             ? await stripe.customers.retrieve(session.customer as string) as Stripe.Customer
             : null
@@ -49,24 +61,32 @@ export async function POST(request: NextRequest) {
           const smsConsent = session.metadata?.smsConsent === "true"
           const referralCode = session.metadata?.referralCode || null
 
-          await db.insert(donations).values({
-            stripeCustomerId: session.customer as string || `onetime_${session.id}`,
-            stripeSubscriptionId: `onetime_${session.id}`,
-            name: customer?.name || session.customer_details?.name || "Unknown",
-            email: customer?.email || session.customer_details?.email || "",
-            phone: session.customer_details?.phone || null,
-            addressLine1: session.customer_details?.address?.line1 || null,
-            addressCity: session.customer_details?.address?.city || null,
-            addressState: session.customer_details?.address?.state || null,
-            addressPostalCode: session.customer_details?.address?.postal_code || null,
-            addressCountry: session.customer_details?.address?.country || null,
-            entries,
-            amountCents,
-            status: "one_time",
-            emailConsent,
-            smsConsent,
-            referralCode,
-          })
+          const insertedOneTime = await db
+            .insert(donations)
+            .values({
+              stripeCustomerId: session.customer as string || oneTimeSubId,
+              stripeSubscriptionId: oneTimeSubId,
+              name: customer?.name || session.customer_details?.name || "Unknown",
+              email: customer?.email || session.customer_details?.email || "",
+              phone: session.customer_details?.phone || null,
+              addressLine1: session.customer_details?.address?.line1 || null,
+              addressCity: session.customer_details?.address?.city || null,
+              addressState: session.customer_details?.address?.state || null,
+              addressPostalCode: session.customer_details?.address?.postal_code || null,
+              addressCountry: session.customer_details?.address?.country || null,
+              entries,
+              amountCents,
+              status: "one_time",
+              emailConsent,
+              smsConsent,
+              referralCode,
+            })
+            .onConflictDoNothing({ target: donations.stripeSubscriptionId })
+            .returning({ id: donations.id })
+
+          // A concurrent re-delivery won the race and already inserted this row.
+          // Skip the transaction + emails so we don't duplicate them.
+          if (insertedOneTime.length === 0) break
 
           // Record this charge as its own transaction (one-time payments do not
           // generate Stripe invoices, so we log it here from the checkout session).
@@ -102,6 +122,15 @@ export async function POST(request: NextRequest) {
         }
         // Handle subscription
         else if (session.mode === "subscription" && session.subscription) {
+          // Idempotency: bail out if this subscription was already recorded so a
+          // re-delivered event doesn't hit the unique constraint and 500.
+          const [existingSub] = await db
+            .select({ id: donations.id })
+            .from(donations)
+            .where(eq(donations.stripeSubscriptionId, session.subscription as string))
+            .limit(1)
+          if (existingSub) break
+
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
           )
@@ -121,26 +150,34 @@ export async function POST(request: NextRequest) {
           const smsConsent = session.metadata?.smsConsent === "true"
           const referralCode = session.metadata?.referralCode || null
 
-          await db.insert(donations).values({
-            stripeCustomerId: session.customer as string,
-            stripeSubscriptionId: subscription.id,
-            name: customer.name || session.customer_details?.name || "Unknown",
-            email: customer.email || session.customer_details?.email || "",
-            phone: session.customer_details?.phone || null,
-            addressLine1: session.customer_details?.address?.line1 || null,
-            addressCity: session.customer_details?.address?.city || null,
-            addressState: session.customer_details?.address?.state || null,
-            addressPostalCode: session.customer_details?.address?.postal_code || null,
-            addressCountry: session.customer_details?.address?.country || null,
-            entries: baseEntries,
-            bonusEntries,
-            bonusEntriesUntil,
-            amountCents,
-            status: "active",
-            emailConsent,
-            smsConsent,
-            referralCode,
-          })
+          const insertedSub = await db
+            .insert(donations)
+            .values({
+              stripeCustomerId: session.customer as string,
+              stripeSubscriptionId: subscription.id,
+              name: customer.name || session.customer_details?.name || "Unknown",
+              email: customer.email || session.customer_details?.email || "",
+              phone: session.customer_details?.phone || null,
+              addressLine1: session.customer_details?.address?.line1 || null,
+              addressCity: session.customer_details?.address?.city || null,
+              addressState: session.customer_details?.address?.state || null,
+              addressPostalCode: session.customer_details?.address?.postal_code || null,
+              addressCountry: session.customer_details?.address?.country || null,
+              entries: baseEntries,
+              bonusEntries,
+              bonusEntriesUntil,
+              amountCents,
+              status: "active",
+              emailConsent,
+              smsConsent,
+              referralCode,
+            })
+            .onConflictDoNothing({ target: donations.stripeSubscriptionId })
+            .returning({ id: donations.id })
+
+          // A concurrent re-delivery already inserted this subscription; don't
+          // send duplicate notification emails.
+          if (insertedSub.length === 0) break
 
           // Send notification email to admin
           await sendAdminNotification("new_subscription", {
