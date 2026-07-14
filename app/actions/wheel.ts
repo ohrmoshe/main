@@ -54,6 +54,37 @@ export async function createWheelSetupIntent(donor: {
   return { clientSecret: setupIntent.client_secret, customerId: customer.id }
 }
 
+// Inspect a saved payment method to decide how a re-spin should be processed.
+// Cards can be charged again off-session with no extra input; wallets like
+// Apple Pay / Google Pay must be re-authorized through the payment sheet.
+export async function getPaymentMethodInfo(paymentMethodId: string) {
+  try {
+    const pm = await stripe.paymentMethods.retrieve(paymentMethodId)
+    const walletType = pm.card?.wallet?.type ?? null
+    const isWallet = pm.type !== "card" || !!walletType
+    return { isWallet, walletType }
+  } catch (error) {
+    console.error("[v0] Error retrieving payment method info:", error)
+    // Fail safe: treat as a normal card (off-session re-charge).
+    return { isWallet: false, walletType: null }
+  }
+}
+
+// Create a fresh SetupIntent for an EXISTING wheel customer so an Apple Pay /
+// Google Pay donor can re-authorize the payment sheet for another spin without
+// re-entering their name, email, or phone.
+export async function createRespinSetupIntent(customerId: string) {
+  if (!customerId) {
+    throw new Error("Missing customer")
+  }
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customerId,
+    payment_method_types: ["card"],
+    usage: "off_session",
+  })
+  return { clientSecret: setupIntent.client_secret }
+}
+
 // Atomically reserve a random available number between 1 and WHEEL_MAX.
 // The PRIMARY KEY on `number` guarantees each value is only ever taken once.
 async function reserveNumber(amountPlaceholder: number): Promise<number | null> {
