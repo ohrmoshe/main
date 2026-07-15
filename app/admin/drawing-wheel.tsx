@@ -27,11 +27,22 @@ const PALETTE: { bg: string; fg: string }[] = [
 
 const TWO_PI = Math.PI * 2
 const POINTER_ANGLE = -Math.PI / 2 // pointer sits at the top (12 o'clock)
-const SPIN_DURATION = 6000 // ms
 const SIZE = 520 // css pixels
+const MIN_SPIN_SECONDS = 15
+const MAX_SPIN_SECONDS = 60
 
 function truncate(name: string, max = 16): string {
   return name.length > max ? name.slice(0, max - 1) + "…" : name
+}
+
+// Fisher–Yates shuffle (returns a new array, does not mutate input).
+function shuffleArray<T>(arr: T[]): T[] {
+  const out = [...arr]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
 }
 
 export function DrawingWheel({ donations }: { donations: Donation[] }) {
@@ -41,6 +52,11 @@ export function DrawingWheel({ donations }: { donations: Donation[] }) {
   const [winner, setWinner] = useState<Donation | null>(null)
   // Winners removed from the pool so you can draw multiple prizes without repeats.
   const [excludedIds, setExcludedIds] = useState<number[]>([])
+  // How long the spin animation lasts, in seconds (adjustable 15–60s).
+  const [spinSeconds, setSpinSeconds] = useState(15)
+  // A random ordering of donor ids applied by the Shuffle button. Bumping this
+  // reshuffles where each entrant sits on the wheel.
+  const [shuffleOrder, setShuffleOrder] = useState<number[] | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rotationRef = useRef(0) // current wheel rotation in radians
@@ -49,11 +65,19 @@ export function DrawingWheel({ donations }: { donations: Donation[] }) {
   // Eligible entrants: active monthly + one-time donors with at least one entry
   // for the upcoming drawing, minus anyone already drawn this session.
   const segments = useMemo<Segment[]>(() => {
-    return donations
+    const base = donations
       .filter((d) => (d.status === "active" || d.status === "one_time") && !excludedIds.includes(d.id))
       .map((d) => ({ donor: d, weight: effectiveEntries(d) }))
       .filter((s) => s.weight > 0)
-  }, [donations, excludedIds])
+
+    if (!shuffleOrder) return base
+    // Reorder to match the shuffled id list; any entrants not in the order list
+    // (e.g. new since the last shuffle) fall to the end in their natural order.
+    const rank = new Map(shuffleOrder.map((id, i) => [id, i]))
+    return [...base].sort(
+      (a, b) => (rank.get(a.donor.id) ?? Infinity) - (rank.get(b.donor.id) ?? Infinity),
+    )
+  }, [donations, excludedIds, shuffleOrder])
 
   const totalEntries = useMemo(() => segments.reduce((sum, s) => sum + s.weight, 0), [segments])
 
@@ -191,14 +215,17 @@ export function DrawingWheel({ donations }: { donations: Donation[] }) {
     const targetMod = (((POINTER_ANGLE - winnerMid - jitter) % TWO_PI) + TWO_PI) % TWO_PI
     const delta = ((targetMod - currentMod) % TWO_PI + TWO_PI) % TWO_PI
     const startRotation = rotationRef.current
-    const finalRotation = startRotation + TWO_PI * 6 + delta
+    // More full turns for longer spins so the wheel keeps a lively pace.
+    const turns = Math.max(6, Math.round(spinSeconds * 0.9))
+    const finalRotation = startRotation + TWO_PI * turns + delta
 
     const startTime = performance.now()
+    const durationMs = spinSeconds * 1000
     const easeOutQuart = (p: number) => 1 - Math.pow(1 - p, 4)
 
     const step = (now: number) => {
       const elapsed = now - startTime
-      const p = Math.min(1, elapsed / SPIN_DURATION)
+      const p = Math.min(1, elapsed / durationMs)
       const current = startRotation + (finalRotation - startRotation) * easeOutQuart(p)
       rotationRef.current = current
       draw(current)
@@ -225,29 +252,71 @@ export function DrawingWheel({ donations }: { donations: Donation[] }) {
     setWinner(null)
   }
 
+  const shuffle = () => {
+    if (spinning || segments.length === 0) return
+    setShuffleOrder(shuffleArray(segments.map((s) => s.donor.id)))
+  }
+
   return (
     <section className="mb-8 border border-gold/30 bg-teal2">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left"
-      >
-        <span className="font-heading text-2xl text-cream">Live Drawing Wheel</span>
-        <span className="text-xs tracking-[0.2em] uppercase text-gold">{open ? "Hide" : "Show"}</span>
-      </button>
+      <div className="w-full flex items-center justify-between px-6 py-4">
+        <button onClick={() => setOpen((o) => !o)} className="flex-1 text-left">
+          <span className="font-heading text-2xl text-cream">Live Drawing Wheel</span>
+        </button>
+        <div className="flex items-center gap-4">
+          {/* Discreet entry-counts toggle — small and low-contrast so viewers on
+              a shared screen don't notice the option exists. */}
+          {open && (
+            <label
+              className="flex items-center gap-1.5 cursor-pointer select-none opacity-40 hover:opacity-100 transition-opacity"
+              title="Show entry counts"
+            >
+              <input
+                type="checkbox"
+                checked={showEntries}
+                onChange={(e) => setShowEntries(e.target.checked)}
+                className="w-3 h-3 accent-[#c89b5c]"
+              />
+              <span className="text-[0.6rem] tracking-[0.15em] uppercase text-cream/60">Counts</span>
+            </label>
+          )}
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="text-xs tracking-[0.2em] uppercase text-gold"
+          >
+            {open ? "Hide" : "Show"}
+          </button>
+        </div>
+      </div>
 
       {open && (
         <div className="px-6 pb-8 flex flex-col items-center gap-6">
           {/* Controls */}
           <div className="w-full flex flex-wrap items-center justify-between gap-4">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={showEntries}
-                onChange={(e) => setShowEntries(e.target.checked)}
-                className="w-4 h-4 accent-[#c89b5c]"
-              />
-              <span className="text-xs tracking-[0.2em] uppercase text-gold2">Show entry counts</span>
-            </label>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                onClick={shuffle}
+                disabled={spinning || segments.length === 0}
+                className="px-5 py-2 border border-gold/50 text-gold2 text-xs tracking-[0.2em] uppercase hover:bg-gold hover:text-teal transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Shuffle
+              </button>
+
+              <label className="flex items-center gap-3 select-none">
+                <span className="text-xs tracking-[0.2em] uppercase text-gold2">Spin</span>
+                <input
+                  type="range"
+                  min={MIN_SPIN_SECONDS}
+                  max={MAX_SPIN_SECONDS}
+                  step={1}
+                  value={spinSeconds}
+                  disabled={spinning}
+                  onChange={(e) => setSpinSeconds(Number(e.target.value))}
+                  className="w-32 accent-[#c89b5c] disabled:opacity-50"
+                />
+                <span className="text-xs tabular-nums text-cream/80 w-8">{spinSeconds}s</span>
+              </label>
+            </div>
 
             <div className="text-xs tracking-[0.15em] uppercase text-cream/70">
               {segments.length} entrant{segments.length === 1 ? "" : "s"}
