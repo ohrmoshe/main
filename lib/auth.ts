@@ -1,6 +1,6 @@
 import "server-only"
 import { cookies } from "next/headers"
-import { createHmac, timingSafeEqual } from "node:crypto"
+import { createHmac, timingSafeEqual, randomBytes, scryptSync } from "node:crypto"
 
 // Admin session handling.
 // FIX (#3): the session cookie is no longer the plaintext password — it is a short, HMAC-signed
@@ -89,4 +89,71 @@ export function verifyCancelToken(token: string | undefined | null): string | nu
   } catch {
     return null
   }
+}
+
+// --- Affiliate portal auth ---
+// Each affiliate gets their own password so they can log in and see the donors
+// they referred. Passwords are stored as salted scrypt hashes (never plaintext).
+// Sessions use the same HMAC-signed token scheme as the admin, but the payload
+// carries the affiliate's referral code so we know whose data to show.
+
+export const AFFILIATE_COOKIE = "affiliate_auth"
+export const AFFILIATE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days, in seconds
+
+const SCRYPT_KEYLEN = 64
+
+/** Hash an affiliate password: "scrypt$<saltHex>$<hashHex>". */
+export function hashAffiliatePassword(password: string): string {
+  const salt = randomBytes(16)
+  const hash = scryptSync(password, salt, SCRYPT_KEYLEN)
+  return `scrypt$${salt.toString("hex")}$${hash.toString("hex")}`
+}
+
+/** Constant-time verify a password against a stored scrypt hash. */
+export function verifyAffiliatePassword(password: unknown, stored: string | null | undefined): boolean {
+  if (!stored || typeof password !== "string") return false
+  const parts = stored.split("$")
+  if (parts.length !== 3 || parts[0] !== "scrypt") return false
+  const salt = Buffer.from(parts[1], "hex")
+  const expected = Buffer.from(parts[2], "hex")
+  const actual = scryptSync(password, salt, expected.length)
+  return expected.length === actual.length && timingSafeEqual(expected, actual)
+}
+
+// Token format: "<code>.<expiryEpochSeconds>.<hmac(code.expiry)>".
+// Codes are slugs (a-z0-9-) so they never contain a dot — safe to split on ".".
+export function createAffiliateSessionToken(code: string): string {
+  const payload = `${code}.${Math.floor(Date.now() / 1000) + AFFILIATE_COOKIE_MAX_AGE}`
+  return `${payload}.${hmac(payload)}`
+}
+
+/** Returns the affiliate code if the token is valid and unexpired, else null. */
+export function verifyAffiliateSessionToken(token: string | undefined | null): string | null {
+  if (!token) return null
+  const lastDot = token.lastIndexOf(".")
+  if (lastDot < 1) return null
+  const payload = token.slice(0, lastDot)
+  const mac = token.slice(lastDot + 1)
+  const macBuf = Buffer.from(mac)
+  const expBuf = Buffer.from(hmac(payload))
+  if (macBuf.length !== expBuf.length || !timingSafeEqual(macBuf, expBuf)) return null
+  const sep = payload.lastIndexOf(".")
+  if (sep < 1) return null
+  const code = payload.slice(0, sep)
+  const exp = Number(payload.slice(sep + 1))
+  if (!code || !Number.isFinite(exp) || exp <= Math.floor(Date.now() / 1000)) return null
+  return code
+}
+
+/** Reads the current affiliate's code from the session cookie, or null. */
+export async function getAffiliateSession(): Promise<string | null> {
+  const store = await cookies()
+  return verifyAffiliateSessionToken(store.get(AFFILIATE_COOKIE)?.value)
+}
+
+/** Throws if the caller is not a logged-in affiliate. Returns their code. */
+export async function requireAffiliate(): Promise<string> {
+  const code = await getAffiliateSession()
+  if (!code) throw new Error("Unauthorized: affiliate authentication required.")
+  return code
 }

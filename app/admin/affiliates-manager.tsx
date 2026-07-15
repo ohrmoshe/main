@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createAffiliate, deleteAffiliate } from "@/app/actions/affiliates"
+import { createAffiliate, deleteAffiliate, setAffiliatePassword } from "@/app/actions/affiliates"
 
 type AffiliateStat = {
   id: number
@@ -11,6 +11,7 @@ type AffiliateStat = {
   code: string
   notes: string | null
   createdAt: Date | null
+  hasPassword: boolean
   referralCount: number
   activeCount: number
   revenue: number
@@ -28,7 +29,28 @@ export function AffiliatesManager({
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
-  const [form, setForm] = useState({ name: "", email: "", phone: "", code: "", notes: "" })
+  const [form, setForm] = useState({ name: "", email: "", phone: "", code: "", notes: "", password: "" })
+
+  const handleSetPassword = async (id: number, name: string, hasPassword: boolean) => {
+    const pw = prompt(
+      `${hasPassword ? "Reset" : "Set"} portal password for "${name}" (min 6 characters). They'll log in at /affiliate with their referral code + this password.`,
+    )
+    if (pw === null) return
+    if (pw.trim().length < 6) {
+      alert("Password must be at least 6 characters.")
+      return
+    }
+    setLoading(true)
+    try {
+      await setAffiliatePassword(id, pw.trim())
+      alert("Password saved.")
+      window.location.reload()
+    } catch (error) {
+      console.error("Error setting password:", error)
+      alert(error instanceof Error ? error.message : "Failed to set password")
+      setLoading(false)
+    }
+  }
 
   const handleCreate = async () => {
     if (!form.name.trim()) {
@@ -122,7 +144,19 @@ export function AffiliatesManager({
               placeholder="(555) 555-5555"
             />
           </div>
-          <div className="md:col-span-2">
+          <div>
+            <label className="block text-[0.6rem] tracking-[0.2em] uppercase text-gold mb-1">
+              Portal Password (optional)
+            </label>
+            <input
+              type="text"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full bg-teal2 border border-gold/30 text-cream px-3 py-2 text-sm focus:outline-none focus:border-gold"
+              placeholder="min 6 chars — lets them log in at /affiliate"
+            />
+          </div>
+          <div>
             <label className="block text-[0.6rem] tracking-[0.2em] uppercase text-gold mb-1">Notes</label>
             <input
               value={form.notes}
@@ -154,13 +188,14 @@ export function AffiliatesManager({
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Entries</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Revenue</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Link</th>
+              <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Portal</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold"></th>
             </tr>
           </thead>
           <tbody>
             {affiliates.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-cream/50">
+                <td colSpan={9} className="p-8 text-center text-cream/50">
                   No affiliates yet. Add one to start tracking referrals.
                 </td>
               </tr>
@@ -183,6 +218,24 @@ export function AffiliatesManager({
                     >
                       {copied === a.code ? "Copied!" : "Copy Link"}
                     </button>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[0.5rem] tracking-[0.1em] uppercase px-1.5 py-0.5 rounded ${
+                          a.hasPassword ? "bg-green-500/20 text-green-400" : "bg-cream/10 text-cream/50"
+                        }`}
+                      >
+                        {a.hasPassword ? "Active" : "No login"}
+                      </span>
+                      <button
+                        onClick={() => handleSetPassword(a.id, a.name, a.hasPassword)}
+                        disabled={loading}
+                        className="text-gold2/80 hover:text-gold text-[0.55rem] tracking-[0.15em] uppercase disabled:opacity-50"
+                      >
+                        {a.hasPassword ? "Reset" : "Set Password"}
+                      </button>
+                    </div>
                   </td>
                   <td className="p-3">
                     <button

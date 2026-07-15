@@ -5,7 +5,7 @@ import { affiliates, donations } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { effectiveEntries } from "@/lib/drawing"
-import { requireAdmin } from "@/lib/auth"
+import { requireAdmin, requireAffiliate, hashAffiliatePassword } from "@/lib/auth"
 
 function slugifyCode(raw: string) {
   return raw
@@ -35,8 +35,11 @@ export async function getAffiliateStats() {
     const revenueCents = activeReferred.reduce((sum, d) => sum + d.amountCents, 0)
     const entries = activeReferred.reduce((sum, d) => sum + effectiveEntries(d), 0)
 
+    // Never leak the password hash to the client — expose only whether one is set.
+    const { passwordHash, ...safe } = a
     return {
-      ...a,
+      ...safe,
+      hasPassword: !!passwordHash,
       referralCount: referred.length,
       activeCount: activeReferred.length,
       revenue: revenueCents / 100,
@@ -45,16 +48,63 @@ export async function getAffiliateStats() {
   })
 }
 
+// Admin: set or reset an affiliate's portal password.
+export async function setAffiliatePassword(id: number, password: string) {
+  await requireAdmin()
+  const pw = password.trim()
+  if (pw.length < 6) throw new Error("Password must be at least 6 characters")
+  await db.update(affiliates).set({ passwordHash: hashAffiliatePassword(pw) }).where(eq(affiliates.id, id))
+  revalidatePath("/admin")
+}
+
+// Affiliate portal: the donors this logged-in affiliate personally referred.
+export async function getMyReferrals() {
+  const code = await requireAffiliate()
+  const [me] = await db.select().from(affiliates).where(eq(affiliates.code, code)).limit(1)
+  const referred = await db
+    .select()
+    .from(donations)
+    .where(eq(donations.referralCode, code))
+    .orderBy(desc(donations.createdAt))
+
+  const active = referred.filter((d) => d.status === "active" || d.status === "one_time")
+  const revenueCents = active.reduce((sum, d) => sum + d.amountCents, 0)
+  const entries = active.reduce((sum, d) => sum + effectiveEntries(d), 0)
+
+  return {
+    affiliate: { name: me?.name ?? "Affiliate", code },
+    summary: {
+      referralCount: referred.length,
+      activeCount: active.length,
+      revenue: revenueCents / 100,
+      entries,
+    },
+    donors: referred.map((d) => ({
+      id: d.id,
+      name: d.name,
+      email: d.email,
+      status: d.status,
+      entries: effectiveEntries(d),
+      amount: d.amountCents / 100,
+      createdAt: d.createdAt,
+    })),
+  }
+}
+
 export async function createAffiliate(data: {
   name: string
   email?: string
   phone?: string
   code?: string
   notes?: string
+  password?: string
 }) {
   await requireAdmin()
   const name = data.name.trim()
   if (!name) throw new Error("Name is required")
+
+  const pw = data.password?.trim()
+  if (pw && pw.length < 6) throw new Error("Password must be at least 6 characters")
 
   // Use provided code or derive one from the name
   let code = slugifyCode(data.code || name)
@@ -75,6 +125,7 @@ export async function createAffiliate(data: {
     phone: data.phone?.trim() || null,
     code,
     notes: data.notes?.trim() || null,
+    passwordHash: pw ? hashAffiliatePassword(pw) : null,
   })
 
   revalidatePath("/admin")

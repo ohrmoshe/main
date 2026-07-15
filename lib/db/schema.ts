@@ -34,6 +34,8 @@ export const affiliates = pgTable("affiliates", {
   phone: text("phone"),
   code: text("code").notNull().unique(),
   notes: text("notes"),
+  // Salted scrypt hash of the affiliate's portal password. Null = no portal access yet.
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").defaultNow(),
 })
 
