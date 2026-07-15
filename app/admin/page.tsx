@@ -2,6 +2,7 @@ import { getDonations, getDonationStats } from "@/app/actions/admin"
 import { getAffiliateStats } from "@/app/actions/affiliates"
 import { getTransactionsByMonth } from "@/app/actions/transactions"
 import { AdminDashboardClient } from "./client"
+import { DrawingWheel } from "./drawing-wheel"
 import { TransactionsView } from "./transactions-view"
 import { AffiliatesManager } from "./affiliates-manager"
 import { AdminLogin } from "./login"
@@ -68,6 +69,8 @@ export default async function AdminPage() {
           <StatCard label="One-Time Entries" value={stats.oneTimeEntries} />
           <StatCard label="Total Entries" value={stats.totalEntries} highlight />
         </div>
+
+        <DrawingWheel donations={donationsArray} />
 
         <AdminDashboardClient initialDonations={donationsArray} />
 
