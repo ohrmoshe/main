@@ -18,7 +18,7 @@ type ReferralData = {
   affiliate: { name: string; code: string }
   summary: {
     referralCount: number
-    activeCount: number
+    monthlyCount: number
     revenue: number
     entries: number
   }
@@ -70,7 +70,7 @@ export function AffiliateDashboard({ data }: { data: ReferralData }) {
         {/* Summary */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           <StatCard label="Total Referrals" value={summary.referralCount} />
-          <StatCard label="Active" value={summary.activeCount} highlight />
+          <StatCard label="Monthly Recurring" value={summary.monthlyCount} highlight />
           <StatCard label="Total Entries" value={summary.entries} />
           <StatCard label="Revenue Raised" value={`$${summary.revenue.toLocaleString()}`} highlight />
         </div>
