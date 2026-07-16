@@ -50,6 +50,35 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   },
 ]
 
+// --- Win-back offer (special retention links for cancelled donors) ---
+// The base "Double Chai" tier drops from $36 to $26. Every other tier gets a
+// flat 10% discount. Entry counts stay exactly the same as the normal tiers.
+export const WINBACK_BASE_PRICE_CENTS = 2600 // $36 -> $26
+export const WINBACK_OTHER_DISCOUNT = 0.1 // 10% off all other tiers
+
+export interface WinbackTier extends SubscriptionTier {
+  originalPriceInCents: number
+}
+
+export function getWinbackTier(tierId: string): WinbackTier | null {
+  const tier = SUBSCRIPTION_TIERS.find((t) => t.id === tierId)
+  if (!tier) return null
+  const isBase = tier.id === "tier-1-entry"
+  const priceInCents = isBase
+    ? WINBACK_BASE_PRICE_CENTS
+    : Math.round(tier.priceInCents * (1 - WINBACK_OTHER_DISCOUNT))
+  return {
+    ...tier,
+    priceInCents,
+    pricePerEntry: Math.round((priceInCents / 100 / tier.entries) * 100) / 100,
+    originalPriceInCents: tier.priceInCents,
+  }
+}
+
+export function getWinbackTiers(): WinbackTier[] {
+  return SUBSCRIPTION_TIERS.map((t) => getWinbackTier(t.id)!)
+}
+
 // One-time single ticket price: $42
 export const ONE_TIME_PRICE_CENTS = 4200
 

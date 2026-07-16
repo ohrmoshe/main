@@ -1,11 +1,13 @@
 import { getDonations, getDonationStats } from "@/app/actions/admin"
 import { getAffiliateStats } from "@/app/actions/affiliates"
 import { getTransactionsByMonth, getNextRaffleEntrants } from "@/app/actions/transactions"
+import { getOfferLinks } from "@/app/actions/offer"
 import { AdminDashboardClient } from "./client"
 import { DrawingWheel } from "./drawing-wheel"
 import { NextRaffle } from "./next-raffle"
 import { TransactionsView } from "./transactions-view"
 import { AffiliatesManager } from "./affiliates-manager"
+import { OfferLinksManager } from "./offer-links-manager"
 import { AdminLogin } from "./login"
 import { headers } from "next/headers"
 import { isAdminAuthenticated } from "@/lib/auth"
@@ -24,12 +26,13 @@ export default async function AdminPage() {
     return <AdminLogin />
   }
 
-  const [donations, stats, affiliateStats, transactionMonths, nextRaffle] = await Promise.all([
+  const [donations, stats, affiliateStats, transactionMonths, nextRaffle, offerLinks] = await Promise.all([
     getDonations("all"),
     getDonationStats(),
     getAffiliateStats(),
     getTransactionsByMonth(),
     getNextRaffleEntrants(),
+    getOfferLinks(),
   ])
 
   const donationsArray = Array.isArray(donations) ? donations : []
@@ -81,6 +84,8 @@ export default async function AdminPage() {
         <TransactionsView initialMonths={transactionMonths} />
 
         <AffiliatesManager initialAffiliates={affiliateStats} baseUrl={baseUrl} />
+
+        <OfferLinksManager initialLinks={offerLinks} />
       </div>
     </div>
   )

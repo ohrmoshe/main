@@ -67,6 +67,22 @@ export const transactions = pgTable("transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 })
 
+// Win-back offer links. Each row is a single, secret, one-time-use link an
+// admin generates and sends to a cancelled donor. The random `token` is the
+// only thing the URL exposes; redeeming it (a successful subscription checkout)
+// flips `redeemed` so the link can never be used again.
+export const offerLinks = pgTable("offer_links", {
+  id: serial("id").primaryKey(),
+  token: text("token").notNull().unique(),
+  // Optional admin note, e.g. the customer's name so you know who a link is for.
+  label: text("label"),
+  redeemed: boolean("redeemed").notNull().default(false),
+  redeemedEmail: text("redeemed_email"),
+  redeemedSubscriptionId: text("redeemed_subscription_id"),
+  redeemedAt: timestamp("redeemed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+})
+
 export const wheelNumbers = pgTable("wheel_numbers", {
   number: integer("number").primaryKey(),
   donorName: text("donor_name"),
