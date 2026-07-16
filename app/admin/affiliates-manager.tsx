@@ -13,7 +13,7 @@ type AffiliateStat = {
   createdAt: Date | null
   hasPassword: boolean
   referralCount: number
-  activeCount: number
+  monthlyCount: number
   revenue: number
   entries: number
 }
@@ -183,8 +183,8 @@ export function AffiliatesManager({
             <tr className="border-b border-gold/20 bg-teal2">
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Affiliate</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Code</th>
-              <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Referrals</th>
-              <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Active</th>
+              <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Total</th>
+              <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Monthly</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Entries</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Revenue</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Link</th>
@@ -208,7 +208,7 @@ export function AffiliatesManager({
                   </td>
                   <td className="p-3 text-gold2 font-mono text-xs">{a.code}</td>
                   <td className="p-3 text-cream">{a.referralCount}</td>
-                  <td className="p-3 text-cream">{a.activeCount}</td>
+                  <td className="p-3 text-cream">{a.monthlyCount}</td>
                   <td className="p-3 text-gold">{a.entries}</td>
                   <td className="p-3 text-cream">${a.revenue.toLocaleString()}</td>
                   <td className="p-3">

@@ -31,9 +31,12 @@ export async function getAffiliateStats() {
 
   return affiliateList.map((a) => {
     const referred = allDonations.filter((d) => d.referralCode === a.code)
-    const activeReferred = referred.filter((d) => d.status === "active" || d.status === "one_time")
-    const revenueCents = activeReferred.reduce((sum, d) => sum + d.amountCents, 0)
-    const entries = activeReferred.reduce((sum, d) => sum + effectiveEntries(d), 0)
+    // "Contributing" = donations that count toward revenue/entries (monthly + one-time).
+    const contributing = referred.filter((d) => d.status === "active" || d.status === "one_time")
+    // "Monthly recurring" = active subscriptions only (not one-time donations).
+    const monthlyReferred = referred.filter((d) => d.status === "active")
+    const revenueCents = contributing.reduce((sum, d) => sum + d.amountCents, 0)
+    const entries = contributing.reduce((sum, d) => sum + effectiveEntries(d), 0)
 
     // Never leak the password hash to the client — expose only whether one is set.
     const { passwordHash, ...safe } = a
@@ -41,7 +44,7 @@ export async function getAffiliateStats() {
       ...safe,
       hasPassword: !!passwordHash,
       referralCount: referred.length,
-      activeCount: activeReferred.length,
+      monthlyCount: monthlyReferred.length,
       revenue: revenueCents / 100,
       entries,
     }
@@ -67,15 +70,16 @@ export async function getMyReferrals() {
     .where(eq(donations.referralCode, code))
     .orderBy(desc(donations.createdAt))
 
-  const active = referred.filter((d) => d.status === "active" || d.status === "one_time")
-  const revenueCents = active.reduce((sum, d) => sum + d.amountCents, 0)
-  const entries = active.reduce((sum, d) => sum + effectiveEntries(d), 0)
+  const contributing = referred.filter((d) => d.status === "active" || d.status === "one_time")
+  const monthly = referred.filter((d) => d.status === "active")
+  const revenueCents = contributing.reduce((sum, d) => sum + d.amountCents, 0)
+  const entries = contributing.reduce((sum, d) => sum + effectiveEntries(d), 0)
 
   return {
     affiliate: { name: me?.name ?? "Affiliate", code },
     summary: {
       referralCount: referred.length,
-      activeCount: active.length,
+      monthlyCount: monthly.length,
       revenue: revenueCents / 100,
       entries,
     },
