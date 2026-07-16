@@ -83,12 +83,44 @@ export async function getMyReferrals() {
       id: d.id,
       name: d.name,
       email: d.email,
+      phone: d.phone,
       status: d.status,
       entries: effectiveEntries(d),
       amount: d.amountCents / 100,
       createdAt: d.createdAt,
     })),
   }
+}
+
+// Affiliate portal: CSV of the donors this logged-in affiliate referred,
+// including phone numbers. Scoped to the caller's own referral code.
+export async function exportMyReferralsCSV(): Promise<string> {
+  const code = await requireAffiliate()
+  const referred = await db
+    .select()
+    .from(donations)
+    .where(eq(donations.referralCode, code))
+    .orderBy(desc(donations.createdAt))
+
+  const headers = ["Name", "Email", "Phone", "Status", "Entries", "Amount ($)", "Date"]
+  const rows = referred.map((d) => [
+    d.name,
+    d.email,
+    d.phone || "",
+    d.status === "one_time" ? "one-time" : d.status,
+    String(effectiveEntries(d)),
+    (d.amountCents / 100).toFixed(2),
+    d.createdAt ? new Date(d.createdAt).toISOString() : "",
+  ])
+
+  // Guard against spreadsheet formula injection, then quote/escape each cell.
+  const csvCell = (value: unknown) => {
+    let s = String(value ?? "")
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s
+    return `"${s.replace(/"/g, '""')}"`
+  }
+
+  return [headers.join(","), ...rows.map((r) => r.map(csvCell).join(","))].join("\n")
 }
 
 export async function createAffiliate(data: {
