@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { stripe, SITE_ID } from "@/lib/stripe"
 import { db } from "@/lib/db"
-import { donations } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { donations, offerLinks } from "@/lib/db/schema"
+import { and, eq } from "drizzle-orm"
 import Stripe from "stripe"
 import { sendDonorConfirmation, sendAdminNotification } from "@/lib/email"
 import { recordTransaction } from "@/lib/transactions"
@@ -178,6 +178,22 @@ export async function POST(request: NextRequest) {
           // A concurrent re-delivery already inserted this subscription; don't
           // send duplicate notification emails.
           if (insertedSub.length === 0) break
+
+          // Win-back offer: if this checkout came from a one-time offer link,
+          // burn the link so it can never be used again. The `redeemed=false`
+          // guard makes this a no-op if it was already consumed (idempotent).
+          const offerToken = session.metadata?.offerToken
+          if (offerToken) {
+            await db
+              .update(offerLinks)
+              .set({
+                redeemed: true,
+                redeemedEmail: customer.email || session.customer_details?.email || null,
+                redeemedSubscriptionId: subscription.id,
+                redeemedAt: new Date(),
+              })
+              .where(and(eq(offerLinks.token, offerToken), eq(offerLinks.redeemed, false)))
+          }
 
           // Send notification email to admin
           await sendAdminNotification("new_subscription", {

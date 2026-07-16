@@ -98,18 +98,19 @@ export async function Hero() {
         <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
           {/* Prize watch */}
           <div
-            className="relative rounded-[22px] p-5 flex items-center justify-center mb-5"
+            className="relative rounded-[22px] p-4 md:p-6 flex items-center justify-center mb-5"
             style={{ background: "linear-gradient(180deg, #fff, #f0eadf)" }}
           >
-            <span className="absolute top-3 right-3 rounded-full bg-teal2 text-gold2 text-[0.6rem] font-extrabold tracking-[0.12em] uppercase px-2.5 py-1">
+            <span className="absolute top-3 right-3 rounded-full bg-teal2 text-gold2 text-xs md:text-sm font-extrabold tracking-[0.12em] uppercase px-3.5 py-1.5 shadow-lg">
               {WATCH_VALUE} Value
             </span>
             <Image
               src="/images/rolex-gmt-bruce-wayne.avif"
               alt="Rolex GMT-Master II Bruce Wayne — this month's prize"
-              width={420}
-              height={420}
-              className="max-h-[240px] w-auto object-contain"
+              width={560}
+              height={560}
+              priority
+              className="max-h-[340px] md:max-h-[440px] w-auto object-contain"
             />
           </div>
           <div className="flex items-baseline justify-between gap-3 mb-5">
