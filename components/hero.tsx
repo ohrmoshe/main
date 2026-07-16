@@ -4,7 +4,7 @@ import { getDrawingInfo } from "@/lib/drawing"
 import { getEntryStats } from "@/app/actions/stats"
 import { CountdownClock } from "./countdown-clock"
 
-const WATCH_VALUE = "$20,050"
+const WATCH_VALUE = "$22,000"
 
 export async function Hero() {
   const { dateLabel, targetTime } = getDrawingInfo()
