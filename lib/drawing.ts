@@ -60,6 +60,31 @@ export function getDrawingDate(now: Date = new Date()): Date {
   return raffleDate
 }
 
+// The precise window (in 8 PM Pacific cutoffs) for the upcoming drawing.
+// Example: between July 15 8 PM and Aug 15 8 PM, this returns the Aug 15 window
+// with start = July 15 8:00 PM PT and end = Aug 15 8:00 PM PT. Charges dated in
+// [start, end) are the entrants for that drawing (including monthly renewals).
+export function getDrawingWindow(now: Date = new Date()): {
+  start: Date
+  end: Date
+  key: string
+  label: string
+  dateLabel: string
+} {
+  const end = getDrawingDate(now)
+  const start = pacificWallClock(end.getFullYear(), end.getMonth() - 1, 15, 20, 0)
+  const monthName = end.toLocaleString("en-US", { month: "long", timeZone: DRAWING_TZ })
+  const year = end.toLocaleString("en-US", { year: "numeric", timeZone: DRAWING_TZ })
+  const monthNum = String(end.getMonth() + 1).padStart(2, "0")
+  return {
+    start,
+    end,
+    key: `${year}-${monthNum}`,
+    label: `${monthName} ${year} Drawing`,
+    dateLabel: `${monthName} 15, ${year}`,
+  }
+}
+
 // The start of the current drawing cycle: the most recent drawing that has
 // already taken place, or the program launch date if no drawing has happened yet.
 export function getCycleStart(now: Date = new Date()): Date {

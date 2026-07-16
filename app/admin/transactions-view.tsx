@@ -6,6 +6,7 @@ import {
   backfillTransactionsFromStripe,
   deleteTransaction,
   updateTransaction,
+  exportTransactionsCSV,
 } from "@/app/actions/transactions"
 
 type TransactionRow = {
@@ -42,6 +43,7 @@ const TYPE_LABELS: Record<string, string> = {
 export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[] }) {
   const [months, setMonths] = useState<MonthGroup[]>(initialMonths)
   const [syncing, setSyncing] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [openKey, setOpenKey] = useState<string | null>(initialMonths[0]?.key ?? null)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -95,6 +97,27 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
     }
   }
 
+  const handleExportAll = async () => {
+    setExporting(true)
+    try {
+      const csv = await exportTransactionsCSV("all")
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `all-charges-${new Date().toISOString().split("T")[0]}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error exporting charges:", error)
+      setMessage("Failed to export. Please try again.")
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const startEdit = (row: TransactionRow) => {
     setEditingId(row.id)
     setEditAmount((row.amountCents / 100).toFixed(2))
@@ -142,9 +165,9 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
     <section className="mt-12">
       <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
         <div>
-          <h2 className="font-heading text-2xl text-cream">Charges by Month</h2>
+          <h2 className="font-heading text-2xl text-cream">All Charges by Month</h2>
           <p className="text-cream/60 text-sm mt-1">
-            Each charge is grouped into its billing month (the 15th to the 15th).
+            Every charge including monthly renewals, grouped into its billing month (the 15th to the 15th).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -164,6 +187,13 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
               ))}
             </select>
           </label>
+          <button
+            onClick={handleExportAll}
+            disabled={exporting}
+            className="px-6 py-2 border border-gold bg-transparent text-gold2 text-xs tracking-[0.2em] uppercase transition-all hover:bg-gold hover:text-teal disabled:opacity-50"
+          >
+            {exporting ? "Exporting..." : "Export All CSV"}
+          </button>
           <button
             onClick={handleSync}
             disabled={syncing}

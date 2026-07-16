@@ -1,9 +1,13 @@
 "use client"
 
+import { useState } from "react"
+import { exportMyReferralsCSV } from "@/app/actions/affiliates"
+
 type Donor = {
   id: number
   name: string
   email: string
+  phone: string | null
   status: string
   entries: number
   amount: number
@@ -23,6 +27,27 @@ type ReferralData = {
 
 export function AffiliateDashboard({ data }: { data: ReferralData }) {
   const { affiliate, summary, donors } = data
+  const [exporting, setExporting] = useState(false)
+
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const csv = await exportMyReferralsCSV()
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `${affiliate.code}-referrals-${new Date().toISOString().split("T")[0]}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error exporting referrals:", error)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-teal">
@@ -51,13 +76,23 @@ export function AffiliateDashboard({ data }: { data: ReferralData }) {
         </div>
 
         {/* Donor list */}
-        <h2 className="font-heading text-2xl text-cream mb-4">Referred Donors</h2>
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <h2 className="font-heading text-2xl text-cream">Referred Donors</h2>
+          <button
+            onClick={handleExport}
+            disabled={exporting || donors.length === 0}
+            className="px-5 py-2 border border-gold bg-gold text-teal text-xs tracking-[0.2em] uppercase transition-all hover:bg-gold2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? "Exporting..." : "Export CSV"}
+          </button>
+        </div>
         <div className="border border-gold/20 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gold/20 bg-teal2">
                 <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Name</th>
                 <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Email</th>
+                <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Phone</th>
                 <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Status</th>
                 <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Entries</th>
                 <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Amount</th>
@@ -67,7 +102,7 @@ export function AffiliateDashboard({ data }: { data: ReferralData }) {
             <tbody>
               {donors.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-cream/50">
+                  <td colSpan={7} className="p-8 text-center text-cream/50">
                     No referrals yet. Share your link to start bringing donors in.
                   </td>
                 </tr>
@@ -76,6 +111,7 @@ export function AffiliateDashboard({ data }: { data: ReferralData }) {
                   <tr key={d.id} className="border-b border-gold/10 hover:bg-gold/5">
                     <td className="p-3 text-cream">{d.name}</td>
                     <td className="p-3 text-cream/80">{d.email}</td>
+                    <td className="p-3 text-cream/80">{d.phone || "-"}</td>
                     <td className="p-3">
                       <span
                         className={`px-2 py-1 text-[0.55rem] tracking-[0.15em] uppercase ${
