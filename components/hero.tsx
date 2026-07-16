@@ -4,7 +4,7 @@ import { getDrawingInfo } from "@/lib/drawing"
 import { getEntryStats } from "@/app/actions/stats"
 import { CountdownClock } from "./countdown-clock"
 
-const WATCH_VALUE = "$20,050"
+const WATCH_VALUE = "$22,000"
 
 export async function Hero() {
   const { dateLabel, targetTime } = getDrawingInfo()
@@ -96,18 +96,27 @@ export async function Hero() {
         {/* Prize watch + countdown card — pulled high on mobile so the watch and
             monthly raffle are immediately visible right under the headline */}
         <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
-          {/* Next drawing teaser (prize reveal pending) */}
+          {/* Prize watch */}
           <div
-            className="relative rounded-[22px] p-8 flex flex-col items-center justify-center text-center mb-5 min-h-[240px]"
+            className="relative rounded-[22px] p-5 flex items-center justify-center mb-5"
             style={{ background: "linear-gradient(180deg, #fff, #f0eadf)" }}
           >
-            <div className="text-[0.7rem] font-extrabold tracking-[0.18em] uppercase text-gold mb-3">
-              August 15 Drawing
+            <span className="absolute top-3 right-3 rounded-full bg-teal2 text-gold2 text-[0.6rem] font-extrabold tracking-[0.12em] uppercase px-2.5 py-1">
+              {WATCH_VALUE} Value
+            </span>
+            <Image
+              src="/images/rolex-gmt-bruce-wayne.avif"
+              alt="Rolex GMT-Master II Bruce Wayne — this month's prize"
+              width={420}
+              height={420}
+              className="max-h-[240px] w-auto object-contain"
+            />
+          </div>
+          <div className="flex items-baseline justify-between gap-3 mb-5">
+            <div>
+              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">GMT-Master II</h3>
+              <p className="text-cream/70 text-xs mt-1">Bruce Wayne · Oystersteel · 40mm · Ref. 126710GRNR</p>
             </div>
-            <h3 className="font-heading text-3xl md:text-4xl font-light leading-tight text-teal">
-              Coming Soon
-            </h3>
-            <p className="text-teal/60 text-sm mt-3">Next luxury watch prize revealed soon</p>
           </div>
 
           <div className="pt-5 border-t border-cream/15">
