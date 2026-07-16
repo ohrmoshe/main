@@ -1,8 +1,9 @@
 import { getDonations, getDonationStats } from "@/app/actions/admin"
 import { getAffiliateStats } from "@/app/actions/affiliates"
-import { getTransactionsByMonth } from "@/app/actions/transactions"
+import { getTransactionsByMonth, getNextRaffleEntrants } from "@/app/actions/transactions"
 import { AdminDashboardClient } from "./client"
 import { DrawingWheel } from "./drawing-wheel"
+import { NextRaffle } from "./next-raffle"
 import { TransactionsView } from "./transactions-view"
 import { AffiliatesManager } from "./affiliates-manager"
 import { AdminLogin } from "./login"
@@ -23,11 +24,12 @@ export default async function AdminPage() {
     return <AdminLogin />
   }
 
-  const [donations, stats, affiliateStats, transactionMonths] = await Promise.all([
+  const [donations, stats, affiliateStats, transactionMonths, nextRaffle] = await Promise.all([
     getDonations("all"),
     getDonationStats(),
     getAffiliateStats(),
     getTransactionsByMonth(),
+    getNextRaffleEntrants(),
   ])
 
   const donationsArray = Array.isArray(donations) ? donations : []
@@ -71,6 +73,8 @@ export default async function AdminPage() {
         </div>
 
         <DrawingWheel donations={donationsArray} />
+
+        <NextRaffle initialData={nextRaffle} />
 
         <AdminDashboardClient initialDonations={donationsArray} />
 

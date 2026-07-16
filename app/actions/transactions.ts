@@ -6,11 +6,26 @@ import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/auth"
 import { recordTransaction } from "@/lib/transactions"
-import { getBillingMonthKey, getBillingMonthLabel } from "@/lib/drawing"
+import { getBillingMonthKey, getBillingMonthLabel, getDrawingWindow } from "@/lib/drawing"
 import { stripe } from "@/lib/stripe"
 
 export type TransactionRow = typeof transactions.$inferSelect
 export type TransactionWithAffiliate = TransactionRow & { affiliateName: string | null }
+
+const TYPE_EXPORT_LABELS: Record<string, string> = {
+  subscription_initial: "New Monthly",
+  subscription_renewal: "Renewal",
+  one_time: "One-Time",
+  manual: "Manual",
+}
+
+// Neutralize spreadsheet formula injection (Excel/Sheets treat a leading = + - @
+// as a live formula), then quote and escape the cell.
+function csvCell(value: unknown): string {
+  let s = String(value ?? "")
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s
+  return `"${s.replace(/"/g, '""')}"`
+}
 
 export async function getTransactions(): Promise<TransactionRow[]> {
   await requireAdmin()
@@ -62,6 +77,97 @@ export async function getTransactionsByMonth() {
 
   // Most recent billing month first.
   return Array.from(groups.values()).sort((a, b) => (a.key < b.key ? 1 : -1))
+}
+
+// Entrants for the UPCOMING drawing: every charge dated between the previous
+// drawing (8 PM PT on the 15th) and the next one. This includes monthly
+// renewals, new monthly signups, and one-time donations in the window — each
+// charge is a separate entry line, which is what feeds the live wheel.
+export async function getNextRaffleEntrants() {
+  await requireAdmin()
+  const window = getDrawingWindow()
+  const [rows, affiliateNames] = await Promise.all([
+    db.select().from(transactions).orderBy(desc(transactions.chargedAt)),
+    getAffiliateNameMap(),
+  ])
+
+  const startMs = window.start.getTime()
+  const endMs = window.end.getTime()
+
+  const inWindow = rows
+    .filter((r) => {
+      const t = r.chargedAt ? new Date(r.chargedAt).getTime() : NaN
+      return Number.isFinite(t) && t >= startMs && t < endMs
+    })
+    .map((row) => ({
+      ...row,
+      affiliateName: row.referralCode ? affiliateNames.get(row.referralCode) ?? null : null,
+    }))
+
+  return {
+    key: window.key,
+    label: window.label,
+    dateLabel: window.dateLabel,
+    startsAt: window.start,
+    endsAt: window.end,
+    count: inWindow.length,
+    entries: inWindow.reduce((s, r) => s + r.entries, 0),
+    total: inWindow.reduce((s, r) => s + r.amountCents, 0),
+    rows: inWindow,
+  }
+}
+
+// Export per-charge rows (INCLUDING renewals) as CSV. This is the correct source
+// for building the wheel — unlike the donations export, a monthly donor who has
+// renewed shows one line per charge. scope "next" limits to the upcoming drawing
+// window; "all" exports every recorded charge.
+export async function exportTransactionsCSV(scope: "all" | "next" = "next"): Promise<string> {
+  await requireAdmin()
+  const [rows, affiliateNames] = await Promise.all([
+    db.select().from(transactions).orderBy(desc(transactions.chargedAt)),
+    getAffiliateNameMap(),
+  ])
+
+  let data = rows
+  if (scope === "next") {
+    const window = getDrawingWindow()
+    const startMs = window.start.getTime()
+    const endMs = window.end.getTime()
+    data = rows.filter((r) => {
+      const t = r.chargedAt ? new Date(r.chargedAt).getTime() : NaN
+      return Number.isFinite(t) && t >= startMs && t < endMs
+    })
+  }
+
+  const headers = [
+    "Charge ID",
+    "Date",
+    "Name",
+    "Email",
+    "Type",
+    "Entries",
+    "Amount ($)",
+    "Affiliate",
+    "Referral Code",
+    "Billing Month",
+    "Status",
+  ]
+
+  const lines = data.map((r) => [
+    r.id,
+    r.chargedAt ? new Date(r.chargedAt).toISOString() : "",
+    r.name,
+    r.email,
+    TYPE_EXPORT_LABELS[r.type] || r.type,
+    r.entries,
+    (r.amountCents / 100).toFixed(2),
+    r.referralCode ? affiliateNames.get(r.referralCode) ?? "" : "",
+    r.referralCode || "",
+    r.billingMonth || "",
+    r.status,
+  ])
+
+  return [headers.join(","), ...lines.map((row) => row.map(csvCell).join(","))].join("\n")
 }
 
 // Remove a single charge (e.g. a duplicate or a mistaken entry).
