@@ -352,7 +352,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("Webhook processing error:", error)
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 })
+    // IMPORTANT: acknowledge with a 2xx even when our own processing fails.
+    // The signature was already verified above, so this is a genuine Stripe
+    // event — returning 500 here makes Stripe retry the SAME event over and
+    // over (this is what triggered 800+ failed deliveries and got the endpoint
+    // disabled). Our handlers are idempotent and the admin "Sync from Stripe"
+    // backfill can recover any transaction we miss, so it is safe to ack and
+    // log rather than force an infinite retry loop.
+    console.error("[v0] Webhook processing error (acknowledged to stop retries):", {
+      eventId: event.id,
+      eventType: event.type,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return NextResponse.json({ received: true, processingError: true })
   }
 }
