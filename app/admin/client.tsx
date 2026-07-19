@@ -40,6 +40,8 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
   const [filter, setFilter] = useState<DonationFilter>("all")
   const [loading, setLoading] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
+  // Donor list is collapsed by default to keep the dashboard compact.
+  const [expanded, setExpanded] = useState(false)
 
   // Inline entries editing
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -161,7 +163,36 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
   }
 
   return (
-    <>
+    <section className="mt-12 border border-gold/20">
+      {/* Collapsible header */}
+      <button
+        onClick={() => setExpanded((s) => !s)}
+        className="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gold/5 transition-colors"
+        aria-expanded={expanded}
+      >
+        <div>
+          <div className="text-[0.6rem] tracking-[0.3em] uppercase text-gold mb-1">Donor Records</div>
+          <h2 className="font-heading text-2xl text-cream">All Donations ({donations.length})</h2>
+        </div>
+        <span className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold2">
+          {expanded ? "Collapse" : "Open"}
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </span>
+      </button>
+
+      {!expanded ? null : (
+        <div className="p-6 border-t border-gold/20">
       {/* Filter & Export */}
       <div className="flex flex-wrap gap-4 mb-6 items-center justify-between">
         <div className="flex flex-wrap gap-2">
@@ -392,6 +423,8 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
           </tbody>
         </table>
       </div>
-    </>
+        </div>
+      )}
+    </section>
   )
 }

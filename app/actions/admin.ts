@@ -6,6 +6,7 @@ import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { effectiveEntries, isBonusActive } from "@/lib/drawing"
 import { requireAdmin } from "@/lib/auth"
+import { recordTransaction } from "@/lib/transactions"
 
 type DonationFilter = "all" | "active" | "cancelled" | "one_time"
 
@@ -36,15 +37,36 @@ export async function addManualDonation(data: {
 
   const entries = Math.max(0, Math.round(Number(data.entries) || 0))
   const amountCents = Math.max(0, Math.round((Number(data.amountDollars) || 0) * 100))
+  const referralCode = data.referralCode?.trim() || null
 
-  await db.insert(donations).values({
+  const [inserted] = await db
+    .insert(donations)
+    .values({
+      name,
+      email,
+      phone: data.phone?.trim() || null,
+      entries,
+      amountCents,
+      status: data.status,
+      referralCode,
+    })
+    .returning({ id: donations.id })
+
+  // Also record a charge so this donor is counted in the CURRENT month's raffle.
+  // The Next Raffle / wheel reads from the transactions table, so without this a
+  // manually-added donor would never appear as an entrant. Dated now, it falls
+  // inside the active drawing window.
+  await recordTransaction({
+    stripePaymentIntentId: `manual_${inserted.id}`,
     name,
     email,
-    phone: data.phone?.trim() || null,
-    entries,
     amountCents,
-    status: data.status,
-    referralCode: data.referralCode?.trim() || null,
+    entries,
+    type: "manual",
+    status: "paid",
+    referralCode,
+    chargedAt: new Date(),
+    donationId: inserted.id,
   })
 
   revalidatePath("/admin")
