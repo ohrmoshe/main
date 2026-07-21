@@ -143,7 +143,8 @@ export function PrizeWheel() {
               className="mt-1 w-4 h-4 accent-gold cursor-pointer"
             />
             <span className="text-xs text-cream/80 leading-relaxed">
-              I authorize my card to be charged the dollar amount the wheel lands on, between $1 and ${WHEEL_MAX}.
+              I authorize my card to be charged any amount between $1 and ${WHEEL_MAX}, equal to the exact
+              dollar amount the wheel lands on. I understand the final charge is not known until the wheel stops.
             </span>
           </label>
           <label className="flex items-start gap-3 cursor-pointer">
@@ -412,7 +413,8 @@ function SpinForm({
               className="mt-1 w-4 h-4 accent-gold cursor-pointer"
             />
             <span className="text-xs text-cream/80 leading-relaxed">
-              I authorize my card to be charged the dollar amount the wheel lands on, between $1 and ${WHEEL_MAX}.
+              I authorize my card to be charged any amount between $1 and ${WHEEL_MAX}, equal to the exact
+              dollar amount the wheel lands on. I understand the final charge is not known until the wheel stops.
             </span>
           </label>
 
