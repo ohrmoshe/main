@@ -15,7 +15,7 @@ export function HowItWorks() {
           <Step
             number="01"
             title="Make a Donation"
-            description="Choose a giving tier that feels right. Every donation is fully tax-deductible and goes directly toward supporting Torah learning in our community."
+            description="Choose a giving tier that feels right. Every donation is subject to partial tax deduction and goes directly toward supporting Torah learning in our community."
           />
           <Step
             number="02"

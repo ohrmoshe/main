@@ -81,7 +81,7 @@ export async function Hero() {
           </div>
 
           <p className="text-cream/60 text-xs mt-3 leading-relaxed">
-            Tax-deductible donation to{" "}
+            Donation subject to partial tax deduction to{" "}
             <Link
               href="https://kollelohrmoshe.org"
               target="_blank"
