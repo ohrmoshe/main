@@ -61,7 +61,7 @@ export default async function OfferPage({ params }: { params: Promise<{ token: s
         <OfferTiers token={token} tiers={tiers} />
 
         <p className="text-center text-cream/70 mt-6 text-sm">
-          Cancel anytime · All donations are tax-deductible · Kollel Ohr Moshe is a 501(c)(3) organization
+          Cancel anytime · All donations are subject to partial tax deduction · Kollel Ohr Moshe is a 501(c)(3) organization
         </p>
       </div>
     </main>
