@@ -7,6 +7,7 @@ type EntrantRow = {
   id: number
   name: string
   email: string
+  phone: string | null
   amountCents: number
   entries: number
   type: string
@@ -135,6 +136,7 @@ export function NextRaffle({ initialData }: { initialData: RaffleData }) {
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Date</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Name</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Email</th>
+              <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Phone</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Type</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Affiliate</th>
               <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Entries</th>
@@ -144,7 +146,7 @@ export function NextRaffle({ initialData }: { initialData: RaffleData }) {
           <tbody>
             {data.rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-cream/50">
+                <td colSpan={8} className="p-8 text-center text-cream/50">
                   No entrants recorded for this drawing yet. Use &quot;Sync from Stripe&quot; below to import charges.
                 </td>
               </tr>
@@ -156,6 +158,7 @@ export function NextRaffle({ initialData }: { initialData: RaffleData }) {
                   </td>
                   <td className="p-3 text-cream">{row.name}</td>
                   <td className="p-3 text-cream/80">{row.email || "-"}</td>
+                  <td className="p-3 text-cream/80">{row.phone || "-"}</td>
                   <td className="p-3">
                     <span
                       className={`px-2 py-1 text-[0.55rem] tracking-[0.15em] uppercase ${
