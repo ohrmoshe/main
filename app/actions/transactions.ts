@@ -10,7 +10,10 @@ import { getBillingMonthKey, getBillingMonthLabel, getDrawingWindow } from "@/li
 import { stripe } from "@/lib/stripe"
 
 export type TransactionRow = typeof transactions.$inferSelect
-export type TransactionWithAffiliate = TransactionRow & { affiliateName: string | null }
+export type TransactionWithAffiliate = TransactionRow & {
+  affiliateName: string | null
+  phone: string | null
+}
 
 const TYPE_EXPORT_LABELS: Record<string, string> = {
   subscription_initial: "New Monthly",
@@ -38,13 +41,66 @@ async function getAffiliateNameMap(): Promise<Map<string, string>> {
   return new Map(list.map((a) => [a.code, a.name]))
 }
 
+// Phone numbers live only on the donations table, so build lookups that let us
+// resolve a transaction's phone via its donationId, subscription id, or (as a
+// last resort) the donor's email. Every value is normalized to a trimmed
+// non-empty string or null.
+type PhoneLookups = {
+  byDonationId: Map<number, string>
+  bySubscriptionId: Map<string, string>
+  byEmail: Map<string, string>
+}
+
+async function getPhoneLookups(): Promise<PhoneLookups> {
+  const donors = await db
+    .select({
+      id: donations.id,
+      phone: donations.phone,
+      stripeSubscriptionId: donations.stripeSubscriptionId,
+      email: donations.email,
+    })
+    .from(donations)
+
+  const byDonationId = new Map<number, string>()
+  const bySubscriptionId = new Map<string, string>()
+  const byEmail = new Map<string, string>()
+
+  for (const d of donors) {
+    const phone = (d.phone ?? "").trim()
+    if (!phone) continue
+    byDonationId.set(d.id, phone)
+    if (d.stripeSubscriptionId) bySubscriptionId.set(d.stripeSubscriptionId, phone)
+    if (d.email) byEmail.set(d.email.trim().toLowerCase(), phone)
+  }
+
+  return { byDonationId, bySubscriptionId, byEmail }
+}
+
+// Resolve the best available phone for a single transaction row.
+function resolvePhone(row: TransactionRow, lookups: PhoneLookups): string | null {
+  if (row.donationId != null) {
+    const p = lookups.byDonationId.get(row.donationId)
+    if (p) return p
+  }
+  if (row.stripeSubscriptionId) {
+    const p = lookups.bySubscriptionId.get(row.stripeSubscriptionId)
+    if (p) return p
+  }
+  if (row.email) {
+    const p = lookups.byEmail.get(row.email.trim().toLowerCase())
+    if (p) return p
+  }
+  return null
+}
+
 // Group all transactions into 15th-to-15th billing months for the admin view,
 // resolving each charge's referral code to the affiliate's name.
 export async function getTransactionsByMonth() {
   await requireAdmin()
-  const [rows, affiliateNames] = await Promise.all([
+  const [rows, affiliateNames, phoneLookups] = await Promise.all([
     db.select().from(transactions).orderBy(desc(transactions.chargedAt)),
     getAffiliateNameMap(),
+    getPhoneLookups(),
   ])
 
   const groups = new Map<
@@ -72,6 +128,7 @@ export async function getTransactionsByMonth() {
     group.rows.push({
       ...row,
       affiliateName: row.referralCode ? affiliateNames.get(row.referralCode) ?? null : null,
+      phone: resolvePhone(row, phoneLookups),
     })
   }
 
@@ -86,9 +143,10 @@ export async function getTransactionsByMonth() {
 export async function getNextRaffleEntrants() {
   await requireAdmin()
   const window = getDrawingWindow()
-  const [rows, affiliateNames] = await Promise.all([
+  const [rows, affiliateNames, phoneLookups] = await Promise.all([
     db.select().from(transactions).orderBy(desc(transactions.chargedAt)),
     getAffiliateNameMap(),
+    getPhoneLookups(),
   ])
 
   const startMs = window.start.getTime()
@@ -102,6 +160,7 @@ export async function getNextRaffleEntrants() {
     .map((row) => ({
       ...row,
       affiliateName: row.referralCode ? affiliateNames.get(row.referralCode) ?? null : null,
+      phone: resolvePhone(row, phoneLookups),
     }))
 
   return {
@@ -123,9 +182,10 @@ export async function getNextRaffleEntrants() {
 // window; "all" exports every recorded charge.
 export async function exportTransactionsCSV(scope: "all" | "next" = "next"): Promise<string> {
   await requireAdmin()
-  const [rows, affiliateNames] = await Promise.all([
+  const [rows, affiliateNames, phoneLookups] = await Promise.all([
     db.select().from(transactions).orderBy(desc(transactions.chargedAt)),
     getAffiliateNameMap(),
+    getPhoneLookups(),
   ])
 
   let data = rows
@@ -144,6 +204,7 @@ export async function exportTransactionsCSV(scope: "all" | "next" = "next"): Pro
     "Date",
     "Name",
     "Email",
+    "Phone",
     "Type",
     "Entries",
     "Amount ($)",
@@ -158,6 +219,7 @@ export async function exportTransactionsCSV(scope: "all" | "next" = "next"): Pro
     r.chargedAt ? new Date(r.chargedAt).toISOString() : "",
     r.name,
     r.email,
+    resolvePhone(r, phoneLookups) ?? "",
     TYPE_EXPORT_LABELS[r.type] || r.type,
     r.entries,
     (r.amountCents / 100).toFixed(2),

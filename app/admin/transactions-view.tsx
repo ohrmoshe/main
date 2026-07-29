@@ -13,6 +13,7 @@ type TransactionRow = {
   id: number
   name: string
   email: string
+  phone: string | null
   amountCents: number
   entries: number
   type: string
@@ -249,6 +250,7 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Date</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Name</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Email</th>
+                          <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Phone</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Type</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Affiliate</th>
                           <th className="text-left p-3 text-[0.6rem] tracking-[0.2em] uppercase text-gold">Entries</th>
@@ -267,6 +269,7 @@ export function TransactionsView({ initialMonths }: { initialMonths: MonthGroup[
                               </td>
                               <td className="p-3 text-cream">{row.name}</td>
                               <td className="p-3 text-cream/80">{row.email || "-"}</td>
+                              <td className="p-3 text-cream/80">{row.phone || "-"}</td>
                               <td className="p-3">
                                 <span
                                   className={`px-2 py-1 text-[0.55rem] tracking-[0.15em] uppercase ${
