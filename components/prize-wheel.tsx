@@ -11,10 +11,24 @@ import {
   spinAndCharge,
 } from "@/app/actions/wheel"
 import { WHEEL_MAX } from "@/lib/products"
+import { isDealActive } from "@/lib/deal"
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 const SPIN_DURATION = 20000 // matches the reels' staggered stop (last reel ~19.6s)
+
+// Tracks whether the half-off deal is live. Computed after mount (re-checked
+// each second) so server/client markup match on first paint.
+function useDealActive() {
+  const [active, setActive] = useState(false)
+  useEffect(() => {
+    const tick = () => setActive(isDealActive())
+    tick()
+    const interval = setInterval(tick, 1000)
+    return () => clearInterval(interval)
+  }, [])
+  return active
+}
 
 type Donor = { name: string; email: string; phone: string }
 type Consent = { email: boolean; sms: boolean }
@@ -29,6 +43,7 @@ export function PrizeWheel() {
   const [customerId, setCustomerId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const dealActive = useDealActive()
 
   useEffect(() => {
     getWheelStatus().then((s) => setStatus({ available: s.available, soldOut: s.soldOut }))
@@ -107,6 +122,12 @@ export function PrizeWheel() {
         </div>
         <h3 className="font-heading text-[1.8rem] leading-tight text-gold2 mt-1">The Prize Wheel</h3>
 
+        {dealActive && (
+          <div className="mt-2 inline-block rounded-full bg-gold px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-teal2">
+            Today Only · Spins Are Half Off
+          </div>
+        )}
+
         {/* Big tickets-remaining counter */}
         <TicketsRemaining available={status.available} />
       </div>
@@ -143,8 +164,9 @@ export function PrizeWheel() {
               className="mt-1 w-4 h-4 accent-gold cursor-pointer"
             />
             <span className="text-xs text-cream/80 leading-relaxed">
-              I authorize my card to be charged any amount between $1 and ${WHEEL_MAX}, equal to the exact
-              dollar amount the wheel lands on. I understand the final charge is not known until the wheel stops.
+              I authorize my card to be charged the dollar amount the wheel lands on (between $1 and ${WHEEL_MAX})
+              {dealActive ? ", less today's 50% half-off discount" : ""}. I understand the final charge is not known
+              until the wheel stops.
             </span>
           </label>
           <label className="flex items-start gap-3 cursor-pointer">
@@ -244,10 +266,16 @@ function SpinForm({
 }) {
   const stripe = useStripe()
   const elements = useElements()
+  const dealActive = useDealActive()
   const [spinning, setSpinning] = useState(false)
   const [verifying, setVerifying] = useState(false)
   const [displayNumber, setDisplayNumber] = useState(1)
-  const [result, setResult] = useState<{ number: number; amount: number } | null>(null)
+  const [result, setResult] = useState<{
+    number: number
+    amount: number
+    fullAmount: number
+    dealHalfOff: boolean
+  } | null>(null)
   const [soldOut, setSoldOut] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Saved after the first verified charge so re-spins can reuse the card
@@ -292,7 +320,12 @@ function SpinForm({
     // Now run the full spin that lands on the reserved number.
     setSpinning(true)
     await runSpinAnimation(res.number)
-    setResult({ number: res.number, amount: res.amount })
+    setResult({
+      number: res.number,
+      amount: res.amount,
+      fullAmount: res.fullAmount,
+      dealHalfOff: res.dealHalfOff,
+    })
     setSpinning(false)
   }
 
@@ -387,8 +420,19 @@ function SpinForm({
         <WheelDial spinning={false} displayNumber={result.number} landed />
         <h4 className="font-heading text-2xl text-gold2">You landed on #{result.number}!</h4>
         <p className="text-cream/85 text-sm">
-          Your card was charged <strong className="text-gold2">${result.amount}</strong> and you have{" "}
-          <strong className="text-gold2">1 entry</strong> in this month&apos;s drawing. Good luck!
+          {result.dealHalfOff ? (
+            <>
+              Today&apos;s half-off deal applied: instead of{" "}
+              <span className="text-cream/60 line-through">${result.fullAmount}</span> your card was charged{" "}
+              <strong className="text-gold2">${result.amount}</strong> and you have{" "}
+              <strong className="text-gold2">1 entry</strong> in this month&apos;s drawing. Good luck!
+            </>
+          ) : (
+            <>
+              Your card was charged <strong className="text-gold2">${result.amount}</strong> and you have{" "}
+              <strong className="text-gold2">1 entry</strong> in this month&apos;s drawing. Good luck!
+            </>
+          )}
         </p>
         <div className="mt-2 rounded-xl bg-teal2/60 border border-gold/25 p-4 text-left w-full">
           <p className="text-[0.7rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-1">
@@ -413,8 +457,9 @@ function SpinForm({
               className="mt-1 w-4 h-4 accent-gold cursor-pointer"
             />
             <span className="text-xs text-cream/80 leading-relaxed">
-              I authorize my card to be charged any amount between $1 and ${WHEEL_MAX}, equal to the exact
-              dollar amount the wheel lands on. I understand the final charge is not known until the wheel stops.
+              I authorize my card to be charged the dollar amount the wheel lands on (between $1 and ${WHEEL_MAX})
+              {dealActive ? ", less today's 50% half-off discount" : ""}. I understand the final charge is not known
+              until the wheel stops.
             </span>
           </label>
 

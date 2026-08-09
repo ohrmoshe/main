@@ -7,6 +7,7 @@ import { cookies } from "next/headers"
 import { sql } from "drizzle-orm"
 import { sendDonorConfirmation, sendAdminNotification } from "@/lib/email"
 import { WHEEL_MAX } from "@/lib/products"
+import { isDealActive, getDealPriceCents } from "@/lib/deal"
 
 async function getReferralCode() {
   const cookieStore = await cookies()
@@ -136,7 +137,11 @@ export async function spinAndCharge(input: {
     return { soldOut: true as const }
   }
 
-  const amountCents = number * 100
+  // The number is the dollar amount. TODAY ONLY: spins are half off, so the
+  // card is charged 50% of the landed number (rounded to the nearest cent).
+  const dealHalfOff = isDealActive()
+  const fullCents = number * 100
+  const amountCents = dealHalfOff ? getDealPriceCents(fullCents) : fullCents
 
   let paymentIntentId: string
   try {
@@ -147,11 +152,15 @@ export async function spinAndCharge(input: {
       payment_method: input.paymentMethodId,
       off_session: true,
       confirm: true,
-      description: `Watch & Learn Prize Wheel - #${number}`,
+      description: dealHalfOff
+        ? `Watch & Learn Prize Wheel - #${number} (50% Off Today)`
+        : `Watch & Learn Prize Wheel - #${number}`,
       metadata: {
         wheelNumber: number.toString(),
         entries: "1",
         type: "wheel",
+        dealHalfOff: dealHalfOff ? "true" : "false",
+        fullAmountCents: fullCents.toString(),
         referralCode: referralCode || "",
       },
     })
@@ -208,5 +217,11 @@ export async function spinAndCharge(input: {
     isOneTime: true,
   })
 
-  return { soldOut: false as const, number, amount: amountCents / 100 }
+  return {
+    soldOut: false as const,
+    number,
+    amount: amountCents / 100,
+    fullAmount: fullCents / 100,
+    dealHalfOff,
+  }
 }
