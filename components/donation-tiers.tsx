@@ -25,6 +25,7 @@ const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
 const MONTHLY_CUSTOM_MIN_AMOUNT = 360
 
 export function DonationTiers() {
+  const dealActive = useDealActive()
   return (
     <>
       {/* Monthly Plans — green band */}
@@ -86,8 +87,13 @@ export function DonationTiers() {
               </h2>
               <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
                 Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
-                exact amount it lands on — from $1 to 299 max. Every spin earns you one entry into this
-                month&apos;s drawing.
+                exact amount it lands on — from $1 to 299 max.{" "}
+                {dealActive && (
+                  <span className="font-semibold text-gold">
+                    Today only, every spin is 50% off — you pay half of whatever it lands on.
+                  </span>
+                )}{" "}
+                Every spin earns you one entry into this month&apos;s drawing.
               </p>
             </div>
 
@@ -123,7 +129,8 @@ function Tier({
   const [loading, setLoading] = useState(false)
   const [showConsentModal, setShowConsentModal] = useState(false)
   const dealActive = useDealActive()
-  const displayedEntries = dealActive ? entries * 2 : entries
+  // First month is 50% off during the deal; entries are unchanged.
+  const firstMonthPrice = dealActive ? Math.round(price * 50) / 100 : price
 
   const handleSubscribe = async (consent: { email: boolean; sms: boolean }) => {
     setLoading(true)
@@ -151,29 +158,33 @@ function Tier({
             {featured ? "Most Popular" : "Best Value"}
           </div>
         )}
-        {savings && <div className="text-[0.78rem] font-extrabold text-gold2">Save {savings}</div>}
-        <div className="font-heading text-[1.35rem] text-gold2 leading-tight mt-1">{label}</div>
         {dealActive ? (
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-base text-red-400 line-through decoration-2">
-              {entries} {entries === 1 ? "Entry" : "Entries"}
-            </span>
-            <span className="text-base font-bold text-gold2">
-              {displayedEntries} {displayedEntries === 1 ? "Entry" : "Entries"}
-            </span>
-            <span className="text-[0.62rem] font-extrabold uppercase tracking-wide bg-gold text-teal2 rounded-full px-1.5 py-0.5">
-              2x
-            </span>
+          <div className="text-[0.78rem] font-extrabold uppercase tracking-wide bg-gold text-teal2 rounded-full px-2 py-0.5 self-start">
+            50% Off 1st Month
           </div>
         ) : (
-          <div className="text-base text-cream/75 mt-0.5">
-            {entries} {entries === 1 ? "Entry" : "Entries"}
+          savings && <div className="text-[0.78rem] font-extrabold text-gold2">Save {savings}</div>
+        )}
+        <div className="font-heading text-[1.35rem] text-gold2 leading-tight mt-1">{label}</div>
+        <div className="text-base text-cream/75 mt-0.5">
+          {entries} {entries === 1 ? "Entry" : "Entries"}
+        </div>
+        {dealActive ? (
+          <div className="my-2.5">
+            <div className="flex items-baseline gap-2">
+              <span className="font-heading text-[3.4rem] leading-none text-gold2">${firstMonthPrice}</span>
+              <span className="font-heading text-2xl text-cream/45 line-through decoration-2">${price}</span>
+            </div>
+            <div className="text-cream/70 text-sm font-semibold mt-0.5">
+              first month, then ${price}/month
+            </div>
+          </div>
+        ) : (
+          <div className="font-heading text-[3.4rem] leading-none my-2.5">
+            ${price}
+            <small className="font-heading text-base">/month</small>
           </div>
         )}
-        <div className="font-heading text-[3.4rem] leading-none my-2.5">
-          ${price}
-          <small className="font-heading text-base">/month</small>
-        </div>
         <div className="text-cream/70 font-bold mb-3.5">${perEntry}/entry</div>
         <p className="text-cream/80 text-[0.94rem]">{description}</p>
         <button
@@ -193,7 +204,7 @@ function Tier({
         isOpen={showConsentModal}
         onClose={() => setShowConsentModal(false)}
         onSubmit={handleSubscribe}
-        planDetails={{ entries: displayedEntries, price, isOneTime: false }}
+        planDetails={{ entries, price: firstMonthPrice, isOneTime: false }}
       />
     </>
   )
@@ -207,9 +218,10 @@ function MonthlyCustomAmount() {
   const dealActive = useDealActive()
   const numericAmount = parseFloat(amount) || 0
   const entries = Math.floor(numericAmount / MONTHLY_CUSTOM_PRICE_PER_ENTRY)
-  const displayedEntries = dealActive ? entries * 2 : entries
-  // Charge the full amount entered; entries = amount ÷ 20 (rounded down)
+  // Charge the full amount entered; entries = amount ÷ 20 (rounded down).
+  // During the deal the FIRST month is 50% off (entries are unchanged).
   const chargeAmount = numericAmount
+  const firstMonthCharge = dealActive ? Math.round(chargeAmount * 50) / 100 : chargeAmount
   const isValid = numericAmount > MONTHLY_CUSTOM_MIN_AMOUNT && entries >= 1
   const showTooLow = numericAmount > 0 && numericAmount <= MONTHLY_CUSTOM_MIN_AMOUNT
 
@@ -245,8 +257,10 @@ function MonthlyCustomAmount() {
           {isValid && dealActive && (
             <span className="font-semibold">
               {" "}
-              <span className="text-red-400 line-through decoration-2">{entries} entries</span>{" "}
-              <span className="text-gold2">{displayedEntries} entries</span> for ${chargeAmount}/month
+              {entries} entries —{" "}
+              <span className="text-gold2">${firstMonthCharge} first month</span>{" "}
+              <span className="text-cream/50 line-through decoration-2">${chargeAmount}</span>, then ${chargeAmount}
+              /month
             </span>
           )}
         </p>
@@ -285,7 +299,7 @@ function MonthlyCustomAmount() {
         isOpen={showConsentModal}
         onClose={() => setShowConsentModal(false)}
         onSubmit={handleSubscribe}
-        planDetails={{ entries: displayedEntries, price: chargeAmount, isOneTime: false }}
+        planDetails={{ entries, price: firstMonthCharge, isOneTime: false }}
       />
     </div>
   )

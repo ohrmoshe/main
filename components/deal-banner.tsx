@@ -7,14 +7,22 @@ function pad(n: number) {
   return n.toString().padStart(2, "0")
 }
 
+const DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+})
+
 export function DealBanner() {
   const [remaining, setRemaining] = useState<number | null>(null)
+  const [todayLabel, setTodayLabel] = useState("")
 
   useEffect(() => {
-    const deadline = getDealDeadline().getTime()
+    setTodayLabel(DATE_FMT.format(new Date()))
 
     const tick = () => {
-      setRemaining(Math.max(0, deadline - Date.now()))
+      setRemaining(Math.max(0, getDealDeadline().getTime() - Date.now()))
     }
 
     tick()
@@ -34,15 +42,16 @@ export function DealBanner() {
     <div className="mb-9 rounded-[22px] border border-gold/60 bg-gold/[0.12] px-5 py-5 md:px-8 md:py-6 flex flex-col md:flex-row items-center gap-4 md:gap-7 text-center md:text-left">
       <div className="flex-1">
         <div className="text-[0.72rem] font-extrabold tracking-[0.18em] uppercase text-gold mb-1.5">
-          Today Only · June 21, 2026
+          Today Only{todayLabel ? ` · ${todayLabel}` : ""}
         </div>
         <h3 className="font-heading text-[clamp(1.5rem,2.6vw,2.1rem)] font-light leading-tight text-cream">
-          Every Entry <span className="text-gold2 font-normal">Doubled</span> When You Subscribe
+          Pay <span className="text-gold2 font-normal">Half Price</span> When You Subscribe or Spin
         </h3>
         <p className="text-cream/75 text-[0.97rem] mt-1.5">
           Start any monthly plan before{" "}
-          <span className="font-semibold text-cream">midnight ET tonight (12:00 AM)</span> and we&apos;ll double your
-          entries into the drawing — same monthly donation, twice the chances.
+          <span className="font-semibold text-cream">midnight ET tonight</span> and your first month is{" "}
+          <span className="font-semibold text-cream">50% off</span> — or spin the prize wheel and pay half of whatever
+          it lands on. Same entries, half the price.
         </p>
       </div>
 

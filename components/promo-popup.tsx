@@ -7,15 +7,24 @@ function format2(n: number) {
   return n.toString().padStart(2, "0")
 }
 
+const DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+})
+
 export function PromoPopup() {
   const [open, setOpen] = useState(false)
   const [remaining, setRemaining] = useState({ hrs: 0, min: 0, sec: 0 })
+  const [todayLabel, setTodayLabel] = useState("")
 
   useEffect(() => {
     // Only show if the deal is active and it hasn't already been dismissed this session.
     if (!isDealActive()) return
     if (sessionStorage.getItem("promoDismissed") === "true") return
 
+    setTodayLabel(DATE_FMT.format(new Date()))
     const timer = setTimeout(() => setOpen(true), 1200)
     return () => clearTimeout(timer)
   }, [])
@@ -73,14 +82,14 @@ export function PromoPopup() {
         </button>
 
         <div className="text-[0.72rem] font-extrabold tracking-[0.2em] uppercase text-gold mb-2">
-          Today Only &middot; June 21, 2026
+          Today Only{todayLabel ? ` \u00b7 ${todayLabel}` : ""}
         </div>
         <h2 id="promo-title" className="font-heading text-[2rem] leading-tight text-teal mb-3">
-          Double Every Entry
+          Everything Is Half Off
         </h2>
         <p className="text-teal/75 text-[0.97rem] leading-relaxed mb-5">
-          For the next few hours, every entry is <span className="font-semibold text-teal">doubled</span>{" "}
-          when you subscribe this month. Twice the chances to win &mdash; same monthly donation.
+          For the next few hours, pay <span className="font-semibold text-teal">50% off</span> — your first month on
+          any monthly plan, or half of whatever the prize wheel lands on. Same entries, half the price.
         </p>
 
         {/* Countdown */}
@@ -107,7 +116,7 @@ export function PromoPopup() {
             boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
           }}
         >
-          Claim Double Entries
+          Claim 50% Off
         </button>
         <button onClick={close} className="block w-full mt-3 text-xs text-teal/50 hover:text-teal transition-colors">
           No thanks, maybe later

@@ -2,13 +2,31 @@
 
 import { stripe, SITE_ID } from "@/lib/stripe"
 import { SUBSCRIPTION_TIERS, calculateCustomTier, calculateMonthlyCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
-import { isDealActive } from "@/lib/deal"
-import { getDrawingDate, getDrawingInfo } from "@/lib/drawing"
+import { isDealActive, DEAL_DISCOUNT, getDealPriceCents } from "@/lib/deal"
+import { getDrawingInfo } from "@/lib/drawing"
 import { headers, cookies } from "next/headers"
 
 async function getReferralCode() {
   const cookieStore = await cookies()
   return cookieStore.get("ref_code")?.value || ""
+}
+
+// Ensure a reusable "half off first month" coupon exists and return its id.
+// duration: "once" => the discount applies only to the first invoice; every
+// renewal after that is charged the full price.
+const HALF_OFF_COUPON_ID = "HALF_OFF_FIRST_MONTH"
+async function getHalfOffFirstMonthCoupon() {
+  try {
+    await stripe.coupons.retrieve(HALF_OFF_COUPON_ID)
+  } catch {
+    await stripe.coupons.create({
+      id: HALF_OFF_COUPON_ID,
+      percent_off: Math.round(DEAL_DISCOUNT * 100),
+      duration: "once",
+      name: "Half Off - Today Only (First Month)",
+    })
+  }
+  return HALF_OFF_COUPON_ID
 }
 
 export async function createCheckoutSession(
@@ -41,25 +59,27 @@ export async function createCheckoutSession(
       amountCents = tier.priceInCents
     }
 
-    // Limited-time promo: subscribe before the deadline and entries are DOUBLED,
-    // but only for THIS month's drawing. The bonus is stored separately and
-    // expires after the upcoming drawing, then the donor reverts to baseEntries.
-    const dealDoubled = isDealActive()
-    const bonusEntries = dealDoubled ? baseEntries : 0
-    const totalThisDrawing = baseEntries + bonusEntries
-    const bonusUntil = dealDoubled ? getDrawingDate() : null
+    // Limited-time promo: subscribe before midnight ET tonight and the FIRST
+    // month is 50% off. Entry counts are unchanged; renewals bill full price.
+    const dealHalfOff = isDealActive()
+    const fullMonthlyCents = amountCents
+    const firstMonthCents = dealHalfOff ? getDealPriceCents(amountCents) : amountCents
     const drawingLabel = getDrawingInfo().dateLabel
 
-    const productName = dealDoubled
-      ? `Watch & Learn - ${baseEntries} → ${totalThisDrawing} Entries (Double Entries Deal!)`
+    const productName = dealHalfOff
+      ? `Watch & Learn - ${baseEntries} ${baseEntries === 1 ? "Entry" : "Entries"}/month (50% Off First Month!)`
       : `Watch & Learn - ${baseEntries} ${baseEntries === 1 ? "Entry" : "Entries"}/month`
 
-    const description = dealDoubled
-      ? `Monthly donation supporting Kollel Ohr Moshe. LIMITED-TIME DEAL: entries doubled to ${totalThisDrawing} for the ${drawingLabel} drawing (normally ${baseEntries}), then ${baseEntries} every month after.`
+    const description = dealHalfOff
+      ? `Monthly donation supporting Kollel Ohr Moshe with ${baseEntries} raffle ${baseEntries === 1 ? "entry" : "entries"} every drawing. TODAY ONLY: your first month is 50% off ($${(firstMonthCents / 100).toFixed(2)} instead of $${(fullMonthlyCents / 100).toFixed(2)}) for the ${drawingLabel} drawing, then $${(fullMonthlyCents / 100).toFixed(2)}/month after.`
       : `Monthly donation supporting Kollel Ohr Moshe with ${baseEntries} raffle ${baseEntries === 1 ? "entry" : "entries"} every drawing`
+
+    // First-month 50% off applied as a one-time Stripe coupon (duration: once).
+    const discounts = dealHalfOff ? [{ coupon: await getHalfOffFirstMonthCoupon() }] : undefined
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      discounts,
       // Omitting payment_method_types lets Stripe automatically offer all
       // enabled methods, including Apple Pay & Google Pay wallets.
       billing_address_collection: "required",
@@ -94,15 +114,18 @@ export async function createCheckoutSession(
         // Marks this charge as belonging to Watch & Learn (shared Stripe account).
         site: SITE_ID,
         // `entries` carries the total for THIS drawing (used by success page & emails)
-        entries: totalThisDrawing.toString(),
+        entries: baseEntries.toString(),
         baseEntries: baseEntries.toString(),
-        bonusEntries: bonusEntries.toString(),
-        bonusUntil: bonusUntil ? bonusUntil.toISOString() : "",
-        amountCents: amountCents.toString(),
+        bonusEntries: "0",
+        bonusUntil: "",
+        // Amount actually charged now (first month is half off during the deal);
+        // `monthlyCents` is the full recurring price billed on every renewal.
+        amountCents: firstMonthCents.toString(),
+        monthlyCents: fullMonthlyCents.toString(),
         emailConsent: consent?.email ? "true" : "false",
         smsConsent: consent?.sms ? "true" : "false",
         referralCode,
-        dealDoubled: dealDoubled ? "true" : "false",
+        dealHalfOff: dealHalfOff ? "true" : "false",
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/#donate`,
