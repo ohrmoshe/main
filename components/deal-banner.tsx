@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getDealDeadline } from "@/lib/deal"
+import { getDealDeadline, isDealActive } from "@/lib/deal"
 
 function pad(n: number) {
   return n.toString().padStart(2, "0")
@@ -19,6 +19,9 @@ export function DealBanner() {
   const [todayLabel, setTodayLabel] = useState("")
 
   useEffect(() => {
+    // Respect the promo master switch — if the deal is off, never show the banner.
+    if (!isDealActive()) return
+
     setTodayLabel(DATE_FMT.format(new Date()))
 
     const tick = () => {
@@ -30,7 +33,7 @@ export function DealBanner() {
     return () => clearInterval(interval)
   }, [])
 
-  // Don't render until we've measured the time, or once the deal has ended.
+  // Don't render until we've measured the time, or once the deal has ended/off.
   if (remaining === null || remaining <= 0) return null
 
   const totalSeconds = Math.floor(remaining / 1000)
