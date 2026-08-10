@@ -6,6 +6,11 @@
 // midnight ET tonight (i.e. 00:00 of the next ET day). It automatically resets
 // each day, so "today only" is always relative to whoever is viewing it.
 
+// Master switch. Set to `true` to run the half-off promotion, `false` to turn
+// it off everywhere (banner, popup, tier pricing, and wheel discount). While
+// this is `false` the deal is considered inactive regardless of the date.
+export const DEAL_ENABLED = false
+
 // 50% off. Applied to subscriptions (first month) and to every wheel spin.
 export const DEAL_DISCOUNT = 0.5
 
@@ -57,8 +62,9 @@ export function getDealDeadline(now: Date = new Date()): Date {
   return new Date(approxUTC - offsetMin * 60000)
 }
 
-// True while we are still before midnight ET tonight.
+// True only while the promo is enabled AND we are still before midnight ET tonight.
 export function isDealActive(now: Date = new Date()): boolean {
+  if (!DEAL_ENABLED) return false
   return now.getTime() < getDealDeadline(now).getTime()
 }
 
