@@ -7,7 +7,7 @@ import { CountdownClock } from "./countdown-clock"
 const WATCH_VALUE = "$22,000"
 
 export async function Hero() {
-  const { dateLabel, targetTime } = getDrawingInfo()
+  const { dateLabel, timeLabel, targetTime } = getDrawingInfo()
   const { monthlySubscribers } = await getEntryStats()
 
   return (
@@ -124,7 +124,7 @@ export async function Hero() {
             <div className="text-[0.72rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-1.5">
               Next Drawing · {dateLabel}
             </div>
-            <p className="text-cream/85 text-sm mb-1">Live on Zoom at 8:00 PM PST</p>
+            <p className="text-cream/85 text-sm mb-1">Live on Zoom at {timeLabel}</p>
             <CountdownClock targetTime={targetTime} />
           </div>
 

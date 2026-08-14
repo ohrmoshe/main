@@ -2,6 +2,7 @@
 // then the 15th of every subsequent month.
 
 const DRAWING_TZ = "America/Los_Angeles"
+const EASTERN_TZ = "America/New_York"
 
 // Offset (in ms) of a time zone from UTC at a given instant. Positive means
 // ahead of UTC. For Pacific this is negative (-7h PDT, -8h PST).
@@ -45,19 +46,54 @@ export function pacificWallClock(
   return new Date(guess.getTime() - offset)
 }
 
-export function getDrawingDate(now: Date = new Date()): Date {
-  let raffleDate = pacificWallClock(2026, 6, 15, 20, 0) // July 15, 2026, 8:00 PM Pacific
-  let month = 6
+// Like pacificWallClock, but for US Eastern time. Used for one-off overrides.
+export function easternWallClock(
+  year: number,
+  month: number,
+  day: number,
+  hour = 0,
+  minute = 0,
+): Date {
+  const guess = new Date(Date.UTC(year, month, day, hour, minute, 0))
+  const offset = tzOffsetMs(EASTERN_TZ, guess)
+  return new Date(guess.getTime() - offset)
+}
+
+// Metadata for the drawing in a given month. Normally the 15th at 8:00 PM
+// Pacific, with a one-off override for the August 2026 drawing, which is moved
+// to August 16th at 7:00 PM Eastern.
+function drawingMonthMeta(
+  year: number,
+  month: number,
+): { date: Date; day: number; timeLabel: string } {
+  if (year === 2026 && month === 7) {
+    return { date: easternWallClock(2026, 7, 16, 19, 0), day: 16, timeLabel: "7:00 PM EST" }
+  }
+  return { date: pacificWallClock(year, month, 15, 20, 0), day: 15, timeLabel: "8:00 PM PST" }
+}
+
+// The upcoming drawing (date + display metadata) relative to `now`.
+export function getUpcomingDrawing(now: Date = new Date()): {
+  date: Date
+  day: number
+  timeLabel: string
+} {
   let year = 2026
-  while (raffleDate.getTime() < now.getTime()) {
+  let month = 6 // July 2026 — first drawing
+  let meta = drawingMonthMeta(year, month)
+  while (meta.date.getTime() < now.getTime()) {
     month += 1
     if (month > 11) {
       month = 0
       year += 1
     }
-    raffleDate = pacificWallClock(year, month, 15, 20, 0)
+    meta = drawingMonthMeta(year, month)
   }
-  return raffleDate
+  return meta
+}
+
+export function getDrawingDate(now: Date = new Date()): Date {
+  return getUpcomingDrawing(now).date
 }
 
 // The precise window (in 8 PM Pacific cutoffs) for the upcoming drawing.
@@ -71,8 +107,17 @@ export function getDrawingWindow(now: Date = new Date()): {
   label: string
   dateLabel: string
 } {
-  const end = getDrawingDate(now)
-  const start = pacificWallClock(end.getFullYear(), end.getMonth() - 1, 15, 20, 0)
+  const meta = getUpcomingDrawing(now)
+  const end = meta.date
+  // Start of the window is the previous month's drawing instant (accounting
+  // for any one-off override, e.g. Aug 16 rather than Aug 15).
+  let prevYear = end.getFullYear()
+  let prevMonth = end.getMonth() - 1
+  if (prevMonth < 0) {
+    prevMonth = 11
+    prevYear -= 1
+  }
+  const start = drawingMonthMeta(prevYear, prevMonth).date
   const monthName = end.toLocaleString("en-US", { month: "long", timeZone: DRAWING_TZ })
   const year = end.toLocaleString("en-US", { year: "numeric", timeZone: DRAWING_TZ })
   const monthNum = String(end.getMonth() + 1).padStart(2, "0")
@@ -81,7 +126,7 @@ export function getDrawingWindow(now: Date = new Date()): {
     end,
     key: `${year}-${monthNum}`,
     label: `${monthName} ${year} Drawing`,
-    dateLabel: `${monthName} 15, ${year}`,
+    dateLabel: `${monthName} ${meta.day}, ${year}`,
   }
 }
 
@@ -90,8 +135,14 @@ export function getDrawingWindow(now: Date = new Date()): {
 export function getCycleStart(now: Date = new Date()): Date {
   const programStart = new Date(2026, 5, 1) // June 1, 2026 — program launch
   const nextDrawing = getDrawingDate(now)
-  // The drawing immediately before the upcoming one (also 8 PM Pacific)
-  const prevDrawing = pacificWallClock(nextDrawing.getFullYear(), nextDrawing.getMonth() - 1, 15, 20, 0)
+  // The drawing immediately before the upcoming one (accounting for overrides).
+  let prevYear = nextDrawing.getFullYear()
+  let prevMonth = nextDrawing.getMonth() - 1
+  if (prevMonth < 0) {
+    prevMonth = 11
+    prevYear -= 1
+  }
+  const prevDrawing = drawingMonthMeta(prevYear, prevMonth).date
   // Only use the previous drawing as the cycle start if it has actually passed
   // AND is after launch; otherwise we're still in the inaugural cycle.
   if (prevDrawing.getTime() <= now.getTime() && prevDrawing.getTime() > programStart.getTime()) {
@@ -154,15 +205,30 @@ export function getBillingMonthLabel(key: string): string {
   return `${d.toLocaleString("en-US", { month: "long" })} ${y}`
 }
 
+function ordinalSuffix(day: number): string {
+  if (day > 3 && day < 21) return "th"
+  switch (day % 10) {
+    case 1:
+      return "st"
+    case 2:
+      return "nd"
+    case 3:
+      return "rd"
+    default:
+      return "th"
+  }
+}
+
 export function getDrawingInfo(now: Date = new Date()) {
-  const raffleDate = getDrawingDate(now)
-  const monthName = raffleDate.toLocaleString("en-US", { month: "long" })
-  const year = raffleDate.getFullYear()
+  const { date: raffleDate, day, timeLabel } = getUpcomingDrawing(now)
+  const monthName = raffleDate.toLocaleString("en-US", { month: "long", timeZone: DRAWING_TZ })
+  const year = raffleDate.toLocaleString("en-US", { year: "numeric", timeZone: DRAWING_TZ })
   const timeDiff = raffleDate.getTime() - now.getTime()
   const daysUntil = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)))
 
   return {
-    dateLabel: `${monthName} 15th, ${year}`,
+    dateLabel: `${monthName} ${day}${ordinalSuffix(day)}, ${year}`,
+    timeLabel,
     daysUntil,
     targetTime: raffleDate.getTime(),
   }
