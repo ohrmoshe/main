@@ -72,11 +72,26 @@ function drawingMonthMeta(
   return { date: pacificWallClock(year, month, 15, 20, 0), day: 15, timeLabel: "8:00 PM PST" }
 }
 
+// The entry CUTOFF for the drawing in (year, month). A charge is an entrant for
+// a drawing when its timestamp falls in [previous drawing's cutoff, this
+// drawing's cutoff). Normally the cutoff is the drawing instant itself (the
+// 15th at 8:00 PM Pacific). For the August 2026 drawing (moved to Aug 16), the
+// cutoff is the START of Aug 16 Pacific — so any renewal dated on Aug 16 rolls
+// forward into the September drawing rather than counting for August.
+function drawingCutoff(year: number, month: number): Date {
+  if (year === 2026 && month === 7) {
+    return pacificWallClock(2026, 7, 16, 0, 0)
+  }
+  return drawingMonthMeta(year, month).date
+}
+
 // The upcoming drawing (date + display metadata) relative to `now`.
 export function getUpcomingDrawing(now: Date = new Date()): {
   date: Date
   day: number
   timeLabel: string
+  year: number
+  month: number
 } {
   let year = 2026
   let month = 6 // July 2026 — first drawing
@@ -89,7 +104,7 @@ export function getUpcomingDrawing(now: Date = new Date()): {
     }
     meta = drawingMonthMeta(year, month)
   }
-  return meta
+  return { ...meta, year, month }
 }
 
 export function getDrawingDate(now: Date = new Date()): Date {
@@ -108,19 +123,28 @@ export function getDrawingWindow(now: Date = new Date()): {
   dateLabel: string
 } {
   const meta = getUpcomingDrawing(now)
-  const end = meta.date
-  // Start of the window is the previous month's drawing instant (accounting
-  // for any one-off override, e.g. Aug 16 rather than Aug 15).
-  let prevYear = end.getFullYear()
-  let prevMonth = end.getMonth() - 1
-  if (prevMonth < 0) {
-    prevMonth = 11
-    prevYear -= 1
+  // The window ENDS at this drawing's entry cutoff. Normally the drawing instant;
+  // for the Aug 2026 drawing it's the start of Aug 16, so Aug 16 renewals roll
+  // forward into September (see drawingCutoff).
+  const end = drawingCutoff(meta.year, meta.month)
+  // The window STARTS at the previous drawing's cutoff. For the inaugural
+  // July 2026 drawing there is no prior drawing, so we count from the program
+  // launch (June 1) — every June donation is an entrant for the July raffle.
+  let start: Date
+  if (meta.year === 2026 && meta.month === 6) {
+    start = new Date(2026, 5, 1)
+  } else {
+    let prevYear = meta.year
+    let prevMonth = meta.month - 1
+    if (prevMonth < 0) {
+      prevMonth = 11
+      prevYear -= 1
+    }
+    start = drawingCutoff(prevYear, prevMonth)
   }
-  const start = drawingMonthMeta(prevYear, prevMonth).date
-  const monthName = end.toLocaleString("en-US", { month: "long", timeZone: DRAWING_TZ })
-  const year = end.toLocaleString("en-US", { year: "numeric", timeZone: DRAWING_TZ })
-  const monthNum = String(end.getMonth() + 1).padStart(2, "0")
+  const monthName = meta.date.toLocaleString("en-US", { month: "long", timeZone: DRAWING_TZ })
+  const year = meta.date.toLocaleString("en-US", { year: "numeric", timeZone: DRAWING_TZ })
+  const monthNum = String(meta.month + 1).padStart(2, "0")
   return {
     start,
     end,
@@ -171,30 +195,42 @@ export function effectiveEntries(
   return d.entries + (isBonusActive(d, now) ? (d.bonusEntries || 0) : 0)
 }
 
-// --- Billing months (15th-to-15th windows) ---------------------------------
-// A charge counts toward the drawing on the 15th. The window runs from the 15th
-// of one month to the 15th of the next. A charge dated BEFORE the 15th belongs
-// to the window ENDING on the 15th of that same month; a charge on/after the
-// 15th belongs to the window ending on the 15th of the NEXT month.
-// Example: June 7 -> "2026-06" (June 15 drawing). June 20 -> "2026-07" (July 15).
+// --- Billing months (drawing-to-drawing windows) ---------------------------
+// Each charge counts toward a single drawing, following the real drawing
+// schedule and its entry cutoffs (see drawingCutoff). A charge is an entrant
+// for the FIRST drawing whose cutoff is strictly after the charge.
+//   • The inaugural July 15, 2026 drawing collects everything up to July 15 8 PM
+//     PT — including every donation dated back in June.
+//   • The August drawing collects July 15 8 PM PT up to (but excluding) Aug 16.
+//   • Renewals dated on Aug 16 roll forward into the September drawing.
+// Example: June 7 -> "2026-07" (July drawing). Aug 16 renewal -> "2026-09".
 
-// The drawing date (the 15th) a given charge date counts toward.
-export function getBillingDrawingDate(date: Date): Date {
-  const d = new Date(date)
-  const year = d.getFullYear()
-  const month = d.getMonth()
-  if (d.getDate() < 15) {
-    return new Date(year, month, 15, 20, 0, 0)
+// Which scheduled drawing a charge counts toward, as {year, month} (0-indexed).
+function getBillingDrawing(date: Date): { year: number; month: number } {
+  const t = new Date(date).getTime()
+  let year = 2026
+  let month = 6 // July 2026 — first drawing
+  while (drawingCutoff(year, month).getTime() <= t) {
+    month += 1
+    if (month > 11) {
+      month = 0
+      year += 1
+    }
   }
-  return new Date(year, month + 1, 15, 20, 0, 0)
+  return { year, month }
 }
 
-// Stable sortable key for the billing window, e.g. "2026-06".
+// The drawing instant a given charge date counts toward.
+export function getBillingDrawingDate(date: Date): Date {
+  const { year, month } = getBillingDrawing(date)
+  return drawingMonthMeta(year, month).date
+}
+
+// Stable sortable key for the billing window, e.g. "2026-07".
 export function getBillingMonthKey(date: Date): string {
-  const drawing = getBillingDrawingDate(date)
-  const y = drawing.getFullYear()
-  const m = String(drawing.getMonth() + 1).padStart(2, "0")
-  return `${y}-${m}`
+  const { year, month } = getBillingDrawing(date)
+  const m = String(month + 1).padStart(2, "0")
+  return `${year}-${m}`
 }
 
 // Human label for the billing window, e.g. "June 2026".

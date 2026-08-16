@@ -116,7 +116,10 @@ export async function getTransactionsByMonth() {
   >()
 
   for (const row of rows) {
-    const key = row.billingMonth || getBillingMonthKey(row.chargedAt ? new Date(row.chargedAt) : new Date())
+    // Always recompute from the charge date so grouping reflects the current
+    // drawing-window rules (June rolls into July; Aug 16 renewals into Sept),
+    // regardless of any billingMonth stored under older logic.
+    const key = getBillingMonthKey(row.chargedAt ? new Date(row.chargedAt) : new Date())
     let group = groups.get(key)
     if (!group) {
       group = { key, label: getBillingMonthLabel(key), total: 0, entries: 0, count: 0, rows: [] }
