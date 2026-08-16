@@ -116,10 +116,11 @@ export async function getTransactionsByMonth() {
   >()
 
   for (const row of rows) {
-    // Always recompute from the charge date so grouping reflects the current
-    // drawing-window rules (June rolls into July; Aug 16 renewals into Sept),
-    // regardless of any billingMonth stored under older logic.
-    const key = getBillingMonthKey(row.chargedAt ? new Date(row.chargedAt) : new Date())
+    // Always recompute from the charge date + type so grouping reflects the
+    // current drawing rules (June rolls into July; Aug 16 renewals into Sept,
+    // but Aug 16 one-times / new subscriptions stay in August), regardless of
+    // any billingMonth stored under older logic.
+    const key = getBillingMonthKey(row.chargedAt ? new Date(row.chargedAt) : new Date(), row.type)
     let group = groups.get(key)
     if (!group) {
       group = { key, label: getBillingMonthLabel(key), total: 0, entries: 0, count: 0, rows: [] }
@@ -152,14 +153,11 @@ export async function getNextRaffleEntrants() {
     getPhoneLookups(),
   ])
 
-  const startMs = window.start.getTime()
-  const endMs = window.end.getTime()
-
+  // Match on the type-aware billing key so this agrees exactly with the
+  // "All Charges by Month" grouping — including the Aug 16 rule where renewals
+  // roll into September but one-times / new subscriptions stay in August.
   const inWindow = rows
-    .filter((r) => {
-      const t = r.chargedAt ? new Date(r.chargedAt).getTime() : NaN
-      return Number.isFinite(t) && t >= startMs && t < endMs
-    })
+    .filter((r) => getBillingMonthKey(r.chargedAt ? new Date(r.chargedAt) : new Date(), r.type) === window.key)
     .map((row) => ({
       ...row,
       affiliateName: row.referralCode ? affiliateNames.get(row.referralCode) ?? null : null,
@@ -194,12 +192,10 @@ export async function exportTransactionsCSV(scope: "all" | "next" = "next"): Pro
   let data = rows
   if (scope === "next") {
     const window = getDrawingWindow()
-    const startMs = window.start.getTime()
-    const endMs = window.end.getTime()
-    data = rows.filter((r) => {
-      const t = r.chargedAt ? new Date(r.chargedAt).getTime() : NaN
-      return Number.isFinite(t) && t >= startMs && t < endMs
-    })
+    // Type-aware billing-key match (mirrors getNextRaffleEntrants).
+    data = rows.filter(
+      (r) => getBillingMonthKey(r.chargedAt ? new Date(r.chargedAt) : new Date(), r.type) === window.key,
+    )
   }
 
   const headers = [
