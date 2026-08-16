@@ -75,11 +75,16 @@ function drawingMonthMeta(
 // The entry CUTOFF for the drawing in (year, month). A charge is an entrant for
 // a drawing when its timestamp falls in [previous drawing's cutoff, this
 // drawing's cutoff). Normally the cutoff is the drawing instant itself (the
-// 15th at 8:00 PM Pacific). For the August 2026 drawing (moved to Aug 16), the
-// cutoff is the START of Aug 16 Pacific — so any renewal dated on Aug 16 rolls
-// forward into the September drawing rather than counting for August.
-function drawingCutoff(year: number, month: number): Date {
-  if (year === 2026 && month === 7) {
+// 15th at 8:00 PM Pacific).
+//
+// The August 2026 drawing was moved to Aug 16 (7:00 PM Eastern). Only
+// subscription RENEWALS that bill on Aug 16 are treated as the next cycle and
+// roll forward into September — their cutoff is the START of Aug 16 Pacific.
+// One-time donations and brand-new subscriptions made on Aug 16 are fresh
+// entries and count for August, right up to the drawing instant. This is why
+// the cutoff depends on the charge `type`.
+function drawingCutoff(year: number, month: number, type?: string): Date {
+  if (year === 2026 && month === 7 && type === "subscription_renewal") {
     return pacificWallClock(2026, 7, 16, 0, 0)
   }
   return drawingMonthMeta(year, month).date
@@ -198,19 +203,22 @@ export function effectiveEntries(
 // --- Billing months (drawing-to-drawing windows) ---------------------------
 // Each charge counts toward a single drawing, following the real drawing
 // schedule and its entry cutoffs (see drawingCutoff). A charge is an entrant
-// for the FIRST drawing whose cutoff is strictly after the charge.
+// for the FIRST drawing whose cutoff is strictly after the charge. The charge
+// `type` matters only for the Aug 2026 boundary (see drawingCutoff).
 //   • The inaugural July 15, 2026 drawing collects everything up to July 15 8 PM
 //     PT — including every donation dated back in June.
-//   • The August drawing collects July 15 8 PM PT up to (but excluding) Aug 16.
-//   • Renewals dated on Aug 16 roll forward into the September drawing.
-// Example: June 7 -> "2026-07" (July drawing). Aug 16 renewal -> "2026-09".
+//   • The August 16 drawing collects July 15 8 PM PT up to the drawing instant,
+//     including one-time donations and new subscriptions made on Aug 16.
+//   • Subscription renewals dated on Aug 16 roll forward into September.
+// Example: June 7 -> "2026-07" (July). Aug 16 one-time -> "2026-08".
+//          Aug 16 renewal -> "2026-09".
 
 // Which scheduled drawing a charge counts toward, as {year, month} (0-indexed).
-function getBillingDrawing(date: Date): { year: number; month: number } {
+function getBillingDrawing(date: Date, type?: string): { year: number; month: number } {
   const t = new Date(date).getTime()
   let year = 2026
   let month = 6 // July 2026 — first drawing
-  while (drawingCutoff(year, month).getTime() <= t) {
+  while (drawingCutoff(year, month, type).getTime() <= t) {
     month += 1
     if (month > 11) {
       month = 0
@@ -221,14 +229,14 @@ function getBillingDrawing(date: Date): { year: number; month: number } {
 }
 
 // The drawing instant a given charge date counts toward.
-export function getBillingDrawingDate(date: Date): Date {
-  const { year, month } = getBillingDrawing(date)
+export function getBillingDrawingDate(date: Date, type?: string): Date {
+  const { year, month } = getBillingDrawing(date, type)
   return drawingMonthMeta(year, month).date
 }
 
 // Stable sortable key for the billing window, e.g. "2026-07".
-export function getBillingMonthKey(date: Date): string {
-  const { year, month } = getBillingDrawing(date)
+export function getBillingMonthKey(date: Date, type?: string): string {
+  const { year, month } = getBillingDrawing(date, type)
   const m = String(month + 1).padStart(2, "0")
   return `${year}-${m}`
 }

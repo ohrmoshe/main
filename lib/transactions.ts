@@ -80,7 +80,7 @@ export async function recordTransaction(
       entries: input.entries,
       type: input.type,
       status: input.status || "paid",
-      billingMonth: getBillingMonthKey(input.chargedAt),
+      billingMonth: getBillingMonthKey(input.chargedAt, input.type),
       referralCode: input.referralCode || null,
       chargedAt: input.chargedAt,
     })
