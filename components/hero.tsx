@@ -98,25 +98,22 @@ export async function Hero() {
         <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
           {/* Prize watch */}
           <div
-            className="relative rounded-[22px] p-4 md:p-6 flex items-center justify-center mb-5"
+            className="relative rounded-[22px] p-8 md:p-12 flex items-center justify-center mb-5 min-h-[220px] md:min-h-[300px]"
             style={{ background: "linear-gradient(180deg, #fff, #f0eadf)" }}
           >
-            <span className="absolute top-3 right-3 rounded-full bg-teal2 text-gold2 text-xs md:text-sm font-extrabold tracking-[0.12em] uppercase px-3.5 py-1.5 shadow-lg">
-              {WATCH_VALUE} Value
-            </span>
-            <Image
-              src="/images/rolex-gmt-bruce-wayne.avif"
-              alt="Rolex GMT-Master II Bruce Wayne — this month's prize"
-              width={560}
-              height={560}
-              priority
-              className="max-h-[340px] md:max-h-[440px] w-auto object-contain"
-            />
+            <div className="text-center">
+              <div className="font-heading text-3xl md:text-4xl font-light text-teal leading-none">
+                To Be Determined
+              </div>
+              <p className="text-teal/60 text-xs md:text-sm mt-3 tracking-[0.12em] uppercase font-extrabold">
+                Next Prize Announced Soon
+              </p>
+            </div>
           </div>
           <div className="flex items-baseline justify-between gap-3 mb-5">
             <div>
-              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">GMT-Master II</h3>
-              <p className="text-cream/70 text-xs mt-1">Bruce Wayne · Oystersteel · 40mm · Ref. 126710GRNR</p>
+              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">To Be Determined</h3>
+              <p className="text-cream/70 text-xs mt-1">Next month&apos;s prize watch will be revealed soon</p>
             </div>
           </div>
 
