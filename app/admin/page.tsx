@@ -2,6 +2,9 @@ import { getDonations, getDonationStats } from "@/app/actions/admin"
 import { getAffiliateStats } from "@/app/actions/affiliates"
 import { getTransactionsByMonth, getNextRaffleEntrants } from "@/app/actions/transactions"
 import { getOfferLinks } from "@/app/actions/offer"
+import { getWheelRounds } from "@/app/actions/wheel-rounds"
+import { WheelRoundsManager } from "./wheel-rounds-manager"
+import { WHEEL_MAX } from "@/lib/products"
 import { AdminDashboardClient } from "./client"
 import { DrawingWheel } from "./drawing-wheel"
 import { NextRaffle } from "./next-raffle"
@@ -26,13 +29,14 @@ export default async function AdminPage() {
     return <AdminLogin />
   }
 
-  const [donations, stats, affiliateStats, transactionMonths, nextRaffle, offerLinks] = await Promise.all([
+  const [donations, stats, affiliateStats, transactionMonths, nextRaffle, offerLinks, wheelRounds] = await Promise.all([
     getDonations("all"),
     getDonationStats(),
     getAffiliateStats(),
     getTransactionsByMonth(),
     getNextRaffleEntrants(),
     getOfferLinks(),
+    getWheelRounds(),
   ])
 
   const donationsArray = Array.isArray(donations) ? donations : []
@@ -86,6 +90,8 @@ export default async function AdminPage() {
         <AffiliatesManager initialAffiliates={affiliateStats} baseUrl={baseUrl} />
 
         <OfferLinksManager initialLinks={offerLinks} />
+
+        <WheelRoundsManager initialInfo={wheelRounds} wheelMax={WHEEL_MAX} />
       </div>
     </div>
   )
