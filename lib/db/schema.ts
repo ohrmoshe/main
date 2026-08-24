@@ -93,3 +93,23 @@ export const wheelNumbers = pgTable("wheel_numbers", {
   referralCode: text("referral_code"),
   createdAt: timestamp("created_at").defaultNow(),
 })
+
+// History of past prize-wheel rounds. When a new round starts, every spin from
+// the finished round is copied here and removed from `wheel_numbers` so its
+// number becomes available again. Donations/transactions are never touched —
+// this is purely the record of which number each donor landed on and when.
+export const wheelNumberArchive = pgTable("wheel_number_archive", {
+  id: serial("id").primaryKey(),
+  // Human-readable name of the round these spins belonged to, e.g. "Round 1".
+  roundLabel: text("round_label").notNull().default(""),
+  number: integer("number").notNull(),
+  donorName: text("donor_name"),
+  donorEmail: text("donor_email"),
+  donorPhone: text("donor_phone"),
+  amountCents: integer("amount_cents").notNull().default(0),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  referralCode: text("referral_code"),
+  // When the donor originally spun (carried over from wheel_numbers.created_at).
+  spunAt: timestamp("spun_at"),
+  archivedAt: timestamp("archived_at").defaultNow(),
+})
