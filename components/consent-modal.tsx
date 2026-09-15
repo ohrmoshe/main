@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { X } from "lucide-react"
+import { PledgerModal } from "./pledger-modal"
 
 interface ConsentModalProps {
   isOpen: boolean
@@ -11,6 +12,9 @@ interface ConsentModalProps {
     entries: number
     price: number
     isOneTime?: boolean
+    // Short label identifying the picked plan (tier id, "monthly-custom", …).
+    // Carried through Pledger so the donation is credited to the right tier.
+    context?: string
   }
 }
 
@@ -18,6 +22,7 @@ export function ConsentModal({ isOpen, onClose, onSubmit, planDetails }: Consent
   const [emailConsent, setEmailConsent] = useState(false)
   const [smsConsent, setSmsConsent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showPledger, setShowPledger] = useState(false)
 
   if (!isOpen) return null
 
@@ -92,6 +97,29 @@ export function ConsentModal({ isOpen, onClose, onSubmit, planDetails }: Consent
         >
           {loading ? "Processing..." : "Continue to Payment"}
         </button>
+
+        <div className="flex items-center gap-3 my-4">
+          <div className="h-px flex-1 bg-teal/10" />
+          <span className="text-[0.55rem] tracking-[0.3em] uppercase text-teal/40">or</span>
+          <div className="h-px flex-1 bg-teal/10" />
+        </div>
+
+        <button
+          onClick={() => setShowPledger(true)}
+          disabled={loading}
+          className="w-full py-4 bg-transparent border border-teal/30 text-teal text-[0.65rem] tracking-[0.3em] uppercase transition-all hover:border-gold hover:text-gold disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Donate with Pledger
+        </button>
+
+        <PledgerModal
+          isOpen={showPledger}
+          onClose={() => setShowPledger(false)}
+          entries={planDetails.entries}
+          amountDollars={planDetails.price}
+          context={planDetails.context ?? (planDetails.isOneTime ? "one-time" : "monthly")}
+          isOneTime={planDetails.isOneTime}
+        />
 
         <p className="text-[0.6rem] text-teal/40 text-center mt-4 leading-relaxed">
           You can unsubscribe from communications at any time. View our{" "}

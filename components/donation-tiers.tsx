@@ -204,7 +204,7 @@ function Tier({
         isOpen={showConsentModal}
         onClose={() => setShowConsentModal(false)}
         onSubmit={handleSubscribe}
-        planDetails={{ entries, price: firstMonthPrice, isOneTime: false }}
+        planDetails={{ entries, price: firstMonthPrice, isOneTime: false, context: tierId }}
       />
     </>
   )
@@ -299,7 +299,7 @@ function MonthlyCustomAmount() {
         isOpen={showConsentModal}
         onClose={() => setShowConsentModal(false)}
         onSubmit={handleSubscribe}
-        planDetails={{ entries, price: firstMonthCharge, isOneTime: false }}
+        planDetails={{ entries, price: firstMonthCharge, isOneTime: false, context: "monthly-custom" }}
       />
     </div>
   )
