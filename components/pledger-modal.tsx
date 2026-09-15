@@ -1,11 +1,14 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { X, ExternalLink } from "lucide-react"
 
 // Pre-generated Pledge.to ("Pledger") widget ID from the Impact Hub.
 const PLEDGER_WIDGET_ID = "e33e9cb3-1194-451a-a983-e9d0c51ba79c"
 const PLEDGER_SCRIPT_SRC = "https://www.pledge.to/embed/widget.js"
+// Direct hosted donation page — used as a fallback when the embed can't load
+// (e.g. inside the v0 preview sandbox, which blocks outbound pledge.to calls).
+const PLEDGER_HOSTED_URL = `https://www.pledge.to/widgets/${PLEDGER_WIDGET_ID}`
 
 interface PledgerModalProps {
   isOpen: boolean
@@ -23,6 +26,8 @@ interface PledgerModalProps {
 
 export function PledgerModal({ isOpen, onClose, entries, amountDollars, context, isOneTime }: PledgerModalProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  // "loading" until the Pledge.to iframe appears; "failed" if it never does.
+  const [status, setStatus] = useState<"loading" | "loaded" | "failed">("loading")
 
   // Pledge.to's widget.js scans for `.plg-donate` elements on load and then
   // keeps a MutationObserver watching the document, so any `.plg-donate` node
@@ -33,11 +38,7 @@ export function PledgerModal({ isOpen, onClose, entries, amountDollars, context,
 
     const container = containerRef.current
     container.innerHTML = ""
-
-    const loading = document.createElement("p")
-    loading.textContent = "Loading secure donation form…"
-    loading.className = "text-center text-sm text-teal/40 pt-24"
-    container.appendChild(loading)
+    setStatus("loading")
 
     const target = document.createElement("div")
     target.className = "plg-donate"
@@ -74,7 +75,24 @@ export function PledgerModal({ isOpen, onClose, entries, amountDollars, context,
       document.body.appendChild(script)
     }
 
+    // Consider the widget "loaded" once it injects an iframe into our target.
+    const observer = new MutationObserver(() => {
+      if (target.querySelector("iframe")) {
+        setStatus("loaded")
+        observer.disconnect()
+      }
+    })
+    observer.observe(target, { childList: true, subtree: true })
+
+    // If nothing rendered within a few seconds, the embed is blocked or
+    // unreachable — surface the hosted-page fallback instead of a spinner.
+    const timeout = window.setTimeout(() => {
+      if (!target.querySelector("iframe")) setStatus("failed")
+    }, 6000)
+
     return () => {
+      observer.disconnect()
+      window.clearTimeout(timeout)
       container.innerHTML = ""
     }
   }, [isOpen, entries, amountDollars, context, isOneTime])
@@ -103,7 +121,35 @@ export function PledgerModal({ isOpen, onClose, entries, amountDollars, context,
         </div>
 
         {/* Pledge.to widget renders into this container via widget.js. */}
-        <div ref={containerRef} className="min-h-[420px]" />
+        <div className="relative min-h-[420px]">
+          <div ref={containerRef} className="min-h-[420px]" />
+
+          {status === "loading" && (
+            <p className="absolute inset-0 flex items-center justify-center text-center text-sm text-teal/40 px-6">
+              Loading secure donation form…
+            </p>
+          )}
+
+          {status === "failed" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+              <p className="text-sm text-teal/70 leading-relaxed mb-1">
+                The donation form couldn&apos;t load here.
+              </p>
+              <p className="text-xs text-teal/50 leading-relaxed mb-5">
+                This is expected in the preview. It works on the published site — or continue on Pledger directly.
+              </p>
+              <a
+                href={PLEDGER_HOSTED_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 py-3 px-5 bg-teal text-gold text-[0.65rem] tracking-[0.3em] uppercase transition-all hover:bg-teal2"
+              >
+                Donate on Pledger
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
