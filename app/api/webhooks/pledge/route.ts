@@ -35,6 +35,23 @@ function verifySignature(rawBody: string, header: string | null, secret: string)
   })
 }
 
+// We stamp custom metadata on each gift via the widget's `data-x-*` attributes
+// (see PledgerModal). Pledge.to echoes those back under the donation's metadata,
+// but the exact key casing/prefix that survives the round trip is unspecified
+// (x_entries, x-entries, data-x-entries, xEntries, …). Normalize every key to
+// bare alphanumerics so `x_entries`/`data-x-entries`/`xEntries` all resolve to
+// the same logical name ("xentries").
+function normalizeMeta(raw: unknown): Record<string, string> {
+  const out: Record<string, string> = {}
+  if (!raw || typeof raw !== "object") return out
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (v == null) continue
+    const key = k.toLowerCase().replace(/[^a-z0-9]/g, "")
+    out[key] = String(v)
+  }
+  return out
+}
+
 // Read a value from the first matching key path, tolerating the small shape
 // differences between Pledge.to payload versions (donation at top level vs.
 // wrapped in `data`, snake_case vs. nested donor object, etc.).
@@ -110,10 +127,29 @@ export async function POST(request: NextRequest) {
       pick<string>(donation, ["name", "donor.name", "donor_name"]) || `${first} ${last}`.trim() || "Pledger Donor"
     const email = pick<string>(donation, ["email", "donor.email", "donor_email"]) || ""
 
-    // Pledger gifts are one-time, so grant entries at the one-time rate
-    // ($42/entry, floored). Gifts under $42 are recorded with 0 entries.
-    const tier = calculateCustomTier(amountCents)
-    const entries = tier?.entries ?? 0
+    // Metadata we stamped on the gift before the donor paid. `xentries` is the
+    // entry count for the tier / wheel result the donor picked on the site, so
+    // it is authoritative — it makes a Pledger gift "match the tier the donor
+    // picked" instead of being re-derived from the amount (which can't tell a
+    // 1-entry wheel spin apart from a 3-entry tier at the same dollar amount).
+    const meta = normalizeMeta(pick(donation, ["metadata", "meta", "custom_fields", "customFields"]))
+    const metaEntries = meta.xentries !== undefined ? Number.parseInt(meta.xentries, 10) : NaN
+    const plan = meta.xplan === "monthly" ? "monthly" : meta.xplan === "one_time" ? "one_time" : ""
+    const context = meta.xcontext || ""
+
+    // Prefer the picked-tier entries; fall back to the one-time $42/entry rate
+    // only when the metadata is missing (e.g. a donation made straight from the
+    // Pledge.to hosted page, outside our flow).
+    const entries =
+      Number.isFinite(metaEntries) && metaEntries >= 0 ? metaEntries : (calculateCustomTier(amountCents)?.entries ?? 0)
+
+    // Monthly gifts recur; treat them like the subscription flow. Everything
+    // else (one-time, wheel, unknown) is recorded as a one-time gift.
+    const isMonthly = plan === "monthly"
+    const donationStatus = isMonthly ? "active" : "one_time"
+    const txType = isMonthly ? "subscription_initial" : "one_time"
+
+    console.log("[v0] Pledge webhook reconciling", { donationId, entries, plan, context, amountCents })
 
     // Dedupe key shared across both tables. Pledge.to re-delivers on retries.
     const dedupeId = `pledge_${donationId}`
@@ -127,7 +163,7 @@ export async function POST(request: NextRequest) {
         email,
         entries,
         amountCents,
-        status: "one_time",
+        status: donationStatus,
         emailConsent: false,
         smsConsent: false,
         referralCode: "pledger",
@@ -146,13 +182,13 @@ export async function POST(request: NextRequest) {
       email,
       amountCents,
       entries,
-      type: "one_time",
+      type: txType,
       status: "paid",
       referralCode: "pledger",
       chargedAt: new Date(),
     })
 
-    await sendAdminNotification("one_time", {
+    await sendAdminNotification(isMonthly ? "new_subscription" : "one_time", {
       name: fullName,
       email,
       entries,
@@ -165,7 +201,7 @@ export async function POST(request: NextRequest) {
         email,
         entries,
         amount: amountCents / 100,
-        isOneTime: true,
+        isOneTime: !isMonthly,
       })
     }
 

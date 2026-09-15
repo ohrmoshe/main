@@ -10,9 +10,18 @@ const PLEDGER_SCRIPT_SRC = "https://www.pledge.to/embed/widget.js"
 interface PledgerModalProps {
   isOpen: boolean
   onClose: () => void
+  // The plan the donor picked BEFORE opening Pledger. `entries` is authoritative
+  // (it "matches the tier the donor picked"); `amountDollars` locks the widget's
+  // amount so the Pledger charge lines up with that tier / wheel result.
+  entries: number
+  amountDollars: number
+  // A short label describing where this donation came from (tier id, "wheel",
+  // "monthly-custom", etc.) — carried through for reconciliation/record keeping.
+  context: string
+  isOneTime?: boolean
 }
 
-export function PledgerModal({ isOpen, onClose }: PledgerModalProps) {
+export function PledgerModal({ isOpen, onClose, entries, amountDollars, context, isOneTime }: PledgerModalProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Pledge.to's widget.js scans for `.plg-donate` elements on load and then
@@ -33,6 +42,27 @@ export function PledgerModal({ isOpen, onClose }: PledgerModalProps) {
     const target = document.createElement("div")
     target.className = "plg-donate"
     target.setAttribute("data-widget-id", PLEDGER_WIDGET_ID)
+
+    // Lock the donation amount to the picked tier / wheel result so the amount
+    // the donor is charged matches what the site quoted.
+    if (amountDollars > 0) {
+      target.setAttribute("data-amount", String(amountDollars))
+    }
+
+    // Custom metadata. Pledge.to forwards every `data-x-*` attribute into the
+    // donation's metadata and echoes it back on the webhook, so we stamp the
+    // authoritative entry count + context here and read it back server-side.
+    // A random ref lets us trace a specific gift end to end.
+    const ref =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    target.setAttribute("data-x-source", "wl-site")
+    target.setAttribute("data-x-entries", String(entries))
+    target.setAttribute("data-x-context", context)
+    target.setAttribute("data-x-plan", isOneTime ? "one_time" : "monthly")
+    target.setAttribute("data-x-ref", ref)
+
     container.appendChild(target)
 
     // Load the embed script only once; the guard inside widget.js makes repeat
@@ -47,7 +77,7 @@ export function PledgerModal({ isOpen, onClose }: PledgerModalProps) {
     return () => {
       container.innerHTML = ""
     }
-  }, [isOpen])
+  }, [isOpen, entries, amountDollars, context, isOneTime])
 
   if (!isOpen) return null
 
@@ -66,7 +96,9 @@ export function PledgerModal({ isOpen, onClose }: PledgerModalProps) {
 
         <div className="text-center mb-5">
           <div className="text-[0.6rem] tracking-[0.4em] uppercase text-gold mb-2">Donate with Pledger</div>
-          <div className="font-heading text-2xl text-teal">Complete your gift</div>
+          <div className="font-heading text-2xl text-teal">
+            {entries} {entries === 1 ? "Entry" : "Entries"}
+          </div>
           <p className="text-sm text-teal/60 mt-1">Secure donation processed by Pledge.to</p>
         </div>
 

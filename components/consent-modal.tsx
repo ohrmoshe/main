@@ -12,6 +12,9 @@ interface ConsentModalProps {
     entries: number
     price: number
     isOneTime?: boolean
+    // Short label identifying the picked plan (tier id, "monthly-custom", …).
+    // Carried through Pledger so the donation is credited to the right tier.
+    context?: string
   }
 }
 
@@ -109,7 +112,14 @@ export function ConsentModal({ isOpen, onClose, onSubmit, planDetails }: Consent
           Donate with Pledger
         </button>
 
-        <PledgerModal isOpen={showPledger} onClose={() => setShowPledger(false)} />
+        <PledgerModal
+          isOpen={showPledger}
+          onClose={() => setShowPledger(false)}
+          entries={planDetails.entries}
+          amountDollars={planDetails.price}
+          context={planDetails.context ?? (planDetails.isOneTime ? "one-time" : "monthly")}
+          isOneTime={planDetails.isOneTime}
+        />
 
         <p className="text-[0.6rem] text-teal/40 text-center mt-4 leading-relaxed">
           You can unsubscribe from communications at any time. View our{" "}
