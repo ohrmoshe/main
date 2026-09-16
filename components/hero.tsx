@@ -96,23 +96,19 @@ export async function Hero() {
         {/* Prize watch + countdown card — pulled high on mobile so the watch and
             monthly raffle are immediately visible right under the headline */}
         <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
-          {/* Prize watch */}
-          <div className="relative rounded-[22px] bg-white p-2 md:p-3 flex items-center justify-center mb-5 min-h-[220px] md:min-h-[300px] overflow-hidden">
-            <Image
-              src="/images/rolex-datejust-41-mint.png"
-              alt="Rolex Datejust 41 in Oystersteel and white gold with a mint green dial and Jubilee bracelet"
-              width={520}
-              height={520}
-              priority
-              className="w-full h-auto max-h-[280px] md:max-h-[360px] object-contain"
-            />
+          {/* Prize watch — to be determined for the next drawing */}
+          <div className="relative rounded-[22px] bg-white p-2 md:p-3 flex flex-col items-center justify-center text-center mb-5 min-h-[220px] md:min-h-[300px] overflow-hidden">
+            <div className="text-[0.7rem] font-extrabold tracking-[0.18em] uppercase text-gold mb-2">
+              Next Prize
+            </div>
+            <div className="font-heading text-3xl md:text-4xl font-light leading-none text-teal">
+              To Be Determined
+            </div>
           </div>
           <div className="flex items-baseline justify-between gap-3 mb-5">
             <div>
-              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">Rolex Datejust 41</h3>
-              <p className="text-cream/70 text-xs mt-1">
-                Oystersteel &amp; white gold · Mint green dial · Value {WATCH_VALUE}
-              </p>
+              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">To Be Determined</h3>
+              <p className="text-cream/70 text-xs mt-1">Next prize announced soon</p>
             </div>
           </div>
 
