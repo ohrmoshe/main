@@ -1,6 +1,6 @@
 export function Winners() {
   const winners = [
-    { month: "September 2026", name: "A. Gringuz", watch: "To Be Determined", city: "Los Angeles, CA" },
+    { month: "September 2026", name: "A. Gringuz", watch: "Rolex Datejust 41 · Mint green dial", city: "Los Angeles, CA" },
     { month: "August 2026", name: "K. Aharon", watch: "Rolex GMT-Master II · Bruce Wayne", city: "Los Angeles, CA" },
     { month: "July 2026", name: "M. Doron", watch: "Rolex GMT-Master II · Root Beer", city: "Los Angeles, CA" },
     { month: "May 2026", name: "F. Schneider", watch: "Rolex GMT-Master II · Full Gold", city: "Jackson, NJ" },
