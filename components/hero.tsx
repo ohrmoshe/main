@@ -57,8 +57,8 @@ export async function Hero() {
               <span className="font-bold text-gold2 text-2xl md:text-3xl">
                 {monthlySubscribers.toLocaleString()}
               </span>{" "}
-              {monthlySubscribers === 1 ? "member has" : "members have"}{" "}
-              joined this month&apos;s sweepstakes
+              {monthlySubscribers === 1 ? "monthly member" : "monthly members"}{" "}
+              in this month&apos;s sweepstakes
             </p>
           )}
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
