@@ -1,18 +1,37 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
-import { Cormorant_Garamond, Jost } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300', '400', '600'],
-  style: ['normal', 'italic'],
+// Self-hosted to avoid an intermittent Turbopack next/font/google resolution
+// failure ('@vercel/turbopack-next/internal/font/google/font'). These are the
+// latin-subset variable woff2 files for the same families/weights.
+const cormorant = localFont({
+  src: [
+    {
+      path: './fonts/cormorant-garamond-latin.woff2',
+      weight: '300 600',
+      style: 'normal',
+    },
+    {
+      path: './fonts/cormorant-garamond-latin-italic.woff2',
+      weight: '300 600',
+      style: 'italic',
+    },
+  ],
+  display: 'swap',
   variable: '--font-heading',
 })
 
-const jost = Jost({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
+const jost = localFont({
+  src: [
+    {
+      path: './fonts/jost-latin.woff2',
+      weight: '300 600',
+      style: 'normal',
+    },
+  ],
+  display: 'swap',
   variable: '--font-sans',
 })
 
