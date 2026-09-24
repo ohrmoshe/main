@@ -96,19 +96,23 @@ export async function Hero() {
         {/* Prize watch + countdown card — pulled high on mobile so the watch and
             monthly raffle are immediately visible right under the headline */}
         <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
-          {/* Prize watch — to be determined for the next drawing */}
-          <div className="relative rounded-[22px] bg-white p-2 md:p-3 flex flex-col items-center justify-center text-center mb-5 min-h-[220px] md:min-h-[300px] overflow-hidden">
-            <div className="text-[0.7rem] font-extrabold tracking-[0.18em] uppercase text-gold mb-2">
-              Next Prize
+          {/* Prize watch — this month's Rolex GMT-Master II "Batgirl" */}
+          <div className="relative rounded-[22px] bg-black p-2 md:p-3 flex flex-col items-center justify-center text-center mb-5 min-h-[220px] md:min-h-[300px] overflow-hidden">
+            <div className="absolute top-3 left-3 z-10 text-[0.7rem] font-extrabold tracking-[0.18em] uppercase text-gold">
+              This Month&apos;s Prize
             </div>
-            <div className="font-heading text-3xl md:text-4xl font-light leading-none text-teal">
-              To Be Determined
-            </div>
+            <Image
+              src="/images/batgirl-rolex-gmt-master-ii.png"
+              alt="Rolex GMT-Master II 'Batgirl' with black and blue ceramic bezel on a stainless steel Jubilee bracelet"
+              width={900}
+              height={900}
+              className="h-auto w-full object-contain"
+            />
           </div>
           <div className="flex items-baseline justify-between gap-3 mb-5">
             <div>
-              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">To Be Determined</h3>
-              <p className="text-cream/70 text-xs mt-1">Next prize announced soon</p>
+              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">Rolex GMT-Master II</h3>
+              <p className="text-cream/70 text-xs mt-1">&ldquo;Batgirl&rdquo; · Black &amp; Blue Bezel · {WATCH_VALUE} value</p>
             </div>
           </div>
 
