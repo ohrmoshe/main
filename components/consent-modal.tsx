@@ -111,16 +111,25 @@ export function ConsentModal({ isOpen, onClose, onSubmit, planDetails, donorsFun
           <div className="h-px flex-1 bg-teal/10" />
         </div>
 
-        <button
-          onClick={() => setShowPledger(true)}
-          disabled={loading}
-          className="w-full py-4 bg-transparent border border-teal/30 text-teal text-[0.65rem] tracking-[0.3em] uppercase transition-all hover:border-gold hover:text-gold disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Donate with Pledger
-        </button>
-
         {donorsFundPlan && (
           <>
+            <button
+              onClick={() => setShowPledger(true)}
+              disabled={loading}
+              className="w-full py-4 bg-transparent border border-teal/30 text-teal text-[0.65rem] tracking-[0.3em] uppercase transition-all hover:border-gold hover:text-gold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Give with Pledger
+            </button>
+
+            <PledgerModal
+              isOpen={showPledger}
+              onClose={() => setShowPledger(false)}
+              plan={donorsFundPlan}
+              entries={planDetails.entries}
+              monthlyAmount={planDetails.fullMonthlyPrice ?? planDetails.price}
+              consent={{ email: emailConsent, sms: smsConsent }}
+            />
+
             <button
               onClick={() => setShowDonorsFund(true)}
               disabled={loading}
@@ -139,15 +148,6 @@ export function ConsentModal({ isOpen, onClose, onSubmit, planDetails, donorsFun
             />
           </>
         )}
-
-        <PledgerModal
-          isOpen={showPledger}
-          onClose={() => setShowPledger(false)}
-          entries={planDetails.entries}
-          amountDollars={planDetails.price}
-          context={planDetails.context ?? (planDetails.isOneTime ? "one-time" : "monthly")}
-          isOneTime={planDetails.isOneTime}
-        />
 
         <p className="text-[0.6rem] text-teal/40 text-center mt-4 leading-relaxed">
           You can unsubscribe from communications at any time. View our{" "}

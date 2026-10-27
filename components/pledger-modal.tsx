@@ -1,109 +1,208 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { X } from "lucide-react"
-
-// Pre-generated Pledge.to ("Pledger") widget ID from the Impact Hub.
-const PLEDGER_WIDGET_ID = "e33e9cb3-1194-451a-a983-e9d0c51ba79c"
-const PLEDGER_SCRIPT_SRC = "https://www.pledge.to/embed/widget.js"
+import { useState, useTransition } from "react"
+import { X, Lock, CheckCircle2 } from "lucide-react"
+import { submitPledgerGrant, type PledgerResponse } from "@/app/actions/pledger"
+import type { DonorsFundPlan } from "@/app/actions/donors-fund"
 
 interface PledgerModalProps {
   isOpen: boolean
   onClose: () => void
-  // The plan the donor picked BEFORE opening Pledger. `entries` is authoritative
-  // (it "matches the tier the donor picked"); `amountDollars` locks the widget's
-  // amount so the Pledger charge lines up with that tier / wheel result.
+  plan: DonorsFundPlan
   entries: number
-  amountDollars: number
-  // A short label describing where this donation came from (tier id, "wheel",
-  // "monthly-custom", etc.) — carried through for reconciliation/record keeping.
-  context: string
-  isOneTime?: boolean
+  monthlyAmount: number
+  consent: { email: boolean; sms: boolean }
 }
 
-export function PledgerModal({ isOpen, onClose, entries, amountDollars, context, isOneTime }: PledgerModalProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+const inputClass =
+  "w-full bg-transparent border border-teal/25 px-3.5 py-3 text-teal text-base placeholder:text-teal/35 focus:outline-none focus:border-gold transition-colors"
+const labelClass = "block text-[0.6rem] tracking-[0.3em] uppercase text-teal/60 mb-1.5"
 
-  // Pledge.to's widget.js scans for `.plg-donate` elements on load and then
-  // keeps a MutationObserver watching the document, so any `.plg-donate` node
-  // added later (like this modal's) is rendered into automatically. We mount a
-  // fresh target div each time the modal opens and load the embed script once.
-  useEffect(() => {
-    if (!isOpen || !containerRef.current) return
+function formatCard(value: string) {
+  return value
+    .replace(/\D/g, "")
+    .slice(0, 16)
+    .replace(/(\d{4})(?=\d)/g, "$1 ")
+}
 
-    const container = containerRef.current
-    container.innerHTML = ""
+function formatExpiry(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4)
+  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits
+}
 
-    const loading = document.createElement("p")
-    loading.textContent = "Loading secure donation form…"
-    loading.className = "text-center text-sm text-teal/40 pt-24"
-    container.appendChild(loading)
-
-    const target = document.createElement("div")
-    target.className = "plg-donate"
-    target.setAttribute("data-widget-id", PLEDGER_WIDGET_ID)
-
-    // Lock the donation amount to the picked tier / wheel result so the amount
-    // the donor is charged matches what the site quoted.
-    if (amountDollars > 0) {
-      target.setAttribute("data-amount", String(amountDollars))
-    }
-
-    // Custom metadata. Pledge.to forwards every `data-x-*` attribute into the
-    // donation's metadata and echoes it back on the webhook, so we stamp the
-    // authoritative entry count + context here and read it back server-side.
-    // A random ref lets us trace a specific gift end to end.
-    const ref =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    target.setAttribute("data-x-source", "wl-site")
-    target.setAttribute("data-x-entries", String(entries))
-    target.setAttribute("data-x-context", context)
-    target.setAttribute("data-x-plan", isOneTime ? "one_time" : "monthly")
-    target.setAttribute("data-x-ref", ref)
-
-    container.appendChild(target)
-
-    // Load the embed script only once; the guard inside widget.js makes repeat
-    // loads a no-op, and its persistent observer picks up the new target div.
-    if (!document.querySelector(`script[src="${PLEDGER_SCRIPT_SRC}"]`)) {
-      const script = document.createElement("script")
-      script.src = PLEDGER_SCRIPT_SRC
-      script.async = true
-      document.body.appendChild(script)
-    }
-
-    return () => {
-      container.innerHTML = ""
-    }
-  }, [isOpen, entries, amountDollars, context, isOneTime])
+export function PledgerModal({ isOpen, onClose, plan, entries, monthlyAmount, consent }: PledgerModalProps) {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [cardNumber, setCardNumber] = useState("")
+  const [expDate, setExpDate] = useState("")
+  const [cvv, setCvv] = useState("")
+  const [result, setResult] = useState<PledgerResponse | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   if (!isOpen) return null
 
+  const handleClose = () => {
+    setCvv("")
+    setResult(null)
+    onClose()
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setResult(null)
+    startTransition(async () => {
+      const response = await submitPledgerGrant({ plan, name, email, cardNumber, cvv, expDate, consent })
+      setResult(response)
+      if (response.ok) {
+        setCardNumber("")
+        setExpDate("")
+        setCvv("")
+      }
+    })
+  }
+
+  const succeeded = result?.ok === true
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleClose} />
 
-      <div className="relative bg-cream border border-gold/30 p-6 md:p-8 max-w-lg w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pledger-title"
+        className="relative bg-cream border border-gold/30 p-6 md:p-8 max-w-md w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+      >
         <button
-          onClick={onClose}
+          onClick={handleClose}
           aria-label="Close"
           className="absolute top-4 right-4 text-teal/50 hover:text-teal transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="text-center mb-5">
-          <div className="text-[0.6rem] tracking-[0.4em] uppercase text-gold mb-2">Donate with Pledger</div>
-          <div className="font-heading text-2xl text-teal">
+        <div className="text-center mb-6">
+          <div className="text-[0.6rem] tracking-[0.4em] uppercase text-gold mb-2">Pledger Charitable</div>
+          <h2 id="pledger-title" className="font-heading text-2xl text-teal">
             {entries} {entries === 1 ? "Entry" : "Entries"}
-          </div>
-          <p className="text-sm text-teal/60 mt-1">Secure donation processed by Pledge.to</p>
+          </h2>
+          <p className="text-sm text-teal/60 mt-1">${monthlyAmount}/month grant from your Pledger card</p>
         </div>
 
-        {/* Pledge.to widget renders into this container via widget.js. */}
-        <div ref={containerRef} className="min-h-[420px]" />
+        {succeeded ? (
+          <div className="flex flex-col items-center gap-3 text-center py-4" role="status">
+            <CheckCircle2 className="w-10 h-10 text-gold" aria-hidden="true" />
+            <p className="font-heading text-xl text-teal">Thank you for your grant</p>
+            <p className="text-sm text-teal/70 leading-relaxed">
+              Your monthly grant of ${result.amount} is set up and you have {result.entries}{" "}
+              {result.entries === 1 ? "entry" : "entries"} in every drawing.
+              {result.refNum && <> Reference #{result.refNum}.</>}
+            </p>
+            <button
+              onClick={handleClose}
+              className="mt-3 w-full py-4 bg-teal text-gold text-[0.65rem] tracking-[0.3em] uppercase transition-all hover:bg-teal2"
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label htmlFor="pledger-name" className={labelClass}>
+                Full name
+              </label>
+              <input
+                id="pledger-name"
+                required
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="pledger-email" className={labelClass}>
+                Email for receipt
+              </label>
+              <input
+                id="pledger-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="pledger-card" className={labelClass}>
+                Pledger card number
+              </label>
+              <input
+                id="pledger-card"
+                required
+                autoComplete="off"
+                inputMode="numeric"
+                placeholder="6599 0000 0000 0000"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(formatCard(e.target.value))}
+                className={`${inputClass} font-mono tracking-wide`}
+              />
+            </div>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label htmlFor="pledger-exp" className={labelClass}>
+                  Expires
+                </label>
+                <input
+                  id="pledger-exp"
+                  required
+                  autoComplete="off"
+                  inputMode="numeric"
+                  placeholder="MM/YY"
+                  value={expDate}
+                  onChange={(e) => setExpDate(formatExpiry(e.target.value))}
+                  className={`${inputClass} font-mono tracking-wide`}
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="pledger-cvv" className={labelClass}>
+                  CVV
+                </label>
+                <input
+                  id="pledger-cvv"
+                  type="password"
+                  required
+                  autoComplete="off"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, ""))}
+                  className={`${inputClass} font-mono tracking-[0.3em]`}
+                />
+              </div>
+            </div>
+
+            {result && !result.ok && (
+              <p role="alert" className="text-sm text-destructive leading-relaxed">
+                {result.error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="mt-1 w-full py-4 bg-teal text-gold text-[0.65rem] tracking-[0.3em] uppercase transition-all hover:bg-teal2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPending ? "Processing..." : `Give $${monthlyAmount}/month`}
+            </button>
+
+            <p className="flex items-center justify-center gap-1.5 text-[0.65rem] text-teal/45 text-center">
+              <Lock className="w-3 h-3" aria-hidden="true" />
+              Sent directly to Pledger Charitable. We never store your card details.
+            </p>
+          </form>
+        )}
       </div>
     </div>
   )
