@@ -50,6 +50,22 @@ export async function sendDonorConfirmation(data: {
         <p style="color: #e8e0d2; font-size: 15px; margin: 4px 0;"><strong>Passcode:</strong> ohrmoshe</p>
       </div>
 
+      <div style="background-color: #143434; border: 1px solid rgba(200,155,92,0.3); border-radius: 10px; padding: 20px; margin: 24px 0;">
+        <h2 style="color: #c89b5c; font-size: 18px; margin: 0 0 12px;">Join Our WhatsApp Group</h2>
+        <p style="color: #e8e0d2; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">
+          Get all drawing updates, winner announcements, and news in our WhatsApp group.
+        </p>
+        <a href="https://chat.whatsapp.com/J2arFjg7VTf8KdMvkPEGu2"
+           style="display: inline-block; background-color: #c89b5c; color: #0e2a2a; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 15px;">
+          Join the WhatsApp group
+        </a>
+        <p style="margin: 12px 0 0;">
+          <a href="https://chat.whatsapp.com/J2arFjg7VTf8KdMvkPEGu2" style="color: #d9b87a; font-size: 13px; word-break: break-all;">
+            chat.whatsapp.com/J2arFjg7VTf8KdMvkPEGu2
+          </a>
+        </p>
+      </div>
+
       <p style="color: #b9b0a2; font-size: 13px; line-height: 1.6;">
         A project by Kollel Ohr Moshe. Thank you for supporting Torah education.
       </p>
