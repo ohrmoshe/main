@@ -101,7 +101,7 @@ export function PrizeWheel() {
         <WheelDial spinning={false} displayNumber={WHEEL_MAX} />
         <h3 className="font-heading text-2xl text-gold2">All {WHEEL_MAX} Spots Claimed!</h3>
         <p className="text-cream/75 text-sm max-w-xs">
-          Every prize-wheel number has been taken. You can still enter every drawing with a monthly plan above.
+          Every prize-wheel number has been taken. You can still enter every drawing with a monthly plan.
         </p>
         <a
           href="#donate"
@@ -407,7 +407,7 @@ function SpinForm({
         <WheelDial spinning={false} displayNumber={WHEEL_MAX} />
         <h4 className="font-heading text-xl text-gold2">Just Sold Out!</h4>
         <p className="text-cream/75 text-sm max-w-xs">
-          The last number was claimed moments ago. Your card was not charged. Try a monthly plan above to enter every
+          The last number was claimed moments ago. Your card was not charged. Try a monthly plan to enter every
           drawing.
         </p>
       </div>
