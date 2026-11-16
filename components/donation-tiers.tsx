@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { createCheckoutSession } from "@/app/actions/stripe"
-import { SUBSCRIPTION_TIERS } from "@/lib/products"
+import { SUBSCRIPTION_TIERS, WHEEL_MAX } from "@/lib/products"
 import { isDealActive } from "@/lib/deal"
 import { ConsentModal } from "./consent-modal"
 import { DealBanner } from "./deal-banner"
@@ -24,19 +24,105 @@ function useDealActive() {
 const MONTHLY_CUSTOM_PRICE_PER_ENTRY = 20
 const MONTHLY_CUSTOM_MIN_AMOUNT = 360
 
+type EntryChoice = "monthly" | "one-time"
+
+const ENTRY_CHOICES: { value: EntryChoice; label: string; detail: string }[] = [
+  { value: "monthly", label: "Monthly Entry", detail: `From $${SUBSCRIPTION_TIERS[0].priceInCents / 100}/mo` },
+  { value: "one-time", label: "One-Time Entry", detail: `$1–$${WHEEL_MAX}` },
+]
+
+function entryChoiceForHash(hash: string): EntryChoice | null {
+  if (hash === "#prize-wheel") return "one-time"
+  if (hash === "#donate") return "monthly"
+  return null
+}
+
+// Phones are too narrow to show the tiers and the wheel next to each other, so
+// below md only the chosen one is shown. Links to #donate / #prize-wheel
+// anywhere on the page (hero buttons, navbar, sticky button) pick the matching
+// option; a document listener is used because next/link hash navigation does
+// not fire `hashchange`.
+function useEntryChoice() {
+  const [choice, setChoice] = useState<EntryChoice>("monthly")
+  useEffect(() => {
+    const initial = entryChoiceForHash(window.location.hash)
+    if (initial) setChoice(initial)
+
+    const onClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return
+      const link = event.target.closest("a[href*='#']")
+      if (!(link instanceof HTMLAnchorElement)) return
+      const next = entryChoiceForHash(link.hash)
+      if (next) setChoice(next)
+    }
+    document.addEventListener("click", onClick)
+    return () => document.removeEventListener("click", onClick)
+  }, [])
+  return [choice, setChoice] as const
+}
+
+function EntryChoiceSwitch({
+  choice,
+  onChange,
+}: {
+  choice: EntryChoice
+  onChange: (choice: EntryChoice) => void
+}) {
+  return (
+    <div
+      role="group"
+      aria-label="Choose how to enter"
+      className="md:hidden grid grid-cols-2 gap-1.5 rounded-[26px] border border-cream/15 bg-cream/[0.08] p-1.5 mb-7"
+    >
+      {ENTRY_CHOICES.map((option) => {
+        const selected = option.value === choice
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(option.value)}
+            className={`flex flex-col items-center justify-center gap-0.5 rounded-[20px] px-2 py-3 text-center transition-colors ${
+              selected ? "text-teal2" : "text-cream"
+            }`}
+            style={selected ? { background: "linear-gradient(135deg, var(--gold), var(--gold2))" } : undefined}
+          >
+            <span className="text-xs font-extrabold uppercase tracking-[0.1em]">{option.label}</span>
+            <span className={`font-heading text-xl leading-tight ${selected ? "" : "text-gold2"}`}>
+              {option.detail}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function DonationTiers() {
   const dealActive = useDealActive()
+  const [choice, setChoice] = useEntryChoice()
+  const showMonthly = choice === "monthly"
   return (
     <>
       {/* Monthly plans and the one-time prize wheel share one green band. From
           md up they sit side by side, and the subgrid rows line the two
-          headings up and start the tiers and the wheel at the same height. */}
+          headings up and start the tiers and the wheel at the same height.
+          Below md the switch shows one of them at a time. */}
       <section className="py-16 md:py-20 px-5 lg:px-0 bg-teal text-cream" id="donate">
         <div className="w-full max-w-[1180px] mx-auto">
           <DealBanner />
 
+          {/* #prize-wheel sits on this always-visible wrapper so the jump works
+              on phones even while the wheel panel itself is hidden. */}
+          <div id="prize-wheel" className="scroll-mt-24">
+          <EntryChoiceSwitch choice={choice} onChange={setChoice} />
+
           <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] gap-x-6 gap-y-7">
-            <div className="min-w-0 grid grid-cols-1 gap-y-7 md:col-start-1 md:row-start-1 md:row-span-2 md:grid-rows-subgrid">
+            <div
+              className={`min-w-0 grid-cols-1 gap-y-7 md:col-start-1 md:row-start-1 md:row-span-2 md:grid-rows-subgrid ${
+                showMonthly ? "grid" : "hidden md:grid"
+              }`}
+            >
               <div className="text-center md:text-left md:pt-5 lg:pt-7">
                 <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
                   Monthly Entry
@@ -68,7 +154,7 @@ export function DonationTiers() {
               </div>
             </div>
 
-            <div className="min-w-0 md:col-span-2 md:row-start-3">
+            <div className={`min-w-0 md:col-span-2 md:row-start-3 ${showMonthly ? "" : "hidden md:block"}`}>
               <MonthlyCustomAmount />
 
               <p className="text-center text-cream/70 mt-6 text-sm">
@@ -77,15 +163,16 @@ export function DonationTiers() {
             </div>
 
             <div
-              id="prize-wheel"
-              className="min-w-0 scroll-mt-24 grid grid-cols-1 gap-y-7 rounded-[28px] p-5 lg:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)] md:col-start-2 md:row-start-1 md:row-span-2 md:grid-rows-subgrid"
+              className={`min-w-0 grid-cols-1 gap-y-7 rounded-[28px] p-5 lg:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)] md:col-start-2 md:row-start-1 md:row-span-2 md:grid-rows-subgrid ${
+                showMonthly ? "hidden md:grid" : "grid"
+              }`}
               style={{ background: "linear-gradient(135deg, #fff8ed, #efe3d2)" }}
             >
               <div>
                 <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
                   One-Time Entry
                 </div>
-                <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-text leading-none mb-3">
+                <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-foreground leading-none mb-3">
                   Spin the Prize Wheel
                 </h2>
                 <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
@@ -102,6 +189,7 @@ export function DonationTiers() {
 
               <PrizeWheel />
             </div>
+          </div>
           </div>
         </div>
       </section>
