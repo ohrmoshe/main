@@ -61,22 +61,24 @@ export async function Hero() {
               joined this month&apos;s sweepstakes
             </p>
           )}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+          <div className="grid grid-cols-2 gap-3 max-w-[520px]">
             <Link
               href="#donate"
-              className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-teal2 transition-transform hover:-translate-y-0.5"
+              className="flex flex-col items-center justify-center gap-0.5 rounded-[22px] px-3 py-3 text-center text-teal2 transition-transform hover:-translate-y-0.5"
               style={{
                 background: "linear-gradient(135deg, var(--gold), var(--gold2))",
                 boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
               }}
             >
-              Enter for $36/mo
+              <span className="text-xs font-extrabold uppercase tracking-[0.1em]">Monthly Entry</span>
+              <span className="font-heading text-2xl leading-tight">From $36/mo</span>
             </Link>
             <Link
               href="#prize-wheel"
-              className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-cream border border-cream/35 bg-cream/[0.08] transition-colors hover:border-gold hover:text-gold2"
+              className="flex flex-col items-center justify-center gap-0.5 rounded-[22px] px-3 py-3 text-center text-cream border border-gold/60 bg-cream/[0.08] transition-colors hover:border-gold hover:bg-cream/[0.14]"
             >
-              One-Time Gift ($1–299)
+              <span className="text-xs font-extrabold uppercase tracking-[0.1em]">One-Time Entry</span>
+              <span className="font-heading text-2xl leading-tight text-gold2">$1–$299</span>
             </Link>
           </div>
 
