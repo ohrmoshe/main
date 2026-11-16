@@ -28,76 +28,80 @@ export function DonationTiers() {
   const dealActive = useDealActive()
   return (
     <>
-      {/* Monthly Plans — green band */}
+      {/* Monthly plans and the one-time prize wheel share one green band. From
+          md up they sit side by side, and the subgrid rows line the two
+          headings up and start the tiers and the wheel at the same height. */}
       <section className="py-16 md:py-20 px-5 lg:px-0 bg-teal text-cream" id="donate">
         <div className="w-full max-w-[1180px] mx-auto">
           <DealBanner />
 
-          <div className="text-center max-w-[740px] mx-auto mb-10">
-            <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
-              Monthly Giving
-            </div>
-            <h2 className="font-heading text-[clamp(2.2rem,4vw,4rem)] font-light leading-none tracking-[-0.035em] mb-3.5">
-              Monthly Donation Plans
-            </h2>
-            <p className="text-cream/75 text-[1.05rem]">
-              Join our monthly giving program and automatically enter every drawing. The more you give, the more you
-              save.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5 gap-y-5">
-            {SUBSCRIPTION_TIERS.map((tier) => (
-              <Tier
-                key={tier.id}
-                tierId={tier.id}
-                label={tier.label}
-                entries={tier.entries}
-                price={tier.priceInCents / 100}
-                perEntry={tier.pricePerEntry}
-                description={tier.description}
-                savings={tier.savings}
-                featured={tier.featured}
-                bestValue={tier.bestValue}
-              />
-            ))}
-          </div>
-
-          <MonthlyCustomAmount />
-
-          <p className="text-center text-cream/70 mt-6 text-sm">
-            Cancel anytime · All donations are subject to partial tax deduction · Kollel Ohr Moshe is a 501(c)(3) organization
-          </p>
-        </div>
-      </section>
-
-      {/* One-Time + Custom — cream band */}
-      <section id="prize-wheel" className="py-16 md:py-20 px-5 lg:px-0 bg-cream">
-        <div className="w-full max-w-[1180px] mx-auto">
-          <div
-            className="rounded-[34px] p-8 md:p-11 grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-6 items-center shadow-[0_24px_70px_rgba(18,54,54,0.16)]"
-            style={{ background: "linear-gradient(135deg, #fff8ed, #efe3d2)" }}
-          >
-            <div>
-              <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
-                One-Time Entry
+          <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] gap-x-6 gap-y-7">
+            <div className="min-w-0 grid grid-cols-1 gap-y-7 md:col-start-1 md:row-start-1 md:row-span-2 md:grid-rows-subgrid">
+              <div className="text-center md:text-left md:pt-5 lg:pt-7">
+                <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
+                  Monthly Entry
+                </div>
+                <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light leading-none tracking-[-0.035em] mb-3">
+                  Monthly Donation Plans
+                </h2>
+                <p className="text-cream/75 text-[1.02rem] leading-relaxed">
+                  Join our monthly giving program and automatically enter every drawing. The more you give, the more
+                  you save.
+                </p>
               </div>
-              <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-text leading-none mb-3">
-                Spin the Prize Wheel
-              </h2>
-              <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
-                Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
-                exact amount it lands on — from $1 to 299 max.{" "}
-                {dealActive && (
-                  <span className="font-semibold text-gold">
-                    Today only, every spin is 50% off — you pay half of whatever it lands on.
-                  </span>
-                )}{" "}
-                Every spin earns you one entry into this month&apos;s drawing.
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 auto-rows-fr gap-4">
+                {SUBSCRIPTION_TIERS.map((tier) => (
+                  <Tier
+                    key={tier.id}
+                    tierId={tier.id}
+                    label={tier.label}
+                    entries={tier.entries}
+                    price={tier.priceInCents / 100}
+                    perEntry={tier.pricePerEntry}
+                    description={tier.description}
+                    savings={tier.savings}
+                    featured={tier.featured}
+                    bestValue={tier.bestValue}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="min-w-0 md:col-span-2 md:row-start-3">
+              <MonthlyCustomAmount />
+
+              <p className="text-center text-cream/70 mt-6 text-sm">
+                Cancel anytime · All donations are subject to partial tax deduction · Kollel Ohr Moshe is a 501(c)(3) organization
               </p>
             </div>
 
-            <PrizeWheel />
+            <div
+              id="prize-wheel"
+              className="min-w-0 scroll-mt-24 grid grid-cols-1 gap-y-7 rounded-[28px] p-5 lg:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)] md:col-start-2 md:row-start-1 md:row-span-2 md:grid-rows-subgrid"
+              style={{ background: "linear-gradient(135deg, #fff8ed, #efe3d2)" }}
+            >
+              <div>
+                <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
+                  One-Time Entry
+                </div>
+                <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-text leading-none mb-3">
+                  Spin the Prize Wheel
+                </h2>
+                <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
+                  Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
+                  exact amount it lands on — from $1 to 299 max.{" "}
+                  {dealActive && (
+                    <span className="font-semibold text-gold">
+                      Today only, every spin is 50% off — you pay half of whatever it lands on.
+                    </span>
+                  )}{" "}
+                  Every spin earns you one entry into this month&apos;s drawing.
+                </p>
+              </div>
+
+              <PrizeWheel />
+            </div>
           </div>
         </div>
       </section>
@@ -149,7 +153,7 @@ function Tier({
   return (
     <>
       <article
-        className={`relative rounded-[28px] p-6 min-h-[310px] flex flex-col border ${
+        className={`relative rounded-[28px] p-6 md:p-5 xl:p-6 min-h-[310px] flex flex-col border ${
           featured ? "bg-cream/[0.14] border-gold" : "bg-cream/[0.08] border-cream/15"
         }`}
       >
@@ -171,8 +175,10 @@ function Tier({
         </div>
         {dealActive ? (
           <div className="my-2.5">
-            <div className="flex items-baseline gap-2">
-              <span className="font-heading text-[3.4rem] leading-none text-gold2">${firstMonthPrice}</span>
+            <div className="flex flex-wrap items-baseline gap-x-2">
+              <span className="font-heading text-[3.4rem] md:text-[3rem] xl:text-[3.4rem] leading-none text-gold2">
+                ${firstMonthPrice}
+              </span>
               <span className="font-heading text-2xl text-cream/45 line-through decoration-2">${price}</span>
             </div>
             <div className="text-cream/70 text-sm font-semibold mt-0.5">
@@ -180,13 +186,13 @@ function Tier({
             </div>
           </div>
         ) : (
-          <div className="font-heading text-[3.4rem] leading-none my-2.5">
+          <div className="font-heading text-[3.4rem] md:text-[3rem] xl:text-[3.4rem] leading-none my-2.5">
             ${price}
             <small className="font-heading text-base">/month</small>
           </div>
         )}
         <div className="text-cream/70 font-bold mb-3.5">${perEntry}/entry</div>
-        <p className="text-cream/80 text-[0.94rem]">{description}</p>
+        <p className="text-cream/80 text-[0.94rem] mb-4">{description}</p>
         <button
           onClick={() => setShowConsentModal(true)}
           disabled={loading}
@@ -241,7 +247,7 @@ function MonthlyCustomAmount() {
   }
 
   return (
-    <div className="mt-7 rounded-[28px] bg-cream/[0.08] border border-cream/15 p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-5 md:gap-8">
+    <div className="rounded-[28px] bg-cream/[0.08] border border-cream/15 p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-5 md:gap-8">
       <div className="flex-1">
         <div className="text-[0.72rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-1.5">
           Custom Monthly Amount
