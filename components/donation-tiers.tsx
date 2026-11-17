@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { createCheckoutSession } from "@/app/actions/stripe"
-import { SUBSCRIPTION_TIERS, WHEEL_MAX } from "@/lib/products"
+import { SUBSCRIPTION_TIERS, WHEEL_MAX, ONE_TIME_ENTRY_ENABLED } from "@/lib/products"
 import { isDealActive } from "@/lib/deal"
 import { ConsentModal } from "./consent-modal"
 import { DealBanner } from "./deal-banner"
@@ -101,7 +101,10 @@ function EntryChoiceSwitch({
 export function DonationTiers() {
   const dealActive = useDealActive()
   const [choice, setChoice] = useEntryChoice()
-  const showMonthly = choice === "monthly"
+  // With one-time entries switched off the monthly plans are the whole
+  // section: no switch, no wheel, and the tiers take the full width.
+  const withWheel = ONE_TIME_ENTRY_ENABLED
+  const showMonthly = !withWheel || choice === "monthly"
   return (
     <>
       {/* Monthly plans and the one-time prize wheel share one green band. From
@@ -115,28 +118,36 @@ export function DonationTiers() {
           {/* #prize-wheel sits on this always-visible wrapper so the jump works
               on phones even while the wheel panel itself is hidden. */}
           <div id="prize-wheel" className="scroll-mt-24">
-          <EntryChoiceSwitch choice={choice} onChange={setChoice} />
+          {withWheel && <EntryChoiceSwitch choice={choice} onChange={setChoice} />}
 
-          <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] gap-x-6 gap-y-7">
+          <div className={`grid grid-cols-1 gap-x-6 gap-y-7 ${withWheel ? "md:grid-cols-[1.15fr_1fr]" : ""}`}>
             <div
-              className={`min-w-0 grid-cols-1 gap-y-7 md:col-start-1 md:row-start-1 md:row-span-2 md:grid-rows-subgrid ${
-                showMonthly ? "grid" : "hidden md:grid"
-              }`}
+              className={`min-w-0 grid-cols-1 gap-y-7 ${
+                withWheel ? "md:col-start-1 md:row-start-1 md:row-span-2 md:grid-rows-subgrid" : ""
+              } ${showMonthly ? "grid" : "hidden md:grid"}`}
             >
-              <div className="text-center md:text-left md:pt-5 lg:pt-7">
+              <div className={withWheel ? "text-center md:text-left md:pt-5 lg:pt-7" : "text-center max-w-[740px] mx-auto"}>
                 <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
-                  Monthly Entry
+                  {withWheel ? "Monthly Entry" : "Monthly Members Only"}
                 </div>
                 <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light leading-none tracking-[-0.035em] mb-3">
                   Monthly Donation Plans
                 </h2>
-                <p className="text-cream/75 text-[1.02rem] leading-relaxed">
+                <p className="text-cream/75 text-[1.02rem] leading-relaxed text-pretty">
+                  {!withWheel && (
+                    <>
+                      <strong className="text-cream">
+                        This month&apos;s drawing is exclusive to monthly members
+                      </strong>{" "}
+                      — one-time entries are closed.{" "}
+                    </>
+                  )}
                   Join our monthly giving program and automatically enter every drawing. The more you give, the more
                   you save.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 auto-rows-fr gap-4">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 auto-rows-fr gap-4 ${withWheel ? "" : "lg:grid-cols-4"}`}>
                 {SUBSCRIPTION_TIERS.map((tier) => (
                   <Tier
                     key={tier.id}
@@ -154,7 +165,11 @@ export function DonationTiers() {
               </div>
             </div>
 
-            <div className={`min-w-0 md:col-span-2 md:row-start-3 ${showMonthly ? "" : "hidden md:block"}`}>
+            <div
+              className={`min-w-0 ${withWheel ? "md:col-span-2 md:row-start-3" : ""} ${
+                showMonthly ? "" : "hidden md:block"
+              }`}
+            >
               <MonthlyCustomAmount />
 
               <p className="text-center text-cream/70 mt-6 text-sm">
@@ -162,33 +177,35 @@ export function DonationTiers() {
               </p>
             </div>
 
-            <div
-              className={`min-w-0 grid-cols-1 gap-y-7 rounded-[28px] p-5 lg:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)] md:col-start-2 md:row-start-1 md:row-span-2 md:grid-rows-subgrid ${
-                showMonthly ? "hidden md:grid" : "grid"
-              }`}
-              style={{ background: "linear-gradient(135deg, #fff8ed, #efe3d2)" }}
-            >
-              <div>
-                <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
-                  One-Time Entry
+            {withWheel && (
+              <div
+                className={`min-w-0 grid-cols-1 gap-y-7 rounded-[28px] p-5 lg:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)] md:col-start-2 md:row-start-1 md:row-span-2 md:grid-rows-subgrid ${
+                  showMonthly ? "hidden md:grid" : "grid"
+                }`}
+                style={{ background: "linear-gradient(135deg, #fff8ed, #efe3d2)" }}
+              >
+                <div>
+                  <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
+                    One-Time Entry
+                  </div>
+                  <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-foreground leading-none mb-3">
+                    Spin the Prize Wheel
+                  </h2>
+                  <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
+                    Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
+                    exact amount it lands on — from $1 to 299 max.{" "}
+                    {dealActive && (
+                      <span className="font-semibold text-gold">
+                        Today only, every spin is 50% off — you pay half of whatever it lands on.
+                      </span>
+                    )}{" "}
+                    Every spin earns you one entry into this month&apos;s drawing.
+                  </p>
                 </div>
-                <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light text-foreground leading-none mb-3">
-                  Spin the Prize Wheel
-                </h2>
-                <p className="text-muted-foreground text-[1.02rem] leading-relaxed">
-                  Not ready to commit monthly? Pre-authorize your card, give the wheel a spin, and get charged the
-                  exact amount it lands on — from $1 to 299 max.{" "}
-                  {dealActive && (
-                    <span className="font-semibold text-gold">
-                      Today only, every spin is 50% off — you pay half of whatever it lands on.
-                    </span>
-                  )}{" "}
-                  Every spin earns you one entry into this month&apos;s drawing.
-                </p>
-              </div>
 
-              <PrizeWheel />
-            </div>
+                <PrizeWheel />
+              </div>
+            )}
           </div>
           </div>
         </div>

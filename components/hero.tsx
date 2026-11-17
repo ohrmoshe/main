@@ -2,9 +2,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { getDrawingInfo } from "@/lib/drawing"
 import { getEntryStats } from "@/app/actions/stats"
+import { ONE_TIME_ENTRY_ENABLED } from "@/lib/products"
 import { CountdownClock } from "./countdown-clock"
 
-  const WATCH_VALUE = "$17,000"
+const WATCH_VALUE = "$28,000"
 
 export async function Hero() {
   const { dateLabel, timeLabel, targetTime } = getDrawingInfo()
@@ -45,8 +46,9 @@ export async function Hero() {
             </div>
           </div>
           <p className="text-[0.98rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-3 lg:mt-0">
-            Donate to support a Kollel of Torah learning — and every gift enters you to win this month&apos;s{" "}
-            {WATCH_VALUE} luxury watch, drawn <strong className="text-cream">live on Zoom</strong>.
+            {ONE_TIME_ENTRY_ENABLED ? "Donate" : "Donate monthly"} to support a Kollel of Torah learning — and every
+            gift enters you to win this month&apos;s {WATCH_VALUE} luxury watch, drawn{" "}
+            <strong className="text-cream">live on Zoom</strong>.
           </p>
         </div>
 
@@ -61,7 +63,11 @@ export async function Hero() {
               joined this month&apos;s sweepstakes
             </p>
           )}
-          <div className="grid grid-cols-2 gap-3 max-w-[520px]">
+          <div
+            className={`grid gap-3 ${
+              ONE_TIME_ENTRY_ENABLED ? "grid-cols-2 max-w-[520px]" : "grid-cols-1 max-w-[520px] sm:max-w-[320px]"
+            }`}
+          >
             <Link
               href="#donate"
               className="flex flex-col items-center justify-center gap-0.5 rounded-[22px] px-3 py-3 text-center text-teal2 transition-transform hover:-translate-y-0.5"
@@ -73,13 +79,15 @@ export async function Hero() {
               <span className="text-xs font-extrabold uppercase tracking-[0.1em]">Monthly Entry</span>
               <span className="font-heading text-2xl leading-tight">From $36/mo</span>
             </Link>
-            <Link
-              href="#prize-wheel"
-              className="flex flex-col items-center justify-center gap-0.5 rounded-[22px] px-3 py-3 text-center text-cream border border-gold/60 bg-cream/[0.08] transition-colors hover:border-gold hover:bg-cream/[0.14]"
-            >
-              <span className="text-xs font-extrabold uppercase tracking-[0.1em]">One-Time Entry</span>
-              <span className="font-heading text-2xl leading-tight text-gold2">$1–$299</span>
-            </Link>
+            {ONE_TIME_ENTRY_ENABLED && (
+              <Link
+                href="#prize-wheel"
+                className="flex flex-col items-center justify-center gap-0.5 rounded-[22px] px-3 py-3 text-center text-cream border border-gold/60 bg-cream/[0.08] transition-colors hover:border-gold hover:bg-cream/[0.14]"
+              >
+                <span className="text-xs font-extrabold uppercase tracking-[0.1em]">One-Time Entry</span>
+                <span className="font-heading text-2xl leading-tight text-gold2">$1–$299</span>
+              </Link>
+            )}
           </div>
 
           <p className="text-cream/60 text-xs mt-3 leading-relaxed">
@@ -98,14 +106,14 @@ export async function Hero() {
         {/* Prize watch + countdown card — pulled high on mobile so the watch and
             monthly raffle are immediately visible right under the headline */}
         <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
-          {/* Prize watch — this month's Rolex Datejust 41 Ref. 126334, blue dial */}
+          {/* Prize watch — this month's Rolex Sky-Dweller 42 Ref. 336934, green dial */}
           <div className="relative rounded-[22px] bg-cream2 p-2 md:p-3 flex flex-col items-center justify-center text-center mb-5 min-h-[220px] md:min-h-[300px] overflow-hidden">
             <div className="absolute top-3 left-3 z-10 text-[0.7rem] font-extrabold tracking-[0.18em] uppercase text-gold">
               This Month&apos;s Prize
             </div>
             <Image
-              src="/images/rolex-datejust-41-126334-blue.avif"
-              alt="Rolex Datejust 41 reference 126334 with blue dial, fluted white gold bezel, and stainless steel Jubilee bracelet"
+              src="/images/rolex-sky-dweller-336934-green.avif"
+              alt="Rolex Sky-Dweller 42mm reference 336934 with green dial, fluted bezel, and Jubilee bracelet"
               width={900}
               height={900}
               className="h-auto w-full object-contain"
@@ -113,8 +121,10 @@ export async function Hero() {
           </div>
           <div className="flex items-baseline justify-between gap-3 mb-5">
             <div>
-              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">Rolex Datejust 41</h3>
-              <p className="text-cream/70 text-xs mt-1">Ref. 126334 · Blue Dial · {WATCH_VALUE} value</p>
+              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">Rolex Sky-Dweller 42</h3>
+              <p className="text-cream/70 text-xs mt-1">
+                Ref. 336934 · Green Dial · Jubilee Bracelet · {WATCH_VALUE} value
+              </p>
             </div>
           </div>
 
