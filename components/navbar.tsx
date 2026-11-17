@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { WHATSAPP_GROUP_URL, WhatsAppIcon } from "./whatsapp"
 
 export function Navbar() {
   return (
@@ -11,14 +12,24 @@ export function Navbar() {
             <div className="text-xs text-cream/75 mt-1">A Kollel Ohr Moshe Project</div>
           </div>
         </Link>
-        <div className="flex items-center gap-6">
-          <nav className="hidden md:flex gap-6 text-[0.92rem] text-cream/90" aria-label="Primary navigation">
+        <div className="flex items-center gap-3 lg:gap-6">
+          <nav className="hidden md:flex gap-4 lg:gap-6 text-[0.92rem] text-cream/90" aria-label="Primary navigation">
             <Link href="#how" className="transition-colors hover:text-gold2">How It Works</Link>
             <Link href="#top" className="transition-colors hover:text-gold2">The Prize</Link>
             <Link href="#donate" className="transition-colors hover:text-gold2">Donate</Link>
             <Link href="#about" className="transition-colors hover:text-gold2">About</Link>
             <Link href="#winners" className="transition-colors hover:text-gold2">Winners</Link>
           </nav>
+          <a
+            href={WHATSAPP_GROUP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Join our WhatsApp group"
+            className="shrink-0 inline-flex h-11 w-11 items-center justify-center gap-2 rounded-full border border-gold/60 text-sm font-bold text-gold2 transition-colors hover:bg-gold2 hover:text-teal2 lg:w-auto lg:px-4"
+          >
+            <WhatsAppIcon className="size-5" />
+            <span className="hidden lg:inline">WhatsApp Group</span>
+          </a>
           <a
             href="https://kollelohrmoshe.org"
             target="_blank"

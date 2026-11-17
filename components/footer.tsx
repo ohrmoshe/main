@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { WHATSAPP_GROUP_URL, WhatsAppIcon } from "./whatsapp"
 
 export function Footer() {
   return (
@@ -54,6 +55,16 @@ export function Footer() {
               <br />
               Los Angeles, California
             </p>
+            <a
+              href={WHATSAPP_GROUP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-gold/60 px-4 py-2.5 text-sm font-bold text-gold2 transition-colors hover:bg-gold2 hover:text-teal2"
+            >
+              <WhatsAppIcon className="size-4" />
+              Join our WhatsApp group
+            </a>
+            <p className="text-cream/60 text-sm mt-2 leading-relaxed">Drawing updates and winner announcements.</p>
           </div>
         </div>
 
