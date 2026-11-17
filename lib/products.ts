@@ -79,6 +79,14 @@ export function getWinbackTiers(): WinbackTier[] {
   return SUBSCRIPTION_TIERS.map((t) => getWinbackTier(t.id)!)
 }
 
+// Master switch for one-time entries (the prize wheel and one-time checkout).
+// While `false` the wheel is hidden across the site and the server refuses new
+// one-time charges, so new entries come from monthly plans only. One-time
+// payments that were already made still count toward their drawing.
+export const ONE_TIME_ENTRY_ENABLED: boolean = false
+export const ONE_TIME_ENTRY_CLOSED_MESSAGE =
+  "One-time entries are closed. This drawing is open to monthly members only."
+
 // One-time single ticket price: $42
 export const ONE_TIME_PRICE_CENTS = 4200
 

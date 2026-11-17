@@ -6,8 +6,16 @@ import { donations, wheelNumbers } from "@/lib/db/schema"
 import { cookies } from "next/headers"
 import { sql } from "drizzle-orm"
 import { sendDonorConfirmation, sendAdminNotification } from "@/lib/email"
-import { WHEEL_MAX } from "@/lib/products"
+import { WHEEL_MAX, ONE_TIME_ENTRY_ENABLED, ONE_TIME_ENTRY_CLOSED_MESSAGE } from "@/lib/products"
 import { isDealActive, getDealPriceCents } from "@/lib/deal"
+
+// Server actions are callable directly, so hiding the wheel in the UI is not
+// enough: every action that leads to a wheel charge checks the switch itself.
+function assertOneTimeEntryOpen() {
+  if (!ONE_TIME_ENTRY_ENABLED) {
+    throw new Error(ONE_TIME_ENTRY_CLOSED_MESSAGE)
+  }
+}
 
 async function getReferralCode() {
   const cookieStore = await cookies()
@@ -36,6 +44,7 @@ export async function createWheelSetupIntent(donor: {
   email: string
   phone?: string
 }) {
+  assertOneTimeEntryOpen()
   if (!donor.name || !donor.email) {
     throw new Error("Name and email are required")
   }
@@ -75,6 +84,7 @@ export async function getPaymentMethodInfo(paymentMethodId: string) {
 // Google Pay donor can re-authorize the payment sheet for another spin without
 // re-entering their name, email, or phone.
 export async function createRespinSetupIntent(customerId: string) {
+  assertOneTimeEntryOpen()
   if (!customerId) {
     throw new Error("Missing customer")
   }
@@ -129,6 +139,7 @@ export async function spinAndCharge(input: {
   phone?: string
   consent?: { email: boolean; sms: boolean }
 }) {
+  assertOneTimeEntryOpen()
   const referralCode = (await getReferralCode()) || null
 
   // Reserve a number first (placeholder amount, updated after we know it)

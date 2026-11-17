@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { getDealDeadline, isDealActive } from "@/lib/deal"
+import { ONE_TIME_ENTRY_ENABLED } from "@/lib/products"
 
 function format2(n: number) {
   return n.toString().padStart(2, "0")
@@ -89,7 +90,8 @@ export function PromoPopup() {
         </h2>
         <p className="text-teal/75 text-[0.97rem] leading-relaxed mb-5">
           For the next few hours, pay <span className="font-semibold text-teal">50% off</span> — your first month on
-          any monthly plan, or half of whatever the prize wheel lands on. Same entries, half the price.
+          any monthly plan{ONE_TIME_ENTRY_ENABLED ? ", or half of whatever the prize wheel lands on" : ""}. Same
+          entries, half the price.
         </p>
 
         {/* Countdown */}

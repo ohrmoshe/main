@@ -1,7 +1,14 @@
 "use server"
 
 import { stripe, SITE_ID } from "@/lib/stripe"
-import { SUBSCRIPTION_TIERS, calculateCustomTier, calculateMonthlyCustomTier, ONE_TIME_PRICE_CENTS } from "@/lib/products"
+import {
+  SUBSCRIPTION_TIERS,
+  calculateCustomTier,
+  calculateMonthlyCustomTier,
+  ONE_TIME_PRICE_CENTS,
+  ONE_TIME_ENTRY_ENABLED,
+  ONE_TIME_ENTRY_CLOSED_MESSAGE,
+} from "@/lib/products"
 import { isDealActive, DEAL_DISCOUNT, getDealPriceCents } from "@/lib/deal"
 import { getDrawingInfo } from "@/lib/drawing"
 import { headers, cookies } from "next/headers"
@@ -149,6 +156,9 @@ export async function createOneTimeCheckout(
   consent?: { email: boolean; sms: boolean },
   customAmountCents?: number
 ) {
+  if (!ONE_TIME_ENTRY_ENABLED) {
+    throw new Error(ONE_TIME_ENTRY_CLOSED_MESSAGE)
+  }
   try {
     const headersList = await headers()
     const origin = headersList.get("origin") || process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"

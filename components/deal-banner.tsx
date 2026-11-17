@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { getDealDeadline, isDealActive } from "@/lib/deal"
+import { ONE_TIME_ENTRY_ENABLED } from "@/lib/products"
 
 function pad(n: number) {
   return n.toString().padStart(2, "0")
@@ -48,13 +49,15 @@ export function DealBanner() {
           Today Only{todayLabel ? ` · ${todayLabel}` : ""}
         </div>
         <h3 className="font-heading text-[clamp(1.5rem,2.6vw,2.1rem)] font-light leading-tight text-cream">
-          Pay <span className="text-gold2 font-normal">Half Price</span> When You Subscribe or Spin
+          Pay <span className="text-gold2 font-normal">Half Price</span> When You Subscribe
+          {ONE_TIME_ENTRY_ENABLED ? " or Spin" : ""}
         </h3>
         <p className="text-cream/75 text-[0.97rem] mt-1.5">
           Start any monthly plan before{" "}
           <span className="font-semibold text-cream">midnight ET tonight</span> and your first month is{" "}
-          <span className="font-semibold text-cream">50% off</span> — or spin the prize wheel and pay half of whatever
-          it lands on. Same entries, half the price.
+          <span className="font-semibold text-cream">50% off</span>
+          {ONE_TIME_ENTRY_ENABLED ? " — or spin the prize wheel and pay half of whatever it lands on" : ""}. Same
+          entries, half the price.
         </p>
       </div>
 
