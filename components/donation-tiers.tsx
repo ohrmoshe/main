@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { createCheckoutSession } from "@/app/actions/stripe"
 import { SUBSCRIPTION_TIERS, WHEEL_MAX, ONE_TIME_ENTRY_ENABLED } from "@/lib/products"
 import { isDealActive } from "@/lib/deal"
+import { CURRENT_PRIZE, PRIZE_VALUE_LABEL } from "@/lib/prize"
 import { ConsentModal } from "./consent-modal"
 import { DealBanner } from "./deal-banner"
 import { PrizeWheel } from "./prize-wheel"
@@ -128,7 +129,7 @@ export function DonationTiers() {
             >
               <div className={withWheel ? "text-center md:text-left md:pt-5 lg:pt-7" : "text-center max-w-[740px] mx-auto"}>
                 <div className="text-[0.76rem] font-extrabold tracking-[0.16em] uppercase text-gold mb-2.5">
-                  {withWheel ? "Monthly Entry" : "Monthly Members Only"}
+                  {withWheel ? "Monthly Entry" : "Members-Only Drawing"}
                 </div>
                 <h2 className="font-heading text-[clamp(2rem,3.5vw,3rem)] font-light leading-none tracking-[-0.035em] mb-3">
                   Monthly Donation Plans
@@ -137,7 +138,8 @@ export function DonationTiers() {
                   {!withWheel && (
                     <>
                       <strong className="text-cream">
-                        This month&apos;s drawing is exclusive to monthly members
+                        This month&apos;s {PRIZE_VALUE_LABEL} {CURRENT_PRIZE.shortName} is reserved for monthly
+                        members
                       </strong>{" "}
                       — one-time entries are closed.{" "}
                     </>

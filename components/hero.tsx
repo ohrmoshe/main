@@ -3,9 +3,12 @@ import Link from "next/link"
 import { getDrawingInfo } from "@/lib/drawing"
 import { getEntryStats } from "@/app/actions/stats"
 import { ONE_TIME_ENTRY_ENABLED } from "@/lib/products"
+import { CURRENT_PRIZE, PRIZE_INCREASE_LABEL, PRIZE_VALUE_LABEL } from "@/lib/prize"
 import { CountdownClock } from "./countdown-clock"
 
-const WATCH_VALUE = "$28,000"
+// While one-time entries are closed the drawing is open to monthly members
+// only, and the hero presents it that way.
+const MEMBERS_ONLY = !ONE_TIME_ENTRY_ENABLED
 
 export async function Hero() {
   const { dateLabel, timeLabel, targetTime } = getDrawingInfo()
@@ -41,15 +44,24 @@ export async function Hero() {
                 <span className="block text-gold2">Eternal Impact.</span>
               </h1>
               <div className="text-[0.58rem] md:text-[0.66rem] font-extrabold tracking-[0.16em] uppercase text-gold lg:mb-4">
-                Support a Kollel · Win a {WATCH_VALUE} Watch
+                {MEMBERS_ONLY ? "Members-Only Drawing" : "Support a Kollel"} · Win a {PRIZE_VALUE_LABEL} Watch
               </div>
             </div>
           </div>
-          <p className="text-[0.98rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-3 lg:mt-0">
-            {ONE_TIME_ENTRY_ENABLED ? "Donate" : "Donate monthly"} to support a Kollel of Torah learning — and every
-            gift enters you to win this month&apos;s {WATCH_VALUE} luxury watch, drawn{" "}
-            <strong className="text-cream">live on Zoom</strong>.
-          </p>
+          {MEMBERS_ONLY ? (
+            <p className="text-[0.98rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-3 lg:mt-0 text-pretty">
+              <strong className="text-gold2">This month is not a regular drawing.</strong> The prize is a{" "}
+              {PRIZE_VALUE_LABEL} {CURRENT_PRIZE.shortName}
+              {PRIZE_INCREASE_LABEL && <> — {PRIZE_INCREASE_LABEL} more than last month&apos;s watch —</>} and entry is
+              open to monthly members only. Your monthly gift supports a Kollel of Torah learning, and the winner is
+              drawn <strong className="text-cream">live on Zoom</strong>.
+            </p>
+          ) : (
+            <p className="text-[0.98rem] md:text-[1.1rem] leading-relaxed text-cream/85 max-w-[560px] mt-3 lg:mt-0">
+              Donate to support a Kollel of Torah learning — and every gift enters you to win this month&apos;s{" "}
+              {PRIZE_VALUE_LABEL} luxury watch, drawn <strong className="text-cream">live on Zoom</strong>.
+            </p>
+          )}
         </div>
 
         {/* Supporting copy + CTAs — above the watch card on mobile, under intro on desktop */}
@@ -105,27 +117,66 @@ export async function Hero() {
 
         {/* Prize watch + countdown card — pulled high on mobile so the watch and
             monthly raffle are immediately visible right under the headline */}
-        <aside className="order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border border-cream/20 bg-cream/[0.11] p-5 md:p-7 shadow-[0_24px_70px_rgba(18,54,54,0.16)]">
-          {/* Prize watch — this month's Rolex Sky-Dweller 42 Ref. 336934, green dial */}
+        <aside
+          className={`order-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center rounded-[28px] border bg-cream/[0.11] p-5 md:p-7 ${
+            MEMBERS_ONLY
+              ? "border-gold/70 shadow-[0_24px_70px_rgba(200,155,92,0.22)]"
+              : "border-cream/20 shadow-[0_24px_70px_rgba(18,54,54,0.16)]"
+          }`}
+        >
+          {MEMBERS_ONLY && (
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <span className="rounded-full bg-gold2 px-3.5 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.16em] text-teal2">
+                Members-Only Drawing
+              </span>
+              <span className="text-[0.7rem] font-extrabold uppercase tracking-[0.16em] text-gold2">
+                One-time entries closed
+              </span>
+            </div>
+          )}
+
           <div className="relative rounded-[22px] bg-cream2 p-2 md:p-3 flex flex-col items-center justify-center text-center mb-5 min-h-[220px] md:min-h-[300px] overflow-hidden">
             <div className="absolute top-3 left-3 z-10 text-[0.7rem] font-extrabold tracking-[0.18em] uppercase text-gold">
               This Month&apos;s Prize
             </div>
             <Image
-              src="/images/rolex-sky-dweller-336934-green.avif"
-              alt="Rolex Sky-Dweller 42mm reference 336934 with green dial, fluted bezel, and Jubilee bracelet"
+              src={CURRENT_PRIZE.image}
+              alt={CURRENT_PRIZE.imageAlt}
               width={900}
               height={900}
               className="h-auto w-full object-contain"
             />
           </div>
-          <div className="flex items-baseline justify-between gap-3 mb-5">
+
+          <h3 className="font-heading text-3xl md:text-4xl font-light leading-none">{CURRENT_PRIZE.name}</h3>
+          <p className="text-cream/70 text-xs mt-1.5">{CURRENT_PRIZE.details}</p>
+          <p className="text-cream/85 text-sm leading-relaxed mt-3 text-pretty">{CURRENT_PRIZE.description}</p>
+          <ul className="flex flex-wrap gap-2 mt-3">
+            {CURRENT_PRIZE.highlights.map((highlight) => (
+              <li
+                key={highlight}
+                className="rounded-full border border-cream/25 px-3 py-1 text-xs font-semibold text-cream/90"
+              >
+                {highlight}
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-wrap items-end justify-between gap-x-5 gap-y-2 rounded-[20px] border border-gold/50 bg-teal2/50 px-5 py-4 mt-5 mb-5">
             <div>
-              <h3 className="font-heading text-2xl md:text-3xl font-light leading-none">Rolex Sky-Dweller 42</h3>
-              <p className="text-cream/70 text-xs mt-1">
-                Ref. 336934 · Green Dial · Jubilee Bracelet · {WATCH_VALUE} value
-              </p>
+              <div className="text-[0.7rem] font-extrabold uppercase tracking-[0.16em] text-gold">Prize value</div>
+              <div className="font-heading text-5xl md:text-6xl font-light leading-none text-gold2 mt-1">
+                {PRIZE_VALUE_LABEL}
+              </div>
             </div>
+            {PRIZE_INCREASE_LABEL && (
+              <p className="text-sm leading-snug text-cream/85">
+                <strong className="block font-heading text-2xl font-light leading-none text-cream">
+                  +{PRIZE_INCREASE_LABEL}
+                </strong>
+                over last month&apos;s watch
+              </p>
+            )}
           </div>
 
           <div className="pt-5 border-t border-cream/15">
@@ -144,7 +195,7 @@ export async function Hero() {
               boxShadow: "0 12px 30px rgba(200,155,92,0.32)",
             }}
           >
-            Enter to Win
+            {MEMBERS_ONLY ? "Become a Member to Enter" : "Enter to Win"}
           </Link>
         </aside>
       </div>
