@@ -7,8 +7,9 @@ import { revalidatePath } from "next/cache"
 import { effectiveEntries, isBonusActive } from "@/lib/drawing"
 import { requireAdmin } from "@/lib/auth"
 import { recordTransaction } from "@/lib/transactions"
+import { getLimitEndsAt, parseMonthsLimit } from "@/lib/manual-donations"
 
-type DonationFilter = "all" | "active" | "cancelled" | "one_time"
+type DonationFilter = "all" | "active" | "cancelled" | "one_time" | "completed"
 
 // FIX (#8): neutralize spreadsheet formula injection. A cell starting with = + - @ (or tab/CR) is
 // treated as a live formula by Excel/Sheets, so prefix those with a single quote before quoting.
@@ -20,6 +21,8 @@ function csvCell(value: unknown): string {
 
 // Manually add a donor who gave outside the website (e.g. cash, check, or a
 // donation made without a referral link). Status is either "active" (monthly) or "one_time".
+// A monthly donation can be limited to a number of months (`monthsLimit`): it is
+// then entered in that many consecutive drawings and ends automatically.
 export async function addManualDonation(data: {
   name: string
   email: string
@@ -28,6 +31,7 @@ export async function addManualDonation(data: {
   amountDollars: number
   status: "active" | "one_time"
   referralCode?: string
+  monthsLimit?: number | null
 }) {
   await requireAdmin()
   const name = data.name.trim()
@@ -38,6 +42,8 @@ export async function addManualDonation(data: {
   const entries = Math.max(0, Math.round(Number(data.entries) || 0))
   const amountCents = Math.max(0, Math.round((Number(data.amountDollars) || 0) * 100))
   const referralCode = data.referralCode?.trim() || null
+  const monthsLimit = data.status === "active" ? parseMonthsLimit(data.monthsLimit) : null
+  const now = new Date()
 
   const [inserted] = await db
     .insert(donations)
@@ -49,6 +55,10 @@ export async function addManualDonation(data: {
       amountCents,
       status: data.status,
       referralCode,
+      monthsLimit,
+      monthsRecorded: 1,
+      endsAt: monthsLimit ? getLimitEndsAt(now, monthsLimit) : null,
+      createdAt: now,
     })
     .returning({ id: donations.id })
 
@@ -65,7 +75,7 @@ export async function addManualDonation(data: {
     type: "manual",
     status: "paid",
     referralCode,
-    chargedAt: new Date(),
+    chargedAt: now,
     donationId: inserted.id,
   })
 
@@ -96,7 +106,7 @@ export async function deleteDonation(id: number) {
 
 export async function getDonations(filter: DonationFilter = "all") {
   await requireAdmin()
-  if (filter === "active" || filter === "cancelled" || filter === "one_time") {
+  if (filter !== "all") {
     const results = await db
       .select()
       .from(donations)
@@ -165,6 +175,8 @@ export async function exportDonationsCSV(filter: DonationFilter = "all") {
     "Status",
     "Created At",
     "Cancelled At",
+    "Month Limit",
+    "Ends At",
   ]
 
   const rows = (Array.isArray(data) ? data : []).map((d) => [
@@ -184,6 +196,8 @@ export async function exportDonationsCSV(filter: DonationFilter = "all") {
     d.status,
     d.createdAt ? new Date(d.createdAt).toISOString() : "",
     d.cancelledAt ? new Date(d.cancelledAt).toISOString() : "",
+    d.monthsLimit ?? "",
+    d.endsAt ? new Date(d.endsAt).toISOString() : "",
   ])
 
   const csvContent = [

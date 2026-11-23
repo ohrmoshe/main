@@ -241,6 +241,30 @@ export function getBillingMonthKey(date: Date, type?: string): string {
   return `${year}-${m}`
 }
 
+// The consecutive drawings a donation made at `from` is entered in: the first
+// drawing whose cutoff is after `from`, then one per month after that. Used for
+// manual donations that run for a fixed number of months.
+export function getDrawingSchedule(
+  from: Date,
+  count: number,
+  type?: string,
+): { key: string; cutoff: Date }[] {
+  let { year, month } = getBillingDrawing(from, type)
+  const schedule: { key: string; cutoff: Date }[] = []
+  for (let i = 0; i < count; i++) {
+    schedule.push({
+      key: `${year}-${String(month + 1).padStart(2, "0")}`,
+      cutoff: drawingCutoff(year, month, type),
+    })
+    month += 1
+    if (month > 11) {
+      month = 0
+      year += 1
+    }
+  }
+  return schedule
+}
+
 // Human label for the billing window, e.g. "June 2026".
 export function getBillingMonthLabel(key: string): string {
   const [y, m] = key.split("-").map(Number)
