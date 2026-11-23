@@ -9,7 +9,19 @@ import {
   deleteDonation,
 } from "@/app/actions/admin"
 
-type DonationFilter = "all" | "active" | "cancelled" | "one_time"
+type DonationFilter = "all" | "active" | "cancelled" | "one_time" | "completed"
+
+const MAX_MONTHS_LIMIT = 120
+
+const EMPTY_FORM = {
+  name: "",
+  email: "",
+  phone: "",
+  entries: "",
+  amount: "",
+  status: "active" as "active" | "one_time",
+  months: "",
+}
 
 type Donation = {
   id: number
@@ -25,8 +37,27 @@ type Donation = {
   bonusEntriesUntil?: Date | string | null
   amountCents: number
   status: string
+  monthsLimit?: number | null
+  monthsRecorded?: number | null
+  endsAt?: Date | string | null
   createdAt: Date | null
   cancelledAt: Date | null
+}
+
+// "Month 3 of 12 · ends Jan 15, 2027" for a donation with a month limit.
+function monthLimitSummary(d: Donation): string | null {
+  if (!d.monthsLimit) return null
+  const recorded = Math.min(d.monthsLimit, Math.max(1, d.monthsRecorded ?? 1))
+  if (d.status !== "active") return `${recorded} of ${d.monthsLimit} months`
+  const ends = d.endsAt
+    ? new Date(d.endsAt).toLocaleDateString("en-US", {
+        timeZone: "America/Los_Angeles",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null
+  return `Month ${recorded} of ${d.monthsLimit}${ends ? ` · ends ${ends}` : ""}`
 }
 
 // Whether a donor's promo bonus is still valid for the upcoming drawing.
@@ -48,14 +79,7 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
   const [editValue, setEditValue] = useState("")
 
   // Add donation form fields
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    entries: "",
-    amount: "",
-    status: "active" as "active" | "one_time",
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
 
   const refresh = async (f: DonationFilter = filter) => {
@@ -102,6 +126,11 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
       alert("Name and email are required.")
       return
     }
+    const months = form.status === "active" && form.months.trim() ? Number(form.months) : null
+    if (months !== null && (!Number.isInteger(months) || months < 1 || months > MAX_MONTHS_LIMIT)) {
+      alert(`Month limit must be a whole number between 1 and ${MAX_MONTHS_LIMIT}, or blank for no limit.`)
+      return
+    }
     setSubmitting(true)
     try {
       await addManualDonation({
@@ -111,8 +140,9 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
         entries: Number(form.entries) || 0,
         amountDollars: Number(form.amount) || 0,
         status: form.status,
+        monthsLimit: months,
       })
-      setForm({ name: "", email: "", phone: "", entries: "", amount: "", status: "active" })
+      setForm(EMPTY_FORM)
       setShowAddForm(false)
       await refresh()
     } catch (error) {
@@ -196,7 +226,7 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
       {/* Filter & Export */}
       <div className="flex flex-wrap gap-4 mb-6 items-center justify-between">
         <div className="flex flex-wrap gap-2">
-          {(["all", "active", "one_time", "cancelled"] as const).map((f) => (
+          {(["all", "active", "one_time", "cancelled", "completed"] as const).map((f) => (
             <button
               key={f}
               onClick={() => handleFilterChange(f)}
@@ -285,8 +315,11 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[0.6rem] tracking-[0.2em] uppercase text-gold">Type</label>
+            <label htmlFor="add-donation-type" className="text-[0.6rem] tracking-[0.2em] uppercase text-gold">
+              Type
+            </label>
             <select
+              id="add-donation-type"
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "one_time" })}
               className="bg-teal border border-gold/30 text-cream px-3 py-2 text-sm focus:border-gold outline-none"
@@ -295,6 +328,30 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
               <option value="one_time">One-Time</option>
             </select>
           </div>
+          {form.status === "active" && (
+            <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-3">
+              <label htmlFor="add-donation-months" className="text-[0.6rem] tracking-[0.2em] uppercase text-gold">
+                Month Limit (optional)
+              </label>
+              <input
+                id="add-donation-months"
+                type="number"
+                min="1"
+                max={MAX_MONTHS_LIMIT}
+                step="1"
+                inputMode="numeric"
+                placeholder="No limit"
+                value={form.months}
+                onChange={(e) => setForm({ ...form, months: e.target.value })}
+                aria-describedby="add-donation-months-help"
+                className="bg-teal border border-gold/30 text-cream px-3 py-2 text-sm focus:border-gold outline-none sm:max-w-xs"
+              />
+              <p id="add-donation-months-help" className="text-xs text-cream/60 leading-relaxed">
+                Number of monthly drawings this donor is entered in, starting with the next one (e.g. 2 or 12). After
+                the last one the donation is marked completed. Leave blank to keep it running until you remove it.
+              </p>
+            </div>
+          )}
           <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
             <button
               type="submit"
@@ -397,11 +454,18 @@ export function AdminDashboardClient({ initialDonations }: { initialDonations: D
                           ? "bg-green-500/20 text-green-400"
                           : donation.status === "one_time"
                           ? "bg-gold/20 text-gold2"
+                          : donation.status === "completed"
+                          ? "bg-cream/10 text-cream/70"
                           : "bg-red-500/20 text-red-400"
                       }`}
                     >
                       {donation.status === "one_time" ? "one-time" : donation.status}
                     </span>
+                    {monthLimitSummary(donation) && (
+                      <div className="mt-1.5 text-xs text-cream/60 whitespace-nowrap">
+                        {monthLimitSummary(donation)}
+                      </div>
+                    )}
                   </td>
                   <td className="p-3 text-cream/60 text-xs">
                     {donation.createdAt

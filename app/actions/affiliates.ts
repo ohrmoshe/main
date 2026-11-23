@@ -6,6 +6,7 @@ import { desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { effectiveEntries } from "@/lib/drawing"
 import { requireAdmin, requireAffiliate, hashAffiliatePassword } from "@/lib/auth"
+import { syncLimitedDonations } from "@/lib/manual-donations"
 
 function slugifyCode(raw: string) {
   return raw
@@ -63,6 +64,7 @@ export async function setAffiliatePassword(id: number, password: string) {
 // Affiliate portal: the donors this logged-in affiliate personally referred.
 export async function getMyReferrals() {
   const code = await requireAffiliate()
+  await syncLimitedDonations()
   const [me] = await db.select().from(affiliates).where(eq(affiliates.code, code)).limit(1)
   const referred = await db
     .select()

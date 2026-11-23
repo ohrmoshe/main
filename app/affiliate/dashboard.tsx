@@ -119,6 +119,8 @@ export function AffiliateDashboard({ data }: { data: ReferralData }) {
                             ? "bg-green-500/20 text-green-400"
                             : d.status === "one_time"
                             ? "bg-gold/20 text-gold2"
+                            : d.status === "completed"
+                            ? "bg-cream/10 text-cream/70"
                             : "bg-red-500/20 text-red-400"
                         }`}
                       >

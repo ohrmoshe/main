@@ -22,6 +22,13 @@ export const donations = pgTable("donations", {
   emailConsent: boolean("email_consent").default(false),
   smsConsent: boolean("sms_consent").default(false),
   referralCode: text("referral_code"),
+  // Manual monthly donations can run for a fixed number of months. `monthsLimit`
+  // is that number (null = no limit), `monthsRecorded` is how many monthly
+  // charges have been recorded so far, and `endsAt` is the cutoff of the last
+  // drawing the donor is entered in.
+  monthsLimit: integer("months_limit"),
+  monthsRecorded: integer("months_recorded").notNull().default(0),
+  endsAt: timestamp("ends_at"),
   createdAt: timestamp("created_at").defaultNow(),
   cancelledAt: timestamp("cancelled_at"),
   updatedAt: timestamp("updated_at").defaultNow(),

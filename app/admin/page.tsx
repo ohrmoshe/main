@@ -14,6 +14,7 @@ import { OfferLinksManager } from "./offer-links-manager"
 import { AdminLogin } from "./login"
 import { headers } from "next/headers"
 import { isAdminAuthenticated } from "@/lib/auth"
+import { syncLimitedDonations } from "@/lib/manual-donations"
 
 export const dynamic = "force-dynamic"
 
@@ -28,6 +29,10 @@ export default async function AdminPage() {
   if (!authenticated) {
     return <AdminLogin />
   }
+
+  // Must finish before the reads below so they see this cycle's manual charges
+  // and any donation whose month limit has just run out.
+  await syncLimitedDonations()
 
   const [donations, stats, affiliateStats, transactionMonths, nextRaffle, offerLinks, wheelRounds] = await Promise.all([
     getDonations("all"),
